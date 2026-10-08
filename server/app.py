@@ -1411,5 +1411,12 @@ def c3d_logo(p: dict):
     return _c3d_err(f)
 
 
+@app.get("/api/systeme")
+def systeme():
+    """RAM de la machine + memoire du serveur (jauge de la fenetre de chargement)."""
+    from atelier.noyau.systeme import ram
+    return ram()
+
+
 # le site statique EN DERNIER (sinon il masque les routes declarees apres lui)
 app.mount("/", StaticFiles(directory=str(ICI / "web"), html=True), name="web")

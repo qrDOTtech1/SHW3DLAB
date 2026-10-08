@@ -77,8 +77,9 @@ let _t = null, _n = 0;
 function regenerer() { clearTimeout(_t); _t = setTimeout(generer, 220); }
 async function generer() {
   const n = ++_n; $('#cfg-etat').textContent = 'Calcul...';
+  const ch = window.SHWCharge?.debut(`Calcul du projet ${F.modeles[F.modele]?.nom || F.modele}`, { cle: 'gen-' + F.modele });
   try {
-    const r = await api('/api/meca/piece', { nom: F.modele, params: avecBase() });
+    const r = await api('/api/meca/piece', { nom: F.modele, params: avecBase() }).finally(() => ch?.fin());
     if (n !== _n) return;
     F.info = r.info; F.objets = r.objets;
     groupe.clear();
@@ -198,9 +199,11 @@ $('#cfg-version-save').onclick = () => {
 
 // ------------------------------------------------------------------ actions
 $('#cfg-export').onclick = async () => {
+  const ch = window.SHWCharge?.debut('Export des pieces (STL)', { cle: 'export-' + F.modele });
   const r = await fetch('/api/meca/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nom: F.modele, params: avecBase() }) });
-  if (!r.ok) return toast((await r.text()).slice(0, 200));
-  const a = document.createElement('a'); a.href = URL.createObjectURL(await r.blob()); a.download = `${F.modele}${F.version ? '_' + F.version : ''}.zip`; a.click();
+  if (!r.ok) { ch?.fin(); return toast((await r.text()).slice(0, 200)); }
+  const blob = await r.blob(); ch?.fin();
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${F.modele}${F.version ? '_' + F.version : ''}.zip`; a.click();
 };
 $('#cfg-imprimer').onclick = async () => {
   if (!F.objets.length) return;

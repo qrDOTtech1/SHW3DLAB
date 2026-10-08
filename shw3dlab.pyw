@@ -196,11 +196,161 @@ def icone():
     pystray.Icon("shw3dlab", fond, f"SHW 3DLAB {version()}", menu).run()
 
 
+
+
+# points de controle du lancement : des vrais, et d'autres... moins vrais. Puissance !
+CHECKPOINTS = [
+    "Vérification des mises à jour",
+    "Démarrage du moteur 3D",
+    "Ajout de puissance. Beaucoup plus de puissance.",
+    "Chargement des bibliothèques de géométrie",
+    "Lecture du manuel d'utilisation... non. Personne ne lit le manuel.",
+    "Calibrage du rendu MuJoCo",
+    "Consultation du pilote d'essai. Il n'a rien dit. C'est bon signe.",
+    "Chargement des polices et du logo SHWork",
+    "Retrait de tous les boulons. La v2.3 n'en a plus besoin, de toute façon.",
+    "Vérification du nid d'abeille. Les abeilles, elles, ne sont pas d'accord.",
+    "Préparation du trancheur CuraEngine",
+    "Ce qui pouvait mal tourner ? Absolument tout. Et pourtant, nous y voilà.",
+]
+BIERE = [
+    "Le mieux, c'est de ne rien toucher et de siroter sa bière en paix pendant que ça progresse.",
+    "Ne touchez a rien. Prenez une bière. Admirez la puissance.",
+    "Asseyez-vous, ouvrez une bière : la machine s'occupe de tout. Enfin, presque.",
+]
+
+
+# ------------------------------------------------------------------ fenetre de LANCEMENT (pluie matrix -> message sobre)
+def ecran_lancement(travail):
+    """Ouvre la fenetre de lancement et execute travail(etape) dans un thread ; etape(texte, fraction) met a
+    jour le message et la progression. La fenetre se ferme quand travail() rend la main."""
+    import random
+    import tkinter as tk
+    sys.path.insert(0, str(ICI))
+    try:
+        from atelier.noyau.systeme import ram
+    except Exception:
+        ram = lambda: {"pct": 0, "utilise_go": 0, "total_go": 0}
+    W, H = 460, 380
+    root = tk.Tk()
+    root.overrideredirect(True)                          # fenetre sans bordure, centree
+    root.attributes("-topmost", True)
+    x = (root.winfo_screenwidth() - W) // 2
+    y = (root.winfo_screenheight() - H) // 2
+    root.geometry(f"{W}x{H}+{x}+{y}")
+    root.configure(bg="#0d0f13")
+    cv = tk.Canvas(root, width=W, height=150, bg="#0d0f13", highlightthickness=0)
+    cv.pack()
+    glyphes = "SHW3DLAB01アイウエオカキクケコサシスセソ#%&*+<>/="
+    fs = 14
+    cols = W // fs
+    gouttes = [random.uniform(-4, 11) for _ in range(cols)]
+    traces = []
+    t0 = time.time()
+    try:
+        logo = tk.PhotoImage(file=str(ICI / "web" / "logo_shw.png")).subsample(2, 2)
+    except Exception:
+        logo = None
+    etat = {"titre": "Lancement de SHW 3DLAB", "p": 0.0, "fini": False}
+    f = tk.Frame(root, bg="#0d0f13")
+    f.pack(fill="both", expand=True, padx=20, pady=(10, 16))
+    lt = tk.Label(f, text=etat["titre"], fg="#e9ebef", bg="#0d0f13", font=("Segoe UI", 11, "bold"), anchor="w",
+                  wraplength=W - 40, justify="left", height=2)
+    lt.pack(fill="x")
+    tk.Label(f, text="Vous pouvez rencontrer des ralentissements pendant le chargement.", fg="#8b919c", bg="#0d0f13",
+             font=("Segoe UI", 9), anchor="w").pack(fill="x")
+    tk.Label(f, text=random.choice(BIERE), fg="#ff6410", bg="#0d0f13", font=("Georgia", 9, "italic"), anchor="w",
+             wraplength=W - 40, justify="left").pack(fill="x", pady=(2, 10))
+
+    def jauge(nom):
+        l = tk.Frame(f, bg="#0d0f13"); l.pack(fill="x")
+        tk.Label(l, text=nom, fg="#8b919c", bg="#0d0f13", font=("Segoe UI", 8)).pack(side="left")
+        v = tk.Label(l, text="", fg="#8b919c", bg="#0d0f13", font=("Segoe UI", 8)); v.pack(side="right")
+        c = tk.Canvas(f, height=7, bg="#1d2027", highlightthickness=0); c.pack(fill="x", pady=(2, 8))
+        return v, c
+    vp, cp = jauge("Progression")
+    vr, cr = jauge("Mémoire vive")
+
+    def barre(c, frac, coul):
+        c.delete("all")
+        w = max(1, c.winfo_width())
+        c.create_rectangle(0, 0, int(w * max(0, min(1, frac))), 7, fill=coul, width=0)
+
+    def anim():
+        age = time.time() - t0
+        for it in traces:
+            cv.delete(it)
+        traces.clear()
+        cv.create_rectangle(0, 0, W, 150, fill="#0d0f13", width=0)
+        vitesse = 1.0 if age < 1.4 else 0.45
+        for i in range(cols):
+            for k in range(6):                          # queue de la goutte (degrade)
+                yy = (gouttes[i] - k) * fs
+                if 0 <= yy < 150:
+                    coul = "#ffd1b3" if k == 0 else ("#ff6410" if k < 3 else "#7a3410")
+                    if age >= 1.4:
+                        coul = "#5c2a0e" if k else "#a04a17"
+                    cv.create_text(i * fs + 7, yy, text=random.choice(glyphes), fill=coul, font=("Consolas", 10))
+            gouttes[i] += vitesse
+            if gouttes[i] * fs > 150 + 6 * fs and random.random() > 0.9:
+                gouttes[i] = random.uniform(-6, 0)
+        if logo is not None and age > 1.1:
+            cv.create_image(16, 12, image=logo, anchor="nw")
+        if not etat["fini"]:
+            root.after(60, anim)
+
+    def maj():
+        r = ram()
+        vr.configure(text=f"{r['utilise_go']} / {r['total_go']} Go ({r['pct']} %)")
+        barre(cr, r["pct"] / 100, "#3ddc97" if r["pct"] < 70 else ("#f5c542" if r["pct"] < 88 else "#ff5a4f"))
+        lt.configure(text=etat["titre"])
+        vp.configure(text=f"{int(etat['p'] * 100)} %")
+        barre(cp, etat["p"], "#ff6410")
+        if etat["fini"]:
+            root.after(350, root.destroy)
+        else:
+            root.after(400, maj)
+
+    def etape(titre, frac):
+        etat["titre"], etat["p"] = titre, frac
+
+    def tourner():
+        try:
+            travail(etape)
+        finally:
+            etat["p"] = 1.0
+            etat["fini"] = True
+    threading.Thread(target=tourner, daemon=True).start()
+    anim(); maj()
+    root.mainloop()
+
+
 def main():
     e = etat_maj()
     if e.get("retard") and not e.get("local"):
         splash_maj(e)
-    demarrer_serveur()
+
+    def travail(etape):
+        # 15 s de spectacle : les VRAIES etapes (le serveur demarre pendant ce temps) entrecoupees de points de
+        # controle "a la Clarkson". Si le moteur met plus longtemps, on attend honnetement qu'il soit pret.
+        deja = port_occupe()
+        if not deja:
+            threading.Thread(target=demarrer_serveur, daemon=True).start()
+        etapes = list(CHECKPOINTS)
+        duree = 15.0
+        t = time.time()
+        for i, txt in enumerate(etapes):
+            fin_etape = t + duree * (i + 1) / len(etapes)
+            while time.time() < fin_etape:
+                frac = min(0.97, (time.time() - t) / duree)
+                etape(txt, frac)
+                time.sleep(0.1)
+        while not port_occupe() and time.time() - t < 120:
+            etape("Le moteur prend son temps. Comme une boîte automatique des années 80.", 0.98)
+            time.sleep(0.3)
+        etape("Ouverture du dashboard. Accrochez-vous.", 1.0)
+        time.sleep(0.6)
+    ecran_lancement(travail)
     webbrowser.open(URL)
     icone()
 

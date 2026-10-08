@@ -142,6 +142,11 @@ function carte(p, t, derniere) {
 }
 
 export async function ouvrir(id) {
+  const p_ = P.liste.find(x => x.id === id);
+  const ch = window.SHWCharge?.debut(`Ouverture de ${p_?.nom || 'projet'}`, { cle: 'ouvrir-' + (p_?.type || '') });
+  try { return await _ouvrir(id); } finally { ch?.fin(); }
+}
+async function _ouvrir(id) {
   const d = await api('/api/projets/' + id), t = TYPES[d.type];
   if (!t) return toast(`Type de projet inconnu : ${d.type}`);
   $(`[data-tab="${t.onglet}"]`).click();

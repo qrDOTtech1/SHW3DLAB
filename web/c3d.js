@@ -391,9 +391,10 @@ async function remplacer(anciens, r, opts = {}) {
 async function outil(nom, params = {}, opts = {}) {
   if (!C.sel.length) return toast('Selectionne d\'abord un objet');
   $('#c3-info').textContent = `${nom}...`; document.body.style.cursor = 'progress';
+  const ch = window.SHWCharge?.debut(`Outil : ${nom}`, { cle: 'outil-' + nom });
   try { const r = await api('/api/c3d/outil', { outil: nom, objets: C.sel.map(pourServeur), params }); await remplacer([...C.sel], r, opts); return r; }
   catch (e) { toast(e.message); }
-  finally { document.body.style.cursor = ''; }
+  finally { ch?.fin(); document.body.style.cursor = ''; }
 }
 async function grouper() {
   if (C.sel.length < 2) return toast('Selectionne au moins 2 objets (Maj+clic)');
