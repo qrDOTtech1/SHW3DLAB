@@ -1,6 +1,6 @@
 """SYNCHRONISATION DES PROJETS entre postes (Steven, Hugo...) via le depot GitHub.
 
-data/projets/ est versionne (data/images reste local : le depot est public). A chaque enregistrement (et toutes les 2 min), le poste :
+data/projets/, data/images/ et data/bases/ (STL de depart, gzip) sont versionnes. A chaque enregistrement (et toutes les 2 min), le poste :
   1. commit ses projets modifies ("projets : <poste>") ;
   2. recupere ceux des autres (pull --rebase) ;
   3. pousse les siens.
@@ -20,7 +20,7 @@ import time
 from pathlib import Path
 
 ICI = Path(__file__).resolve().parents[2]
-DOSSIERS = ["data/projets"]          # data/images reste LOCAL (photos personnelles : jamais sur le depot public)
+DOSSIERS = ["data/projets", "data/images", "data/bases"]
 NOWIN = 0x08000000 if os.name == "nt" else 0
 _verrou = threading.Lock()
 _minuteur: threading.Timer | None = None

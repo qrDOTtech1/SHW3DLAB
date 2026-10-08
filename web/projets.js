@@ -157,6 +157,7 @@ async function _ouvrir(id) {
   if (t.modele) window.__CFG.projet = { id: d.id, nom: d.nom };
   P.courant[d.type] = { id: d.id, nom: d.nom };
   majTitres();
+  window.dispatchEvent(new CustomEvent('shw:projet', { detail: { id: d.id, nom: d.nom } }));   // mode equipe
   toast(`Projet "${d.nom}" ouvert`);
 }
 
@@ -227,3 +228,5 @@ $('#pj-synchro')?.addEventListener('click', async () => {
   finally { b.disabled = false; }
 });
 surveillerSynchro(); setInterval(surveillerSynchro, 20000);
+
+window.SHWOuvrirProjet = id => _ouvrir(id);              // bouton "Suivre" du mode equipe

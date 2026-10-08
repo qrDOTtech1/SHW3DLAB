@@ -834,6 +834,16 @@ def _swork190(p: dict):
     ici = Path(__file__).resolve().parents[1]
     fid = str(p.get("base") or "")
     src = ici / "sortie" / "c3d" / f"{fid}.stl"
+    partage = ici / "data" / "bases" / f"{fid}.stl.gz"           # base partagee entre postes (synchro GitHub)
+    import gzip as _gz, shutil as _sh
+    if fid and not src.exists() and partage.exists():
+        src.parent.mkdir(parents=True, exist_ok=True)
+        with _gz.open(partage, "rb") as a_, open(src, "wb") as b_:
+            _sh.copyfileobj(a_, b_)
+    elif fid and src.exists() and not partage.exists():
+        partage.parent.mkdir(parents=True, exist_ok=True)
+        with open(src, "rb") as a_, _gz.open(partage, "wb", 6) as b_:
+            _sh.copyfileobj(a_, b_)
     if not fid or not src.exists():
         raise ValueError("Ce projet a besoin du STL de la carrosserie : cree le projet avec 'Partir d'un fichier STL'")
     g = lambda k, d: float(p.get(k, d)) if p.get(k) not in (None, "") else d

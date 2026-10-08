@@ -57,7 +57,7 @@ def etat_maj() -> dict:
         return {"erreur": "hors ligne ou depot inaccessible", "retard": 0}
     _, n = git("rev-list", "--count", "HEAD..@{u}")
     retard = int(n) if n.strip().isdigit() else 0
-    _, st = git("status", "--porcelain", "--untracked-files=no", "--", ".", ":!data/projets")   # projets : synchro
+    _, st = git("status", "--porcelain", "--untracked-files=no", "--", ".", ":!data/projets", ":!data/images", ":!data/bases")   # projets : synchro
     _, log = git("log", "HEAD..@{u}", "--pretty=format:- %s  (%an, %ar)")
     _, tot = git("rev-list", "--count", "@{u}")
     return {"retard": retard, "local": bool(st.strip()), "changelog": log, "cible": f"v1.{tot.strip()}"}

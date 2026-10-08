@@ -1354,6 +1354,35 @@ if os.environ.get("SHW_SYNCHRO", "1") != "0":
     _synchro.boucle(120.0)
 
 
+# ================================================================== EQUIPE (temps reel : nom + code d'equipe, local)
+EQUIPE_F = DATA / "equipe.json"                       # jamais versionne (data/*.json) : le code reste sur le poste
+
+
+def _equipe():
+    try:
+        d = json.loads(EQUIPE_F.read_text(encoding="utf8"))
+    except Exception:
+        d = {}
+    if not d.get("nom"):
+        import socket as _so
+        c, nom = _synchro.git("config", "user.name")
+        d["nom"] = nom if c == 0 and nom else _so.gethostname()
+    return {"nom": d["nom"], "code": d.get("code", ""), "couleur": d.get("couleur", "")}
+
+
+@app.get("/api/equipe")
+def equipe_lire():
+    return _equipe()
+
+
+@app.post("/api/equipe")
+def equipe_ecrire(d: dict):
+    e = _equipe()
+    e.update({k: str(v)[:60] for k, v in d.items() if k in ("nom", "code", "couleur")})
+    EQUIPE_F.write_text(json.dumps(e, ensure_ascii=False), encoding="utf8")
+    return e
+
+
 @app.get("/api/synchro")
 def synchro_etat():
     return _synchro.etat
