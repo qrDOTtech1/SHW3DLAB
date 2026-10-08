@@ -109,7 +109,7 @@
       <b>Equipe</b><span class="eq-n">${cle ? (ok ? (n ? `${n} en ligne` : 'seul pour l\'instant') : 'connexion...') : 'non configuree'}</span>
       <button data-r title="Reglages">&#9881;</button><button data-p title="Replier">${repli ? '&#9650;' : '&#9660;'}</button></div>
       <div class="eq-b">${cle ? [...pairs.values()].map(p => ligne(p, false)).join('') + ligne(moi, true)
-        : `<p class="eq-v">Entre le meme <b>code d'equipe</b> sur chaque poste pour travailler ensemble.</p>`}</div>`;
+        : `<p class="eq-v">Entre le meme <b>code d'equipe</b> (1 lettre + 4 chiffres) sur chaque poste pour travailler ensemble.</p>`}</div>`;
   }
   fen.addEventListener('click', async e => {
     if (e.target.closest('[data-p]')) { fen.classList.toggle('repli'); return rendre(); }
@@ -123,7 +123,12 @@
   });
   async function reglages() {
     const nom = prompt('Ton nom (vu par l\'equipe) :', moi.nom); if (nom === null) return;
-    const code = prompt('Code d\'equipe (le meme sur chaque poste) :', (await (await fetch('/api/equipe')).json()).code || ''); if (code === null) return;
+    let code = (await (await fetch('/api/equipe')).json()).code || '';
+    for (;;) {                                         // format simple : 1 lettre + 4 chiffres (ex. K4827)
+      code = prompt('Code d\'equipe : 1 lettre + 4 chiffres (le meme sur chaque poste)', code); if (code === null) return;
+      code = code.trim().toUpperCase(); if (/^[A-Z][0-9]{4}$/.test(code)) break;
+      alert('Format attendu : 1 lettre puis 4 chiffres, par exemple K4827');
+    }
     await fetch('/api/equipe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nom: nom.trim(), code: code.trim() }) });
     location.reload();
   }
