@@ -57,7 +57,7 @@ def etat_maj() -> dict:
         return {"erreur": "hors ligne ou depot inaccessible", "retard": 0}
     _, n = git("rev-list", "--count", "HEAD..@{u}")
     retard = int(n) if n.strip().isdigit() else 0
-    _, st = git("status", "--porcelain", "--untracked-files=no")
+    _, st = git("status", "--porcelain", "--untracked-files=no", "--", ".", ":!data/projets")   # projets : synchro
     _, log = git("log", "HEAD..@{u}", "--pretty=format:- %s  (%an, %ar)")
     _, tot = git("rev-list", "--count", "@{u}")
     return {"retard": retard, "local": bool(st.strip()), "changelog": log, "cible": f"v1.{tot.strip()}"}
@@ -65,9 +65,12 @@ def etat_maj() -> dict:
 
 def appliquer_maj(e: dict, fenetre=None) -> bool:
     _, req_avant = git("rev-parse", "HEAD:requirements.txt")
-    c, out = git("pull", "--ff-only", timeout=180)
-    if c:
-        return False
+    sys.path.insert(0, str(ICI))
+    from atelier.noyau import synchro                      # projets partages : commit + rebase (+ envoi)
+    if not synchro.synchroniser().get("ok"):
+        c, out = git("pull", "--ff-only", timeout=180)
+        if c:
+            return False
     _, req_apres = git("rev-parse", "HEAD:requirements.txt")
     if req_avant != req_apres:
         if fenetre:
@@ -182,6 +185,13 @@ def icone():
                 icon.title = f"SHW 3DLAB {version()}"
                 icon.notify(f"A jour : {version()}\n" + e["changelog"][:200], "SHW 3DLAB")
 
+    def synchro_menu(icon, item):
+        sys.path.insert(0, str(ICI))
+        from atelier.noyau import synchro
+        e = synchro.synchroniser()
+        icon.notify(("Projets a jour" + (f" : {e['recus']} recu(s), {e['envoyes']} envoye(s)" if e["recus"] or e["envoyes"] else ""))
+                    if e["ok"] else e["message"], "SHW 3DLAB")
+
     def quitter(icon, item):
         arreter_serveur()
         icon.stop()
@@ -189,6 +199,7 @@ def icone():
     menu = pystray.Menu(
         pystray.MenuItem("Ouvrir le dashboard", ouvrir, default=True),
         pystray.MenuItem("Verifier les mises a jour", verifier),
+        pystray.MenuItem("Synchroniser les projets", synchro_menu),
         pystray.MenuItem(lambda _: f"Version {version()}", None, enabled=False),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("Arreter SHW 3DLAB", quitter),

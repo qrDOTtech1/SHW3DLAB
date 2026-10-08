@@ -5,6 +5,7 @@ ne l'a pas activee lui-meme dans l'onglet Imprimante (desactivee par defaut, auc
 """
 from __future__ import annotations
 
+import os
 import re
 import json
 import numpy as np
@@ -1321,6 +1322,7 @@ def projet_ecrire(p: Projet):
     tmp = f.with_suffix(".tmp")
     tmp.write_text(json.dumps(d), encoding="utf8")
     tmp.replace(f)
+    _synchro.planifier()                                 # partage avec les autres postes (GitHub)
     return {"id": pid}
 
 
@@ -1331,6 +1333,7 @@ def projet_dupliquer(pid: str):
     d["nom"] = (d["nom"] + " (copie)")[:80]
     d["date"] = d["cree"] = time.time()
     (PROJETS_DIR / f"{d['id']}.json").write_text(json.dumps(d), encoding="utf8")
+    _synchro.planifier()                                 # partage avec les autres postes (GitHub)
     return {"id": d["id"]}
 
 
@@ -1341,7 +1344,24 @@ def projet_supprimer(pid: str):
     if not f.exists():
         raise HTTPException(404)
     f.replace(PROJETS_DIR / "corbeille" / f.name)
+    _synchro.planifier()                                 # partage avec les autres postes (GitHub)
     return {"ok": True}
+
+
+# ================================================================== SYNCHRO des projets entre postes (GitHub)
+from atelier.noyau import synchro as _synchro
+if os.environ.get("SHW_SYNCHRO", "1") != "0":
+    _synchro.boucle(120.0)
+
+
+@app.get("/api/synchro")
+def synchro_etat():
+    return _synchro.etat
+
+
+@app.post("/api/synchro")
+def synchro_maintenant():
+    return _synchro.synchroniser()
 
 
 @app.get("/c3d/{nom}")

@@ -206,3 +206,24 @@ majTitres();
 document.getElementById('cfg-enregistrer').onclick = () => window.__CFG?.modele && enregistrer(window.__CFG.modele);
 document.getElementById('cfg-enregistrer-sous').onclick = () => window.__CFG?.modele && enregistrer(window.__CFG.modele, true);
 document.getElementById('cfg-nouveau').onclick = () => window.__CFG?.modele && creer(window.__CFG.modele);
+
+// ---------------------------------------------------------------- SYNCHRO des projets entre postes (GitHub)
+function etatSynchro(e) {
+  const el = $('#pj-synchro-etat'); if (!el || !e) return;
+  const quand = e.derniere ? new Date(e.derniere * 1000).toLocaleTimeString().slice(0, 5) : '';
+  el.textContent = e.ok === null ? '' : (e.ok ? `synchro ${quand}` + (e.recus ? ` · ${e.recus} recu(s)` : '') : `⚠ ${e.message}`);
+  el.style.color = e.ok === false ? '#ff5a4f' : '#8b919c';
+}
+let _vueSynchro = 0;
+async function surveillerSynchro() {
+  try {
+    const e = await (await fetch('/api/synchro')).json(); etatSynchro(e);
+    if (e.derniere && e.derniere !== _vueSynchro) { if (_vueSynchro && e.recus) rafraichir(); _vueSynchro = e.derniere; }
+  } catch { }
+}
+$('#pj-synchro')?.addEventListener('click', async () => {
+  const b = $('#pj-synchro'); b.disabled = true; $('#pj-synchro-etat').textContent = 'synchro...';
+  try { const e = await (await fetch('/api/synchro', { method: 'POST' })).json(); etatSynchro(e); _vueSynchro = e.derniere; await rafraichir(); }
+  finally { b.disabled = false; }
+});
+surveillerSynchro(); setInterval(surveillerSynchro, 20000);
