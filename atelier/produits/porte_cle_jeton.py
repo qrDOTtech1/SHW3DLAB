@@ -14,8 +14,8 @@ from shapely import affinity
 from shapely.geometry import MultiPolygon, Point, Polygon, box as sbox
 from shapely.ops import unary_union
 
-from .porte_cles import Style, prenom_polygone, extrude
-from .porte_jeton import Jeton, Params, _box, _cyl
+from atelier.produits.porte_cles import Style, prenom_polygone, extrude
+from atelier.produits.porte_jeton import Jeton, Params, _box, _cyl
 
 
 def _plein(p):

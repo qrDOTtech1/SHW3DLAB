@@ -7,7 +7,7 @@ import threading
 import time
 from pathlib import Path
 
-ICI = Path(__file__).resolve().parent.parent
+ICI = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ICI))
 ETAT = ICI / "data" / "atelier.json"
 SAUVE = ICI / "data" / "atelier.json.sauvegarde_tests"

@@ -17,7 +17,7 @@ import numpy as np
 from shapely import affinity
 from shapely.geometry import Polygon
 
-from .wankel import stator_profil, rotor_profil
+from atelier.projets.compresseur.wankel import stator_profil, rotor_profil
 
 P_ATM = 101325.0
 T0 = 293.0

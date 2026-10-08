@@ -10,7 +10,7 @@ from pathlib import Path
 
 import numpy as np
 
-ICI = Path(__file__).resolve().parent.parent
+ICI = Path(__file__).resolve().parents[2]
 SRC = ICI / "data" / "logo_shwork_src.png"
 
 
@@ -62,7 +62,7 @@ def logo_polygone(largeur=40.0, partie="mot"):
 def logo_3d(largeur=40.0, epaisseur=1.2, partie="mot", socle=0.0):
     """Logo en relief (extrusion), pose sur z = 0 ; socle optionnel (plaque arrondie dessous)."""
     import manifold3d as mf
-    from .c3d import section, vers_trimesh
+    from atelier.noyau.c3d import section, vers_trimesh
     p = logo_polygone(largeur, partie)
     s = mf.Manifold.extrude(section(p), epaisseur)
     if socle > 0:

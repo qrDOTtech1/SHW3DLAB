@@ -8,11 +8,13 @@ const api = (u, b, m) => A().api(u, b, m);
 const toast = m => A().toast(m);
 
 export const TYPES = {
-  creation3d: { nom: 'Creation 3D', onglet: 'c3d', icone: '&#9651;', module: () => window.__C3D },
-  keycaps: { nom: 'Keycaps', onglet: 'kc', icone: '&#9000;', module: () => window.__KC },
-  swork: { nom: 'SHWork (mecanique)', onglet: 'sw', icone: '&#9881;', module: () => window.__SW },
+  creation3d: { nom: 'Creation 3D', famille: 'Creations 3D', onglet: 'c3d', icone: '&#9651;', module: () => window.__C3D },
+  keycaps: { nom: 'Keycaps', famille: 'Keycaps', onglet: 'kc', icone: '&#9000;', module: () => window.__KC },
+  swork: { nom: 'SHWork (mecanique)', famille: 'Pieces mecaniques', onglet: 'sw', icone: '&#9881;', module: () => window.__SW },
 };
-const P = { courant: {}, filtre: 'tous', liste: [] };
+let _ferm = [];
+try { _ferm = JSON.parse(localStorage.getItem('pj-fermees') || '[]'); } catch { }
+const P = { courant: {}, liste: [], fermees: new Set(_ferm) };
 // dialogue "Nouveau projet" : nom + base vide ou STL importe (carrosserie, piece existante...)
 function dialogueNouveau(t) {
   return new Promise(resolve => {
@@ -62,29 +64,59 @@ function dialogue(titre, { texte = null, message = '', ok = 'OK' } = {}) {
 window.__PROJETS = { TYPES, P, enregistrer, ouvrir, enregistrerModeles };
 function enregistrerModeles(modeles) {
   for (const [k, m] of Object.entries(modeles)) {
-    TYPES[k] = { nom: m.nom, onglet: 'cfg', icone: '&#9670;', module: () => window.__CFG, modele: k };
-    if (!document.querySelector(`[data-pj-creer="${k}"]`)) {
-      const b = document.createElement('button'); b.className = 'primary'; b.dataset.pjCreer = k; b.innerHTML = `+ ${m.nom}`;
-      document.querySelector('#tab-pj .pj-tete').appendChild(b); b.onclick = () => creer(k);
-      const f = document.createElement('button'); f.dataset.pjFiltre = k; f.textContent = m.nom;
-      document.querySelector('[data-pj-filtre="swork"]').after(f);
-      f.onclick = () => { P.filtre = k; $$('[data-pj-filtre]').forEach(x => x.classList.toggle('on', x === f)); rafraichir(); };
-    }
+    TYPES[k] = { nom: m.nom, famille: m.famille || m.nom, version: m.version || '', archive: !!m.archive,
+                 onglet: 'cfg', icone: m.icone || '&#9670;', module: () => window.__CFG, modele: k };
   }
+  menuNouveau();
 }
+// menu "+ Nouveau projet" : types classes par famille (les versions archivees n'y figurent pas)
+function menuNouveau() {
+  const fam = {};
+  for (const [k, t] of Object.entries(TYPES)) if (!t.archive) (fam[t.famille] = fam[t.famille] || []).push([k, t]);
+  $('#pj-menu').innerHTML = Object.entries(fam).sort().map(([f, l]) => `<h4>${f}</h4>` +
+    l.map(([k, t]) => `<button data-nouveau="${k}"><span style="color:#ff6410">${t.icone}</span> ${t.nom}${t.version ? ' <small class="mute">v' + t.version + '</small>' : ''}</button>`).join('')).join('');
+  $$('#pj-menu [data-nouveau]').forEach(b => b.onclick = () => { $('#pj-menu').hidden = true; creer(b.dataset.nouveau); });
+}
+$('#pj-nouveau').onclick = e => { e.stopPropagation(); $('#pj-menu').hidden = !$('#pj-menu').hidden; };
+document.addEventListener('click', e => { if (!e.target.closest('.pj-nouveau')) $('#pj-menu').hidden = true; });
+['#pj-cherche', '#pj-tri', '#pj-archives'].forEach(s_ => $(s_).addEventListener('input', () => afficher()));
 
 async function rafraichir() {
   P.liste = await api('/api/projets');
-  const l = P.liste.filter(p => P.filtre === 'tous' || p.type === P.filtre);
-  $('#pj-grille').innerHTML = l.length ? l.map(p => {
-    const t = TYPES[p.type] || { nom: p.type, icone: '?' };
-    return `<div class="pj-carte" data-id="${p.id}">
-      <div class="pj-mini">${p.miniature ? `<img src="/api/projets/${p.id}/miniature?t=${p.date}" alt="">` : `<span>${t.icone}</span>`}</div>
-      <div class="pj-corps"><b>${p.nom}</b><span class="badge">${t.nom}</span>
-        <p class="mute">${new Date((p.date || 0) * 1000).toLocaleString()}${p.description ? ' &middot; ' + p.description : ''}</p>
-        <div class="pj-actions"><button class="primary" data-a="ouvrir">Ouvrir</button><button data-a="renommer">Renommer</button>
-          <button data-a="dupliquer">Dupliquer</button><button data-a="supprimer">Corbeille</button></div></div></div>`;
-  }).join('') : '<p class="mute">Aucun projet. Cree-en un, ou enregistre depuis Creation 3D / Keycaps / SHWork.</p>';
+  afficher();
+}
+const vnum = v => String(v || '0').split('.').map(Number).reduce((a, x, i) => a + x / Math.pow(1000, i), 0);
+function afficher() {
+  const q = $('#pj-cherche').value.trim().toLowerCase(), tri = $('#pj-tri').value, archives = $('#pj-archives').checked;
+  const fam = {};
+  for (const p of P.liste) {
+    const t = TYPES[p.type] || { nom: p.type, famille: 'Autres', icone: '?' };
+    if (t.archive && !archives) continue;
+    const texte = `${p.nom} ${t.nom} ${t.famille} ${p.description || ''} v${t.version || ''}`.toLowerCase();
+    if (q && !texte.includes(q)) continue;
+    (fam[t.famille] = fam[t.famille] || { icone: t.icone, l: [] }).l.push({ p, t });
+  }
+  const recent = g => Math.max(...g.l.map(x => x.p.date || 0));
+  const ordre = Object.entries(fam).sort((a, b) => recent(b[1]) - recent(a[1]));
+  if (!ordre.length) {
+    $('#pj-grille').innerHTML = `<p class="mute">${P.liste.length ? 'Aucun projet ne correspond.' : 'Aucun projet : "+ Nouveau projet" pour commencer.'}</p>`;
+    return;
+  }
+  $('#pj-grille').innerHTML = ordre.map(([f, g]) => {
+    g.l.sort((a, b) => tri === 'nom' ? a.p.nom.localeCompare(b.p.nom) : tri === 'version'
+      ? (vnum(b.t.version) - vnum(a.t.version)) || ((b.p.date || 0) - (a.p.date || 0))
+      : ((a.t.archive - b.t.archive) || ((b.p.date || 0) - (a.p.date || 0))));
+    const vmax = Math.max(0, ...g.l.filter(x => !x.t.archive && x.t.version).map(x => vnum(x.t.version)));
+    return `<section class="pj-famille ${P.fermees.has(f) && !q ? 'ferme' : ''}" data-famille="${f}">
+      <header><span class="ic">${g.icone}</span><h3>${f}</h3><span class="nb">${g.l.length} projet${g.l.length > 1 ? 's' : ''}</span><span class="chev">&#9662;</span></header>
+      <div class="pj-grille-f">${g.l.map(({ p, t }) => carte(p, t, t.version && vnum(t.version) === vmax && !t.archive && g.l.length > 1)).join('')}</div></section>`;
+  }).join('');
+  $$('.pj-famille > header').forEach(h => h.onclick = () => {
+    const f = h.parentElement.dataset.famille;
+    if (P.fermees.has(f)) P.fermees.delete(f); else P.fermees.add(f);
+    try { localStorage.setItem('pj-fermees', JSON.stringify([...P.fermees])); } catch { }
+    h.parentElement.classList.toggle('ferme');
+  });
   $$('.pj-carte [data-a]').forEach(b => b.onclick = async () => {
     const id = b.closest('.pj-carte').dataset.id, p = P.liste.find(x => x.id === id), a = b.dataset.a;
     if (a === 'ouvrir') return ouvrir(id);
@@ -98,6 +130,15 @@ async function rafraichir() {
       await api('/api/projets/' + id, undefined, 'DELETE'); toast('Projet mis a la corbeille'); rafraichir();
     }
   });
+}
+function carte(p, t, derniere) {
+  return `<div class="pj-carte ${t.archive ? 'archive' : ''}" data-id="${p.id}">
+    <div class="pj-mini">${p.miniature ? `<img src="/api/projets/${p.id}/miniature?t=${p.date}" alt="">` : `<span>${t.icone}</span>`}</div>
+    <div class="pj-corps"><b>${p.nom}${t.version ? `<span class="ver">v${t.version}</span>` : ''}</b>
+      ${derniere ? '<span class="derniere">Derniere version</span>' : t.archive ? '<span class="mute" style="font-size:11px">Archive</span>' : ''}
+      <p class="mute">${new Date((p.date || 0) * 1000).toLocaleString()}${p.description ? ' &middot; ' + p.description : ''}</p>
+      <div class="pj-actions"><button class="primary" data-a="ouvrir">Ouvrir</button><button data-a="renommer">Renommer</button>
+        <button data-a="dupliquer">Dupliquer</button><button data-a="supprimer">Corbeille</button></div></div></div>`;
 }
 
 export async function ouvrir(id) {
@@ -139,7 +180,6 @@ function majTitres() {
 // boutons "Enregistrer / Enregistrer sous / Nouveau" presents dans chaque onglet
 $$('[data-pj-save]').forEach(b => b.onclick = () => enregistrer(b.dataset.pjSave, b.dataset.sous === '1'));
 $$('[data-pj-new]').forEach(b => b.onclick = () => creer(b.dataset.pjNew));
-$$('[data-pj-filtre]').forEach(b => b.onclick = () => { P.filtre = b.dataset.pjFiltre; $$('[data-pj-filtre]').forEach(x => x.classList.toggle('on', x === b)); rafraichir(); });
 async function creer(type) {
   const t = TYPES[type];
   const choix = await dialogueNouveau(t); if (!choix) return;
@@ -153,7 +193,7 @@ async function creer(type) {
   majTitres(); toast(`Projet "${choix.nom}" cree` + (base ? ` a partir de ${choix.fichier.name}` : ''));
 }
 window.__PROJETS.creer = creer;
-$$('[data-pj-creer]').forEach(b => b.onclick = () => creer(b.dataset.pjCreer));
+menuNouveau();
 document.addEventListener('click', e => { if (e.target.closest('[data-tab="pj"]')) rafraichir(); });
 majTitres();
 

@@ -5,7 +5,7 @@ import sys
 
 import trimesh
 
-from atelier import c3d
+from atelier.noyau import c3d
 
 
 def main():

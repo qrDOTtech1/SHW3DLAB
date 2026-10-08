@@ -352,10 +352,11 @@ Noah</textarea></label>
   <section id="tab-pj" class="tab">
     <div class="pj-tete">
       <h2>Mes projets</h2>
-      <button data-pj-filtre="tous" class="on">Tous</button><button data-pj-filtre="creation3d">Creation 3D</button>
-      <button data-pj-filtre="keycaps">Keycaps</button><button data-pj-filtre="swork">SHWork</button>
+      <input id="pj-cherche" type="search" placeholder="Rechercher un projet, une famille, une version..." autocomplete="off">
+      <select id="pj-tri" title="Tri dans chaque famille"><option value="recent">Plus recents</option><option value="nom">Nom</option><option value="version">Version</option></select>
+      <label class="chk" title="Afficher les versions archivees"><input type="checkbox" id="pj-archives"> Archives</label>
       <span style="flex:1"></span>
-      <button class="primary" data-pj-creer="creation3d">+ Creation 3D</button><button class="primary" data-pj-creer="keycaps">+ Keycaps</button><button class="primary" data-pj-creer="swork">+ SHWork</button>
+      <div class="pj-nouveau"><button class="primary" id="pj-nouveau">+ Nouveau projet &#9662;</button><div id="pj-menu" hidden></div></div>
     </div>
     <div id="pj-grille"></div>
   </section>

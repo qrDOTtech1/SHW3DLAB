@@ -75,7 +75,7 @@ def porte_jeton(jeton: Jeton | None = None, p: Params | None = None):
     L_nom = 0.0
     if p.texte.strip():
         from shapely import affinity
-        from .porte_cles import Style, prenom_polygone
+        from atelier.produits.porte_cles import Style, prenom_polygone
         nom, _ = prenom_polygone(p.texte.strip(), Style(police=p.police, hauteur=p.h_txt))
         bx0, by0, bx1, by1 = nom.bounds
         h_max = W - 2 * 3.5                      # le prenom tient dans la largeur du corps
@@ -133,7 +133,7 @@ def porte_jeton(jeton: Jeton | None = None, p: Params | None = None):
     # ---- incrustation du prenom (2 impressions : corps couleur 1, prenom couleur 2)
     prenom = None
     if nom is not None:
-        from .porte_cles import extrude
+        from atelier.produits.porte_cles import extrude
         corps = corps.cut(extrude(nom.buffer(p.jeu_txt, join_style=1), p.empreinte + 1, E - p.empreinte))
         corps = corps.cut(extrude(nom.buffer(p.jeu_txt + 0.25, join_style=1), 1.0, E - 0.3))
         h_n = p.empreinte + p.relief

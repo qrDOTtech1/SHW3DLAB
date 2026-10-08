@@ -24,7 +24,7 @@ import manifold3d as mf
 from shapely.geometry import Polygon, Point, box as sbox
 from shapely import affinity
 
-from .c3d import section, vers_trimesh
+from atelier.noyau.c3d import section, vers_trimesh
 
 M3 = 1.65
 
@@ -160,7 +160,7 @@ def servbuddy(p: dict):
     # engrenent les 2 cremailleres : tourner la ROULETTE monte / descend la plaque bien parallele (serrage).
     # Un VERROU (pion coulissant parallele a l'arbre) entre dans les trous de la roulette : position bloquee, rigide.
     # Deverrouille + roulette tournee a fond vers le bas : les cremailleres sortent des guides -> plaque retiree.
-    from .meca import profil_engrenage
+    from atelier.meca import profil_engrenage
     rp, mod = 6.5, 1.0                                           # pignons 13 dents module 1
     Yp = ai + e + 4.6                                            # plan des pignons / cremailleres (hors de la coque)
     wp = 5.0                                                     # largeur des pignons et cremailleres
@@ -178,7 +178,7 @@ def servbuddy(p: dict):
     boss = boss - extrude_x(Polygon(_ell(ai + 0.2, bi + 0.2, np.linspace(-math.pi, math.pi, 200))), -L, L)
     pal = pal + boss
     try:
-        from .porte_cles import Style, prenom_polygone
+        from atelier.produits.porte_cles import Style, prenom_polygone
         txt, _ = prenom_polygone("SHWORK", Style(police="bebas", hauteur=6.0, serrage=0.0))
         bt = txt.bounds
         txt = affinity.translate(txt, -(bt[0] + bt[2]) / 2, -(bt[1] + bt[3]) / 2)

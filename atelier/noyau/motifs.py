@@ -182,7 +182,7 @@ def champ(nom, a, b, q):
 def effet_surface(m: trimesh.Trimesh, q: dict):
     """q : motif, profondeur, taille, etirement, rotation, trait, nettete, alea, du, dv, zones, bas, haut,
     projection (auto/cylindre/triplanaire/x/y/z), inverser, fondu."""
-    from .c3d import _densifier
+    from atelier.noyau.c3d import _densifier
     t = q.get("taille", 6.0)
     m = _densifier(m, max(0.2, min(0.4, t / 12)), int(q.get("max_faces", 900_000)))
     v, nrm, F = m.vertices, m.vertex_normals, m.faces
@@ -265,7 +265,7 @@ def ajourer(m: trimesh.Trimesh, q: dict):
     """Perce le motif A TRAVERS la piece : axe z / x / y (projection plane) ou cylindre (radial : abat-jour,
     pot, diffuseur). q : motif, taille, trait, rotation, etirement, alea, axe, bas, haut (%), marge (mm)."""
     import manifold3d as mf
-    from .c3d import vers_manifold, vers_trimesh, section
+    from atelier.noyau.c3d import vers_manifold, vers_trimesh, section
     from shapely.geometry import box as sbox
     s = vers_manifold(m)
     lo, hi = m.bounds

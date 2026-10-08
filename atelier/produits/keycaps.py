@@ -19,7 +19,7 @@ import manifold3d as mf
 from shapely import affinity
 from shapely.geometry import box as sbox, MultiPolygon
 
-from .c3d import section, vers_manifold, vers_trimesh, integrer
+from atelier.noyau.c3d import section, vers_manifold, vers_trimesh, integrer
 
 PAS = 19.05
 
@@ -161,10 +161,10 @@ def keycap(p: dict):
 def legende_polygone(p: dict, l_dispo: float, w_dispo: float, image: bytes | None = None):
     """Texte (police) ou logo -> polygone 2D centre, a l'echelle de la place disponible."""
     if p.get("type_legende") == "logo" and image:
-        from .image2d import image_vers_polygone
+        from atelier.noyau.image2d import image_vers_polygone
         poly, _ = image_vers_polygone(image, 30.0, p.get("seuil"), p.get("inverser"), detail_min_mm=0.35)
     else:
-        from .porte_cles import Style, prenom_polygone
+        from atelier.produits.porte_cles import Style, prenom_polygone
         txt = str(p.get("texte", "A"))
         poly, _ = prenom_polygone(txt, Style(police=p.get("police", "arial_black"), hauteur=10.0))
     b = poly.bounds
@@ -179,7 +179,7 @@ def legende_polygone(p: dict, l_dispo: float, w_dispo: float, image: bytes | Non
 
 def keycap_complet(p: dict, image: bytes | None = None):
     """Touche + legende. -> (liste de (maillage, role)), infos. role : 'touche' | 'legende'."""
-    from .c3d import extruder
+    from atelier.noyau.c3d import extruder
     m, info = keycap(p)
     lt0, wt0 = info["haut_mm"]
     dech = float(p.get("decal_haut", 0) or 0)
@@ -188,14 +188,14 @@ def keycap_complet(p: dict, image: bytes | None = None):
     z_int = info["z_dessus"] - info["creux"] - float(p.get("paroi", 1.3) or 1.3) - 1.2
     # ---- texture du dessus (meme moteur que Creation 3D)
     if p.get("texture"):
-        from .motifs import effet_surface
+        from atelier.noyau.motifs import effet_surface
         m = effet_surface(m, {"motif": p["texture"], "profondeur": float(p.get("texture_prof", 0.35)),
                               "taille": float(p.get("texture_taille", 2.5)), "rotation": float(p.get("texture_rot", 0)),
                               "trait": float(p.get("texture_trait", 0.08)), "zones": "dessus", "projection": "z",
                               "fondu": 0, "max_faces": 400_000})
     # ---- ajourage du dessus (motif traversant : diffuseur RGB)
     if p.get("ajour"):
-        from .motifs import ajourer
+        from atelier.noyau.motifs import ajourer
         m = ajourer(m, {"motif": p["ajour"], "axe": "z", "taille": float(p.get("ajour_taille", 3.0)),
                         "trait": float(p.get("ajour_trait", 0.15)), "rotation": float(p.get("ajour_rot", 0)),
                         "zone_xy": (-lt0 / 2 + 1.2, lt0 / 2 - 1.2, dech - wt0 / 2 + 1.2, dech + wt0 / 2 - 1.2),
@@ -211,7 +211,7 @@ def keycap_complet(p: dict, image: bytes | None = None):
         if mode in ("percer", "translucide") and face == "dessus":
             # legende TRAVERSANTE (shine-through RGB) : le trou traverse le dessus ; la tige reste intacte
             import manifold3d as mf
-            from .c3d import vers_manifold as vm, vers_trimesh as vt, section as sec
+            from atelier.noyau.c3d import vers_manifold as vm, vers_trimesh as vt, section as sec
             from shapely.geometry import Point
             from shapely.ops import unary_union
             pp = poly
@@ -243,7 +243,7 @@ def keycap_complet(p: dict, image: bytes | None = None):
             point, n = [0, -W / 2, zc], [0, -1, 0]
         if mode == "incruster":
             # jeu fait en 2D (rapide et exact) : logement = legende elargie de `jeu`, piece = legende exacte
-            from .c3d import epouser, vers_manifold as vm, vers_trimesh as vt
+            from atelier.noyau.c3d import epouser, vers_manifold as vm, vers_trimesh as vt
             jeu = float(p.get("jeu_legende", 0.08))
             def pose(pl):
                 mm_ = extruder(pl, 1.2, 0)

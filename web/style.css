@@ -290,3 +290,31 @@ nav#tabs button { white-space: nowrap; }
 .cfg-sim-stats div { display: flex; flex-direction: column; background: var(--bg2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
 .cfg-sim-stats span { color: var(--mute); font-size: 11px; }
 .cfg-sim-ctrl .cfg-ligne { margin: 6px 0; }
+
+/* ------------------------------------------------------------ Projets : classement par familles */
+#pj-cherche { flex: 1 1 260px; max-width: 420px; }
+.pj-nouveau { position: relative; }
+#pj-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 12px; padding: 8px; min-width: 260px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
+#pj-menu h4 { margin: 8px 8px 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--mute); }
+#pj-menu button { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 7px 10px; border-radius: 8px; }
+#pj-menu button:hover { background: rgba(255,100,16,.12); color: #ff6410; }
+.pj-famille { margin: 18px 0 6px; }
+.pj-famille > header { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; padding: 6px 2px;
+  border-bottom: 1px solid var(--line); }
+.pj-famille > header .ic { font-size: 18px; color: #ff6410; width: 22px; text-align: center; }
+.pj-famille > header h3 { margin: 0; font-size: 16px; font-weight: 600; }
+.pj-famille > header .nb { font-size: 12px; color: var(--mute); }
+.pj-famille > header .chev { margin-left: auto; transition: transform .15s; color: var(--mute); }
+.pj-famille.ferme > header .chev { transform: rotate(-90deg); }
+.pj-famille.ferme > .pj-grille-f { display: none; }
+.pj-grille-f { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; margin-top: 12px; }
+.pj-carte .ver { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 99px;
+  background: #ff6410; color: #fff; margin-left: 6px; vertical-align: 1px; }
+.pj-carte.archive { opacity: .62; }
+.pj-carte.archive .ver { background: var(--line); color: var(--mute); }
+.pj-carte .derniere { font-size: 11px; color: #ff6410; font-weight: 600; }
+#tab-pj #pj-grille { display: block; }
+#tab-pj .pj-tete { flex-wrap: nowrap; }
+#tab-pj .pj-tete select, #tab-pj .pj-tete label.chk { width: auto; flex: 0 0 auto; margin: 0; }
+#tab-pj .pj-tete label.chk { display: flex; align-items: center; gap: 6px; white-space: nowrap; }

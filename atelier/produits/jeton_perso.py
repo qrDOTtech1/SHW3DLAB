@@ -19,7 +19,7 @@ from shapely import affinity
 from shapely.geometry import MultiPolygon, Point, box as sbox
 from shapely.ops import unary_union
 
-from .porte_cles import Style, glyphes, extrude
+from atelier.produits.porte_cles import Style, glyphes, extrude
 
 
 E_JETON = 2.33          # epaisseur d'une piece de 1 EUR / jeton de caddie
@@ -78,7 +78,7 @@ def jeton_perso(d=23.25, motif="initiale", texte="S", police="pacifico", mode="i
             rep["mode_force"] = "QR = des centaines de modules : 1 impression avec pause (changement de filament)"
         mode = "pause"
     elif motif == "logo":
-        from .image2d import image_vers_polygone
+        from atelier.noyau.image2d import image_vers_polygone
         poly, info = image_vers_polygone(image, 2 * r_int, seuil, inverser, detail_min_mm=0.45)
         poly = _ajuster(poly, r_int)
         rep["logo"] = info

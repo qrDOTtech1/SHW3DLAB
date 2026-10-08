@@ -10,7 +10,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-from .objets import _mesh
+from atelier.noyau.objets import _mesh
 
 
 def _T_rot_x(deg):

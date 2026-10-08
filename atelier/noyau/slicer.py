@@ -24,7 +24,7 @@ CURA = _cura()
 ENGINE = CURA / "CuraEngine.exe"
 RES = CURA / "share" / "cura" / "resources"
 CP_PROFILS = Path(r"C:\Program Files\Creality\Creality Print 7.3\resources\profiles\Creality")
-ICI = Path(__file__).resolve().parent.parent
+ICI = Path(__file__).resolve().parents[2]
 DEFS = ICI / "data" / "cura_defs"
 
 DENSITE = {"PLA": 1.24, "PLA+": 1.24, "PETG": 1.27, "TPU": 1.21, "ABS": 1.04}

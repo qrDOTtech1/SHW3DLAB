@@ -20,7 +20,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-ICI = Path(__file__).resolve().parent.parent
+ICI = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ICI))
 DATA = ICI / "data"
 JOBS_DIR = ICI / "sortie" / "jobs"
@@ -185,7 +185,7 @@ def _emballer(out, couleurs):
     """Range les elements par bobine sur des plateaux 195 x 195 : rangement par EMPREINTES REELLES (rotations,
     petites pieces dans les creux et les trous des grandes) ; plusieurs plateaux seulement si necessaire."""
     import trimesh
-    from atelier.emballage import ranger, appliquer
+    from atelier.noyau.emballage import ranger, appliquer
     els = json.loads((out / "elements.json").read_text(encoding="utf8"))
     for f in out.glob("plateau_*.stl"):
         f.unlink()
@@ -241,12 +241,12 @@ def plateaux_api(c: Couleurs):
 
 
 def _generer(j, cmd: Commande):
-    from atelier.porte_cles import Style, porte_cle
-    from atelier.objets import _mesh
+    from atelier.produits.porte_cles import Style, porte_cle
+    from atelier.noyau.objets import _mesh
     import trimesh
     out = JOBS_DIR / j["id"]
     out.mkdir(parents=True, exist_ok=True)
-    from atelier.porte_cles import POLICES
+    from atelier.produits.porte_cles import POLICES
     noms = [n.strip() for n in cmd.noms]
     pols = [(cmd.polices[i] if i < len(cmd.polices) and cmd.polices[i] in POLICES else cmd.police)
             for i in range(len(noms))]
@@ -280,10 +280,10 @@ def _generer(j, cmd: Commande):
 
 def _generer_jeton(j, cmd: Commande):
     """Porte-jetons : UN par prenom (police propre) ; sans prenom -> `quantite` porte-jetons simples."""
-    from atelier.porte_jeton import porte_jeton, Jeton, Params
-    from atelier.sim_jeton import simuler
-    from atelier.porte_cles import POLICES
-    from atelier.objets import _mesh
+    from atelier.produits.porte_jeton import porte_jeton, Jeton, Params
+    from atelier.produits.sim_jeton import simuler
+    from atelier.produits.porte_cles import POLICES
+    from atelier.noyau.objets import _mesh
     import trimesh
     out = JOBS_DIR / j["id"]
     out.mkdir(parents=True, exist_ok=True)
@@ -300,7 +300,7 @@ def _generer_jeton(j, cmd: Commande):
     for i, (nom, pol) in enumerate(lignes):
         j["log"].append(f"Porte-jeton {i + 1} : {nom or '(sans prenom)'} - jeton d{jeton.d}")
         if cmd.produit == "porte_cle_jeton":
-            from atelier.porte_cle_jeton import porte_cle_jeton
+            from atelier.produits.porte_cle_jeton import porte_cle_jeton
             pcs, g, rep = porte_cle_jeton(nom, pol, jeton)
         else:
             pcs, g, rep = porte_jeton(jeton, Params(texte=nom, police=pol))
@@ -310,7 +310,7 @@ def _generer_jeton(j, cmd: Commande):
         ms = {k: _mesh(v) for k, v in pcs.items()}
         jrep = None
         if cmd.jeton_motif != "aucun":
-            from atelier.jeton_perso import jeton_perso, E_JETON, EMPREINTE
+            from atelier.produits.jeton_perso import jeton_perso, E_JETON, EMPREINTE
             img = None
             if cmd.jeton_motif == "logo":
                 fi = DATA / "images" / f"{cmd.jeton_image}.img"
@@ -369,10 +369,10 @@ def _generer_jeton(j, cmd: Commande):
 
 def _generer_ps(j, cmd: Commande):
     """Porte-serviettes : une plaque par prenom (police propre), crochets a plat."""
-    from atelier.porte_serviette import porte_serviette, ParamsPS
-    from atelier.assemblage_ps import poser_crochets, interferences
-    from atelier.porte_cles import POLICES
-    from atelier.objets import _mesh
+    from atelier.produits.porte_serviette import porte_serviette, ParamsPS
+    from atelier.noyau.assemblage_ps import poser_crochets, interferences
+    from atelier.produits.porte_cles import POLICES
+    from atelier.noyau.objets import _mesh
     import trimesh
     out = JOBS_DIR / j["id"]
     out.mkdir(parents=True, exist_ok=True)
@@ -449,7 +449,7 @@ def generer(cmd: Commande):
 
 @app.get("/api/polices")
 def polices():
-    from atelier.porte_cles import POLICES, POLICES_INFO
+    from atelier.produits.porte_cles import POLICES, POLICES_INFO
     return {k: {"label": POLICES_INFO[k][1], "licence": POLICES_INFO[k][2], "vente_perso": POLICES_INFO[k][3]}
             for k in POLICES}
 
@@ -460,7 +460,7 @@ def apercu_police(cle: str, texte: str = "Steven"):
     import io
     from PIL import Image, ImageDraw, ImageFont
     from fastapi.responses import Response
-    from atelier.porte_cles import POLICES
+    from atelier.produits.porte_cles import POLICES
     if cle not in POLICES:
         raise HTTPException(404)
     texte = (texte or "Steven")[:24]
@@ -495,7 +495,7 @@ class Tranche(BaseModel):
 
 
 def _trancher(j, t: Tranche):
-    from atelier.slicer import trancher_plat as trancher
+    from atelier.noyau.slicer import trancher_plat as trancher
     d = lire()
     b = next(x for x in d["bobines"] if x["id"] == t.bobine)
     if not re.fullmatch(r"[A-Za-z0-9_-]+", t.plateau):
@@ -555,8 +555,8 @@ def apercu_motif(motif: str = "initiale", texte: str = "S", police: str = "pacif
                  seuil: int | None = None, inverser: bool | None = None, d: float = 23.25, mode: str = "incruste"):
     """Apercu PNG du motif tel qu'il sera imprime sur le jeton (+ rapport en en-tete JSON)."""
     from fastapi.responses import Response
-    from atelier.jeton_perso import jeton_perso
-    from atelier.image2d import apercu_png
+    from atelier.produits.jeton_perso import jeton_perso
+    from atelier.noyau.image2d import apercu_png
     img = None
     if motif == "logo":
         fi = DATA / "images" / f"{image}.img"
@@ -574,7 +574,7 @@ def apercu_motif(motif: str = "initiale", texte: str = "S", police: str = "pacif
 
 @app.get("/api/qualites")
 def qualites():
-    from atelier.slicer import QUALITES
+    from atelier.noyau.slicer import QUALITES
     return {k: {"label": v["label"], "desc": v["desc"], "couche_mm": v["s"]["layer_height"]} for k, v in QUALITES.items()}
 
 
@@ -718,13 +718,13 @@ def _c3d_sauver(m, nom=""):
     fid = uuid.uuid4().hex[:12]
     m.export(C3D_DIR / f"{fid}.stl")                 # pour le navigateur
     m.export(C3D_DIR / f"{fid}.ply")                 # indexe : garde l'identite des sommets (calculs exacts)
-    from atelier.c3d import analyser
+    from atelier.noyau.c3d import analyser
     return {"fichier": fid, "nom": nom, "analyse": _pur(analyser(m))}
 
 
 def _c3d_charger(fid, matrice=None):
     import trimesh
-    from atelier.c3d import transformer
+    from atelier.noyau.c3d import transformer
     if not re.fullmatch(r"[0-9a-f]{12}", fid or ""):
         raise HTTPException(400, "fichier invalide")
     f = C3D_DIR / f"{fid}.ply"
@@ -782,7 +782,7 @@ def _c3d_err(fn):
 
 @app.post("/api/c3d/forme")
 def c3d_forme(f: C3dForme):
-    from atelier.c3d import forme
+    from atelier.noyau.c3d import forme
 
     def go():
         if f.type == "texte":
@@ -796,7 +796,7 @@ def c3d_forme(f: C3dForme):
 
 @app.post("/api/c3d/image")
 def c3d_image(im: C3dImage):
-    from atelier.c3d import image_3d
+    from atelier.noyau.c3d import image_3d
     fi = DATA / "images" / f"{im.image}.img"
     if not re.fullmatch(r"[0-9a-f]{12}", im.image or "") or not fi.exists():
         raise HTTPException(404, "image inconnue (televerse-la d'abord)")
@@ -816,13 +816,13 @@ class C3dDessin(BaseModel):
 
 @app.post("/api/c3d/generer")
 def c3d_generer(g: C3dGen):
-    from atelier.c3d import generer
+    from atelier.noyau.c3d import generer
     return _c3d_err(lambda: {"objets": [_c3d_sauver(m, g.nom) for m in generer(g.nom, g.params)]})
 
 
 @app.post("/api/c3d/dessin")
 def c3d_dessin(d: C3dDessin):
-    from atelier.c3d import dessin_extrusion, dessin_revolution
+    from atelier.noyau.c3d import dessin_extrusion, dessin_revolution
     if len(d.pts) < 3:
         raise HTTPException(400, "il faut au moins 3 points")
     p = d.params
@@ -839,7 +839,7 @@ def c3d_dessin(d: C3dDessin):
 
 @app.post("/api/c3d/shadowbox")
 def c3d_shadowbox(im: C3dImage):
-    from atelier.c3d import shadowbox
+    from atelier.noyau.c3d import shadowbox
     fi = DATA / "images" / f"{im.image}.img"
     if not re.fullmatch(r"[0-9a-f]{12}", im.image or "") or not fi.exists():
         raise HTTPException(404, "image inconnue (televerse-la d'abord)")
@@ -855,7 +855,7 @@ def c3d_shadowbox(im: C3dImage):
 @app.post("/api/c3d/importer")
 def c3d_importer(i: C3dImport):
     import base64
-    from atelier.c3d import charger, reparer
+    from atelier.noyau.c3d import charger, reparer
     raw = base64.b64decode(i.data.split(",", 1)[-1])
     if len(raw) > 80_000_000:
         raise HTTPException(413, "fichier trop lourd (80 Mo max)")
@@ -880,7 +880,7 @@ def _c3d_lourd(m, outil, params, delai=120):
     e, s_ = tmp.with_suffix(".in.ply"), tmp.with_suffix(".out.ply")
     m.export(e)
     try:
-        r = subprocess.run([sys.executable, "-m", "atelier.c3d_worker", str(e), str(s_), outil, json.dumps(params)],
+        r = subprocess.run([sys.executable, "-m", "atelier.noyau.c3d_worker", str(e), str(s_), outil, json.dumps(params)],
                            cwd=str(ICI), capture_output=True, text=True, timeout=delai, stdin=subprocess.DEVNULL,
                            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         if r.returncode != 0 or not s_.exists():
@@ -899,7 +899,7 @@ def _c3d_lourd(m, outil, params, delai=120):
 def c3d_outil(o: C3dOutil):
     """Outils : grouper, intersection, couper, decouper_plateau, orienter, reparer, simplifier, coque,
     arrondir, epaissir, lisser, analyser. Les objets arrivent DEJA transformes (matrice de la scene)."""
-    from atelier import c3d
+    from atelier.noyau import c3d
     ms = [_c3d_charger(x.fichier, x.matrice) for x in o.objets]
     p = o.params
     if not ms:
@@ -944,7 +944,7 @@ def c3d_outil(o: C3dOutil):
             m = c3d._densifier(ms[0], float(p.get("taille", 0.4)), int(min(p.get("max_faces", 500_000), 1_600_000)))
             return {"objets": [_c3d_sauver(m, o.objets[0].nom or "dense")]}
         if t == "ajourer":                  # motif TRAVERSANT (diffuseur RGB, abat-jour, grille)
-            from atelier.motifs import ajourer
+            from atelier.noyau.motifs import ajourer
             q = {k: p[k] for k in ("motif", "taille", "trait", "rotation", "etirement", "alea", "axe", "bas", "haut", "marge", "nettete", "du", "dv", "inverser", "exclure") if k in p}
             return {"objets": [_c3d_sauver(ajourer(m, q), x.nom or "ajoure") for m, x in zip(ms, o.objets) if not x.trou]}
         if t == "arete_info":
@@ -1021,7 +1021,7 @@ def c3d_dense(o: C3dOutil):
     uint32) : l'apercu des effets de surface se calcule dans le navigateur, sans STL ni analyse."""
     import numpy as np
     from fastapi.responses import Response
-    from atelier import c3d
+    from atelier.noyau import c3d
     m = _c3d_charger(o.objets[0].fichier, o.objets[0].matrice)
     p = o.params
     d = c3d._densifier(m, float(p.get("taille", 0.25)), int(min(p.get("max_faces", 800_000), 1_600_000)))
@@ -1071,14 +1071,14 @@ def _kc_image(iid):
 
 @app.get("/api/kc/options")
 def kc_options():
-    from atelier.keycaps import PROFILS, TIGES
+    from atelier.produits.keycaps import PROFILS, TIGES
     return {"profils": {k: {"nom": v["nom"], "rangs": v["rangs"], "dish": v["dish"], "creux": v["creux"], "haut": v["haut"]}
                         for k, v in PROFILS.items()}, "tiges": TIGES}
 
 
 @app.post("/api/kc/touche")
 def kc_touche(t: KcTouche):
-    from atelier.keycaps import keycap_complet
+    from atelier.produits.keycaps import keycap_complet
     img = _kc_image(t.image)
 
     def go():
@@ -1090,7 +1090,7 @@ def kc_touche(t: KcTouche):
 
 def _kc_fabriquer(j, k: KcLot, out):
     """Genere chaque touche du lot (x quantite) -> [(maillage, role, nom_fichier)]."""
-    from atelier.keycaps import keycap_complet
+    from atelier.produits.keycaps import keycap_complet
     res, total = [], sum(max(1, int(it.get("qte", 1))) for it in k.items)
     n = 0
     for it in k.items:
@@ -1171,7 +1171,8 @@ def modeles():
     """Modeles de PROJET (chacun a sa propre interface de personnalisation, construite depuis son schema)."""
     from atelier.meca import CATALOGUE
     return {k: {"nom": c["nom"], "description": c.get("description", ""), "couleurs": c.get("couleurs", {}), "champs": c["champs"],
-                "simulation": c.get("simulation")}
+                "simulation": c.get("simulation"), "famille": c.get("famille", c["nom"]), "version": c.get("version", ""),
+                "archive": bool(c.get("archive")), "icone": c.get("icone", "")}
             for k, c in CATALOGUE.items() if c["cat"] == "Projets"}
 
 
@@ -1192,7 +1193,7 @@ def meca_export(m: MecaPiece):
                 z.writestr(f"{m.nom}_{n}.stl", x.export(file_type="stl"))
             z.writestr("a_acheter.txt", chr(10).join(info.get("quincaillerie", [])))
             # TOUT sur le moins de plateaux possible (meme rangement que l'impression) -> pret a trancher ailleurs
-            from atelier.emballage import ranger, appliquer
+            from atelier.noyau.emballage import ranger, appliquer
             import trimesh as _tm
             imp = [x for n, x in zip(noms, ms) if not n.startswith("_")]
             poses, nb = ranger(imp, 195.0, 195.0, 3.0)
@@ -1212,8 +1213,8 @@ class PerfCompresseur(BaseModel):
 @app.post("/api/compresseur/performances")
 def compresseur_perf(c: PerfCompresseur):
     """Simulation du CYCLE REEL du compresseur Wankel (volumes des chambres, lumieres, clapet, fuites)."""
-    from atelier import sim_wankel as sw
-    from atelier.wankel import compresseur
+    from atelier.projets.compresseur import sim_wankel as sw
+    from atelier.projets.compresseur.wankel import compresseur
     def go():
         p = c.params
         compact = p.get("version") == "compact"
@@ -1403,7 +1404,7 @@ def c3d_zip(z: C3dZip):
 @app.post("/api/c3d/logo")
 def c3d_logo(p: dict):
     """Logo SHWork vectorise, en relief (pour l'apposer sur une surface avec Integrer)."""
-    from atelier.logo import logo_3d
+    from atelier.noyau.logo import logo_3d
     def f():
         m = logo_3d(float(p.get("largeur", 40)), float(p.get("epaisseur", 1.2)), p.get("partie", "mot"), float(p.get("socle", 0)))
         return _c3d_sauver(m, "logo_shwork")

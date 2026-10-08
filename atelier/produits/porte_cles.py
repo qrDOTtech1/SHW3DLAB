@@ -21,7 +21,7 @@ from shapely.geometry import MultiPolygon, Point, Polygon
 from shapely.ops import unary_union
 
 FONTS = Path("C:/Windows/Fonts")
-LOCALES = Path(__file__).resolve().parent.parent / "polices"
+LOCALES = Path(__file__).resolve().parents[2] / "polices"
 # cle -> (fichier, libelle, licence, vente de prenoms personnalises autorisee ?)
 POLICES_INFO = {
     "arial_black": (FONTS / "ariblk.ttf", "Arial Black", "Microsoft (Windows)", True),

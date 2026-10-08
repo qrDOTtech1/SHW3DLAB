@@ -19,7 +19,7 @@ import cadquery as cq
 from shapely.geometry import MultiPolygon, Polygon, box as sbox
 from shapely.ops import unary_union
 
-from .porte_cles import Style, prenom_polygone, extrude
+from atelier.produits.porte_cles import Style, prenom_polygone, extrude
 
 
 @dataclass

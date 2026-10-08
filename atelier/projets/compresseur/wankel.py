@@ -23,8 +23,8 @@ from shapely.geometry import Polygon, Point, box as sbox
 from shapely import affinity
 from shapely.ops import unary_union
 
-from .c3d import section, vers_trimesh
-from .meca import profil_engrenage, ROULEMENTS
+from atelier.noyau.c3d import section, vers_trimesh
+from atelier.meca import profil_engrenage, ROULEMENTS
 
 
 def stator_profil(e, R, n=720):
@@ -67,8 +67,8 @@ def compresseur(p: dict):
     paliers lisses graissables, arbre excentrique d'une piece (hexagone de 10 pour le mandrin), tirants M8 et
     ecrous imprimes, segments d'apex et joints de flasques decoupes dans des joints toriques, 4 lumieres aux angles
     optimises par simulation, embouts pour tube LEGO / tube d8 / cannele / taraudage."""
-    from .meca import orifice as _orif, _place
-    from .c3d import filetage
+    from atelier.meca import orifice as _orif, _place
+    from atelier.noyau.c3d import filetage
     g = lambda k, d: float(p.get(k, d)) if p.get(k) not in (None, "") else d
     version = p.get("version", "perceuse")
     compact = version == "compact"
@@ -259,7 +259,7 @@ def compresseur(p: dict):
 
 def _taux(e, R):
     """Taux de compression geometrique Vmax / Vmin (volumes des chambres calcules sur les profils reels)."""
-    from .sim_wankel import geometrie
+    from atelier.projets.compresseur.sim_wankel import geometrie
     _, V, _ = geometrie(e, R, 10.0, 0.0, 120)
     return float(V.max() / V.min())
 

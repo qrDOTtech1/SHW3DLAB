@@ -1,7 +1,7 @@
 """Simulation de la course du jeton : interference jeton / corps tous les 0.25 mm."""
 import numpy as np
 import cadquery as cq
-from .porte_jeton import porte_jeton
+from atelier.produits.porte_jeton import porte_jeton
 
 
 def simuler(pcs=None, g=None):

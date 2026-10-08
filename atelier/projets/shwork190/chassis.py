@@ -23,7 +23,7 @@ import numpy as np
 import manifold3d as mf
 from shapely.geometry import Polygon, box as sbox
 
-from .c3d import section, vers_trimesh
+from atelier.noyau.c3d import section, vers_trimesh
 
 M3_PASSAGE, M3_TARAUD = 1.65, 1.25
 

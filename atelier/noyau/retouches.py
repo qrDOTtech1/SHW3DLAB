@@ -133,7 +133,7 @@ def taches_flancs(m: trimesh.Trimesh, k=1.0, res=0.25):
     """Detecte les CARRES parasites des flancs (contours fins de baguettes mal modelisees, pavés, petits
     creux) et renvoie des touches 'raboter' pour les effacer. Garde poignees, arches, lignes de caisse."""
     from scipy import ndimage
-    from . import lignes
+    from atelier.noyau import lignes
     touches = []
     for sg in (1, -1):
         P, u0, v0, r, a, b = lignes.carte(m, 1, sg, res)
@@ -181,7 +181,7 @@ def aplanir_flancs(m: trimesh.Trimesh, k=1.0, res=0.25, paroi=1.8):
     Les deux peaux bougent ensemble : l'epaisseur ne change pas."""
     from scipy import ndimage
     from scipy.ndimage import map_coordinates
-    from . import lignes
+    from atelier.noyau import lignes
     m = m.copy()
     V = m.vertices.astype(np.float64).copy()
     for sg in (1, -1):

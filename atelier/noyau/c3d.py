@@ -138,7 +138,7 @@ def forme(type_: str, p: dict) -> trimesh.Trimesh:
     if type_ == "coeur":
         return extruder(_coeur(g("x", 30)), g("z", 5))
     if type_ == "texte":
-        from .porte_cles import Style, prenom_polygone
+        from atelier.produits.porte_cles import Style, prenom_polygone
         poly, _ = prenom_polygone(str(p.get("texte", "Texte")), Style(police=p.get("police", "arial_black"), hauteur=g("h", 15)))
         b = poly.bounds
         poly = affinity.translate(poly, -(b[0] + b[2]) / 2, -(b[1] + b[3]) / 2)
@@ -175,7 +175,7 @@ def image_3d(data: bytes, mode: str, p: dict) -> trimesh.Trimesh:
     if mode in ("lithophanie", "relief_photo"):
         return _hauteurs(data, g("largeur", 80), g("e_min", 0.8), g("e_max", 3.2), inverse=(mode == "lithophanie"),
                          cadre=g("cadre", 3))
-    from .image2d import image_vers_polygone
+    from atelier.noyau.image2d import image_vers_polygone
     seuil = p.get("seuil")
     poly, info = image_vers_polygone(data, g("largeur", 50), int(seuil) if seuil else None, p.get("inverser"),
                                      detail_min_mm=g("detail", 0.5))
@@ -692,13 +692,13 @@ def _perso_motif(p, lw, hw):
     typ = p.get("perso", "aucun")
     contenu = []
     if typ in ("texte", "texte_logo") and str(p.get("perso_texte", "")).strip():
-        from .porte_cles import Style, prenom_polygone
+        from atelier.produits.porte_cles import Style, prenom_polygone
         t, _ = prenom_polygone(str(p["perso_texte"]).strip()[:40], Style(police=p.get("perso_police", "bebas"), hauteur=10.0, serrage=0.0))
         contenu.append(("texte", t))
     if typ in ("logo", "texte_logo") and p.get("perso_image"):
-        f = Path(__file__).resolve().parent.parent / "data" / "images" / f"{p['perso_image']}.img"
+        f = Path(__file__).resolve().parents[2] / "data" / "images" / f"{p['perso_image']}.img"
         if f.exists():
-            from .image2d import image_vers_polygone
+            from atelier.noyau.image2d import image_vers_polygone
             lg, _ = image_vers_polygone(f.read_bytes(), 30.0, None, bool(p.get("perso_inverser")) or None, detail_min_mm=0.4)
             contenu.insert(0, ("logo", lg))
 
@@ -1011,7 +1011,7 @@ def shadowbox(data: bytes, couches=5, largeur=100.0, e_couche=1.2, cadre=6.0, de
     ajouree (la plus sombre au fond), empilees avec un cadre. -> liste de maillages (1 par couche + cadre),
     a imprimer chacun dans sa couleur."""
     from PIL import Image, ImageOps
-    from .image2d import polygones
+    from atelier.noyau.image2d import polygones
     im = ImageOps.exif_transpose(Image.open(io.BytesIO(data))).convert("L")
     k = 600 / max(im.size)
     im = im.resize((int(im.width * k), int(im.height * k)), Image.LANCZOS)

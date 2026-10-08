@@ -19,7 +19,7 @@ import manifold3d as mf
 from shapely.geometry import Point, box as sbox
 from shapely.ops import unary_union
 
-from .c3d import section, vers_trimesh
+from atelier.noyau.c3d import section, vers_trimesh
 
 PAS_MX = 19.05
 # JC4827W543 : 120.00 x 70.20 mm, zone active 95.04 x 53.86 mm, trous d3.2 (manuel Guition / ESPHome)

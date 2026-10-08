@@ -20,7 +20,7 @@ import trimesh
 from shapely.geometry import Polygon, Point, box as sbox
 from shapely.ops import unary_union
 
-from .c3d import section, vers_trimesh, vers_manifold
+from atelier.noyau.c3d import section, vers_trimesh, vers_manifold
 
 # ------------------------------------------------------------------ roulements standards (d_int, d_ext, largeur)
 ROULEMENTS = {"608": (8, 22, 7), "625": (5, 16, 5), "688": (8, 16, 5), "626": (6, 19, 6), "6000": (10, 26, 8),
@@ -530,7 +530,7 @@ CATALOGUE.update({
 
 
 def _vibe_deck(p):
-    from .vibedeck import vibe_deck
+    from atelier.projets.vibedeck.vibedeck import vibe_deck
     return vibe_deck(p)
 
 
@@ -742,7 +742,7 @@ CATALOGUE.update({
 
 
 def _compresseur(p):
-    from .wankel import compresseur
+    from atelier.projets.compresseur.wankel import compresseur
     return compresseur(p)
 
 
@@ -829,9 +829,9 @@ def _swork190(p: dict):
     import hashlib
     import trimesh as _tm
     from pathlib import Path
-    from . import carrosserie as ca
-    from .c3d import orienter
-    ici = Path(__file__).resolve().parent.parent
+    from atelier.projets.shwork190 import carrosserie as ca
+    from atelier.noyau.c3d import orienter
+    ici = Path(__file__).resolve().parents[1]
     fid = str(p.get("base") or "")
     src = ici / "sortie" / "c3d" / f"{fid}.stl"
     if not fid or not src.exists():
@@ -869,7 +869,7 @@ def _swork190(p: dict):
         coque = _tm.load(fv, force="mesh", process=False)
     ret = p.get("retouches") or {}
     if ret.get("surface"):                                  # pinceau : lisser / raboter la tole avant decoupe
-        from .retouches import retoucher_surface
+        from atelier.noyau.retouches import retoucher_surface
         coque = retoucher_surface(coque, ret["surface"])
     caisse, panneaux = ca.detacher_precis(coque, contours, choix, g("jeu_panneaux", 0.35), g("jeu_petites", 0.2),
                                           g("profondeur_portes", 32), retouches=ret.get("decoupe"), paroi=paroi)
@@ -904,8 +904,8 @@ def _swork190(p: dict):
          "Charnieres imprimees des ouvrants : prochaine etape (clips)"]
     info_ch = None
     if int(g("chassis", 1)):                               # chassis tubulaire custom + suspension active
-        from .chassis import chassis as _chassis
-        from .c3d import vers_trimesh as _vt
+        from atelier.projets.shwork190.chassis import chassis as _chassis
+        from atelier.noyau.c3d import vers_trimesh as _vt
         roues = (_json.loads(fi.read_text()).get("roues") if fi.exists() else None) or []
         pc = {k: p[k] for k in ("voie", "z_plancher", "e_plancher", "r_tube") if p.get(k) not in (None, "")}
         if len(roues) == 2:
@@ -967,8 +967,8 @@ CATALOGUE["swork190"] = {"nom": "SHWork 190 SE (RC 1:10)", "cat": "Projets", "fn
 
 # ================================================================== PROJET : LE ServBuddy (by SHWork) - bracelet porte-assiette
 def _servbuddy_v1(p: dict):
-    from .servbuddy_v1 import servbuddy
-    from .c3d import vers_trimesh, orienter
+    from atelier.projets.servbuddy.v1 import servbuddy
+    from atelier.noyau.c3d import vers_trimesh, orienter
     pieces, info = servbuddy(p)
     out, noms, poses = [], [], []
     for nom, sol in pieces.items():
@@ -999,8 +999,8 @@ CATALOGUE["servbuddy_v1"] = {"nom": "ServBuddy v1 (archive)", "cat": "Projets", 
 
 # ================================================================== PROJET : ServBuddy v2 (monocoque + carenages)
 def _servbuddy(p: dict):
-    from .servbuddy2 import servbuddy2
-    from .c3d import vers_trimesh, orienter
+    from atelier.projets.servbuddy.v2_3 import servbuddy2
+    from atelier.noyau.c3d import vers_trimesh, orienter
     pieces, info = servbuddy2(p)
     out, noms, poses = [], [], []
     for nom, sol in pieces.items():
@@ -1034,8 +1034,8 @@ CATALOGUE["servbuddy"] = {"nom": "ServBuddy (by SHWork)", "cat": "Projets", "fn"
 
 # ================================================================== ARCHIVE : ServBuddy 1.6 (carenages visses)
 def _servbuddy_v16(p: dict):
-    from .servbuddy_v16 import servbuddy2
-    from .c3d import vers_trimesh, orienter
+    from atelier.projets.servbuddy.v2_2 import servbuddy2
+    from atelier.noyau.c3d import vers_trimesh, orienter
     pieces, info = servbuddy2(p)
     out, noms, poses = [], [], []
     for nom, sol in pieces.items():
@@ -1055,3 +1055,52 @@ def _servbuddy_v16(p: dict):
 
 CATALOGUE["servbuddy_v16"] = dict(CATALOGUE["servbuddy"], nom="ServBuddy v2.2 (archive, carenages visses)", fn=_servbuddy_v16,
     description="Archive v2.2 : carenages visses, axe de charniere en acier.")
+
+
+
+# ================================================================== CLASSEMENT des projets (vue Projets : familles / versions)
+_FAMILLES = {
+    "servbuddy": ("ServBuddy", "2.3", False, "&#9711;"), "servbuddy_v16": ("ServBuddy", "2.2", True, "&#9711;"),
+    "servbuddy_v1": ("ServBuddy", "1", True, "&#9711;"), "swork190": ("SHWork 190 SE", "1", False, "&#9951;"),
+    "compresseur": ("Compresseur Wankel", "2", False, "&#10042;"), "vibedeck": ("Vibe Deck", "1", False, "&#9635;"),
+}
+for _k, (_f, _v, _a, _i) in _FAMILLES.items():
+    if _k in CATALOGUE:
+        CATALOGUE[_k].update(famille=_f, version=_v, archive=_a, icone=_i)
+
+
+
+# ================================================================== CACHE des projets lourds (calcul cinematique...)
+def _cache_projet(fn, module_fichier):
+    """Enveloppe fn(p) -> (meshes, info) : resultat garde sur disque, cle = parametres + code source du projet.
+    Changer un reglage ou le code relance le calcul ; rouvrir le projet est instantane."""
+    import hashlib, json as _json, pickle
+    from pathlib import Path as _P
+    rep = _P(__file__).resolve().parents[1] / "sortie" / "cache_projets"
+
+    def f(p):
+        src = _P(module_fichier).read_bytes()
+        cle = hashlib.sha1(src + _json.dumps(p, sort_keys=True, default=str).encode()).hexdigest()[:20]
+        fic = rep / f"{fn.__name__}_{cle}.pkl"
+        if fic.exists():
+            try:
+                return pickle.loads(fic.read_bytes())
+            except Exception:
+                pass
+        r = fn(p)
+        rep.mkdir(parents=True, exist_ok=True)
+        try:
+            fic.write_bytes(pickle.dumps(r))
+        except Exception:
+            pass
+        return r
+    return f
+
+
+def _src(mod):
+    import importlib
+    return importlib.import_module(mod).__file__
+
+
+CATALOGUE["servbuddy"]["fn"] = _cache_projet(_servbuddy, _src("atelier.projets.servbuddy.v2_3"))
+CATALOGUE["servbuddy_v16"]["fn"] = _cache_projet(_servbuddy_v16, _src("atelier.projets.servbuddy.v2_2"))

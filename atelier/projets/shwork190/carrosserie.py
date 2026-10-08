@@ -19,9 +19,9 @@ import numpy as np
 import trimesh
 import manifold3d as mf
 
-from .c3d import vers_manifold, vers_trimesh
+from atelier.noyau.c3d import vers_manifold, vers_trimesh
 
-ICI = Path(__file__).resolve().parent.parent
+ICI = Path(__file__).resolve().parents[3]
 CACHE = ICI / "sortie" / "carrosserie_cache"
 CACHE.mkdir(parents=True, exist_ok=True)
 
@@ -42,7 +42,7 @@ def _marching_cubes():
 def _roues(m, res=0.25):
     """Centres (x, z) et rayon des roues, detectes comme cercles sur la carte de relief du flanc (Hough)."""
     import cv2
-    from . import lignes
+    from atelier.noyau import lignes
     P, u0, v0, r, a, b = lignes.carte(m, 1, 1, res)
     rel, sil = lignes.relief(P, 3)
     g = np.clip(128 + rel * 300, 0, 255).astype(np.uint8)
@@ -149,7 +149,7 @@ def debosseler(m, k=1.0, res=0.25, seuil=0.18):
     zones compactes qui s'en ecartent sont ramenes sur la tole. Bande 10-62 mm, loin des passages de roue."""
     from scipy import ndimage
     from scipy.ndimage import map_coordinates
-    from . import lignes
+    from atelier.noyau import lignes
     # les pavés sont souvent portes par de GRANDS triangles : on subdivise les flancs de la bande (aretes <= 1.5 mm)
     c, n = m.triangles_center, m.face_normals
     flanc = (np.abs(c[:, 1]) > 55 * k) & (c[:, 2] > 5 * k) & (c[:, 2] < 67 * k)
@@ -342,7 +342,7 @@ def coque_precise(m, paroi=1.8, pas=0.35, ouvrir_dessous=True, e_doublure=1.6, t
         return out_
     del sg
     sh = souder(morceaux)
-    from .poncage import poncer                       # ponçage carrossier : efface les plis / facettes du STL
+    from atelier.noyau.poncage import poncer                       # ponçage carrossier : efface les plis / facettes du STL
     if poncage:
         sh = vers_trimesh(vers_manifold(poncer(sh, sigma_angle_deg=18, passes=7, iter_normales=12)))
     sh_m = sh
@@ -397,7 +397,7 @@ PANNEAUX_190E = {
 def boite_panneau(nom, cfg, bounds, jeu=0.0, profondeur=32.0):
     """Prisme de decoupe d'un panneau (repere de la coque). jeu > 0 : prisme agrandi (logement du panneau)."""
     from shapely.geometry import Polygon
-    from .c3d import section
+    from atelier.noyau.c3d import section
     (x0, y0, z0), (x1, y1, z1) = bounds
     L, Wd, H = x1 - x0, y1 - y0, z1 - z0
     if cfg["vue"] == "dessus":
@@ -521,7 +521,7 @@ def contours_lignes(base, res=0.25, cache=None):
 def prisme_contour(nom, contours, bounds, jeu=0.0, profondeur=32.0):
     """Prisme de decoupe a partir du contour lu sur le modele (repere de la coque)."""
     from shapely.geometry import Polygon
-    from .c3d import section
+    from atelier.noyau.c3d import section
     cfg = LIGNES_190E[nom]
     src = cfg.get("symetrique_de", nom)
     pts = contours[src]
@@ -589,7 +589,7 @@ def aimanter(pts, P, u0, v0, res, rayon=2.5, seuil=-0.03, lissage=9):
     rainure la plus proche (relief < seuil) a moins de `rayon` mm ; decalages lisses le long du contour."""
     from shapely.geometry import Polygon as _P
     from scipy.ndimage import map_coordinates, median_filter
-    from . import lignes
+    from atelier.noyau import lignes
     rel, sil = lignes.relief(P, 3.0)
     poly = _P(pts).buffer(0)
     if poly.geom_type != "Polygon":
@@ -628,7 +628,7 @@ def aimanter(pts, P, u0, v0, res, rayon=2.5, seuil=-0.03, lissage=9):
 def contours_precis(base, cache=None, journal=None):
     """Tous les contours de decoupe (repere du modele prepare), aimantes sur les rainures. Cache JSON."""
     import json
-    from . import lignes
+    from atelier.noyau import lignes
     if cache is not None and cache.exists():
         d = json.loads(cache.read_text())
         if d.get("v") == 3:
@@ -663,7 +663,7 @@ PETITES = {"retro_g", "retro_d", "calandre", "phare_g", "phare_d", "plaque_av", 
 
 def _prisme(cfg, bounds, jeu, profondeur, cote=1, miroir=False):
     from shapely.geometry import Polygon as _P
-    from .c3d import section
+    from atelier.noyau.c3d import section
     pts = np.array(cfg["pts"], float)
     if miroir:
         pts = pts.copy()
@@ -693,7 +693,7 @@ def detacher_precis(coque_m, contours, choix, jeu=0.35, jeu_petites=0.2, profond
     """Detache (dans l'ordre : petites pieces d'abord) ; chaque piece = coque restante dans son volume de decoupe.
     retouches = {piece: [[x,y,z,nx,ny,nz,r,'+'|'-'], ...]} : coups de PINCEAU qui ajoutent ('+') une zone a la piece
     (prise a la caisse ou a la voisine) ou la rendent ('-') a la caisse."""
-    from .retouches import volume_touches
+    from atelier.noyau.retouches import volume_touches
     S = vers_manifold(coque_m)
     b = coque_m.bounds
     out = {}
@@ -778,7 +778,7 @@ V2_CARTES = {"flanc": (-222.5, 12.684, 629), "dessus": (-222.5, -95.177, 952), "
 def contours_v2(base, cache=None):
     """Contours du modele propre (repere du modele prepare a 445 mm), aimantes sur les rainures. Cache JSON."""
     import json
-    from . import lignes
+    from atelier.noyau import lignes
     if cache is not None and cache.exists():
         d = json.loads(cache.read_text())
         if d.get("v") == "v2":
@@ -811,8 +811,8 @@ def evider_interieur(coque_m, marge=6.0, demi=66.0, x0=-185.0, x1=175.0, res=1.0
     import cv2
     from shapely.geometry import Polygon as _P
     from shapely.ops import unary_union as _uu
-    from .c3d import section
-    from . import lignes
+    from atelier.noyau.c3d import section
+    from atelier.noyau import lignes
     P, u0, v0, r, a, b = lignes.carte(coque_m, 2, 1, res)          # z de la peau du dessus (vue de dessus)
     ztop = np.where(np.isnan(P), -1e9, P)
     X = u0 + np.arange(P.shape[1]) * r
