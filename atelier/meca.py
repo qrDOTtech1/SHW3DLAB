@@ -998,8 +998,9 @@ CATALOGUE["servbuddy_v1"] = {"nom": "ServBuddy v1 (archive)", "cat": "Projets", 
 
 
 # ================================================================== PROJET : ServBuddy v2 (monocoque + carenages)
-def _servbuddy(p: dict):
-    from atelier.projets.servbuddy.v2_3 import servbuddy2
+def _servbuddy(p: dict, version="v2_4"):
+    import importlib
+    servbuddy2 = importlib.import_module("atelier.projets.servbuddy." + version).servbuddy2
     from atelier.noyau.c3d import vers_trimesh, orienter
     pieces, info = servbuddy2(p)
     out, noms, poses = [], [], []
@@ -1019,7 +1020,7 @@ def _servbuddy(p: dict):
 
 
 CATALOGUE["servbuddy"] = {"nom": "ServBuddy (by SHWork)", "cat": "Projets", "fn": _servbuddy,
-    "description": "v2.3 sans visserie : charniere imprimee en place, carenages clipses. Monocoque en coquille + carenages facon armure. On ouvre, on pose, on ferme (cliquet), on regle a la molette. Port a modules (plateau, pince). 100 % PLA.",
+    "description": "v2.4 : trappe-cliquet clipsee (verrouillee par le carenage), commandes a fleur, plateau ajoure, molette a rayons. Sans visserie, charniere imprimee en place. Monocoque en coquille + carenages facon armure. On ouvre, on pose, on ferme (cliquet), on regle a la molette. Port a modules (plateau, pince). 100 % PLA.",
     "couleurs": {"coquille_charniere": "#3a3f4b", "coque_dorsale": "#3a3f4b", "coque_palmaire": "#3a3f4b", "carenage_dorsal": "#e9ebef", "carenage_palmaire": "#e9ebef",
                  "molette": "#ff6a13", "pignon_rochet": "#c9ced6", "axe": "#ff6a13", "trappe_cliquet": "#3a3f4b", "module_plateau": "#ff6a13", "module_pince": "#ff6a13"},
     "champs": [
@@ -1030,6 +1031,15 @@ CATALOGUE["servbuddy"] = {"nom": "ServBuddy (by SHWork)", "cat": "Projets", "fn"
         dict(_c("film", "Epaisseur du film alcantara", 0.8, 0.4, 1.5, 0.1), groupe="Confort"),
     ]}
 
+
+
+# ================================================================== ARCHIVE : ServBuddy v2.3
+def _servbuddy_v23(p: dict):
+    return _servbuddy(p, "v2_3")
+
+
+CATALOGUE["servbuddy_v23"] = dict(CATALOGUE["servbuddy"], nom="ServBuddy v2.3 (archive)", fn=_servbuddy_v23,
+    description="Archive v2.3 : sans visserie, trappe-cliquet libre tenue par le carenage, languette en saillie.")
 
 
 # ================================================================== ARCHIVE : ServBuddy 1.6 (carenages visses)
@@ -1060,7 +1070,7 @@ CATALOGUE["servbuddy_v16"] = dict(CATALOGUE["servbuddy"], nom="ServBuddy v2.2 (a
 
 # ================================================================== CLASSEMENT des projets (vue Projets : familles / versions)
 _FAMILLES = {
-    "servbuddy": ("ServBuddy", "2.3", False, "&#9711;"), "servbuddy_v16": ("ServBuddy", "2.2", True, "&#9711;"),
+    "servbuddy": ("ServBuddy", "2.4", False, "&#9711;"), "servbuddy_v23": ("ServBuddy", "2.3", True, "&#9711;"), "servbuddy_v16": ("ServBuddy", "2.2", True, "&#9711;"),
     "servbuddy_v1": ("ServBuddy", "1", True, "&#9711;"), "swork190": ("SHWork 190 SE", "1", False, "&#9951;"),
     "compresseur": ("Compresseur Wankel", "2", False, "&#10042;"), "vibedeck": ("Vibe Deck", "1", False, "&#9635;"),
 }
@@ -1102,5 +1112,6 @@ def _src(mod):
     return importlib.import_module(mod).__file__
 
 
-CATALOGUE["servbuddy"]["fn"] = _cache_projet(_servbuddy, _src("atelier.projets.servbuddy.v2_3"))
+CATALOGUE["servbuddy"]["fn"] = _cache_projet(_servbuddy, _src("atelier.projets.servbuddy.v2_4"))
+CATALOGUE["servbuddy_v23"]["fn"] = _cache_projet(_servbuddy_v23, _src("atelier.projets.servbuddy.v2_3"))
 CATALOGUE["servbuddy_v16"]["fn"] = _cache_projet(_servbuddy_v16, _src("atelier.projets.servbuddy.v2_2"))
