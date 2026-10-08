@@ -1017,7 +1017,7 @@ def _servbuddy(p: dict):
 CATALOGUE["servbuddy"] = {"nom": "ServBuddy (by SHWork)", "cat": "Projets", "fn": _servbuddy,
     "description": "v2 : monocoque en coquille + carenages facon armure. On ouvre, on pose, on ferme (cliquet), on regle a la molette. Port a modules (plateau, pince). 100 % PLA.",
     "couleurs": {"coque_dorsale": "#3a3f4b", "coque_palmaire": "#3a3f4b", "carenage_dorsal": "#e9ebef", "carenage_palmaire": "#e9ebef",
-                 "molette": "#ff6a13", "bouton_liberation": "#ff6a13", "module_plateau": "#ff6a13", "module_pince": "#ff6a13"},
+                 "molette": "#ff6a13", "pignon_rochet": "#c9ced6", "axe": "#ff6a13", "trappe_cliquet": "#3a3f4b", "module_plateau": "#ff6a13", "module_pince": "#ff6a13"},
     "champs": [
         dict(_c("tour_poignet", "Tour de poignet (mesure)", 165, 130, 220, 1), groupe="Taille"),
         dict(_c("longueur", "Longueur", 58, 45, 75, 1), groupe="Taille"),
@@ -1025,3 +1025,24 @@ CATALOGUE["servbuddy"] = {"nom": "ServBuddy (by SHWork)", "cat": "Projets", "fn"
         dict(_c("plateau_w", "Plateau : largeur", 74, 50, 100, 1), groupe="Module plateau"),
         dict(_c("film", "Epaisseur du film alcantara", 0.8, 0.4, 1.5, 0.1), groupe="Confort"),
     ]}
+
+
+
+# ================================================================== ARCHIVE : ServBuddy 1.6 (carenages visses)
+def _servbuddy_v16(p: dict):
+    from .servbuddy_v16 import servbuddy2
+    from .c3d import vers_trimesh, orienter
+    pieces, info = servbuddy2(p)
+    out, noms, poses = [], [], []
+    for nom, sol in pieces.items():
+        m = vers_trimesh(sol)
+        R, _ = orienter(m)
+        mm = m.copy(); mm.apply_transform(R)
+        t = -mm.bounds[0]; mm.apply_translation(t)
+        T = np.eye(4); T[:3, 3] = t
+        poses.append(np.linalg.inv(T @ R).tolist()); out.append(mm); noms.append(nom)
+    info.update({"noms": noms, "assemblage": poses})
+    return out, info
+
+
+CATALOGUE["servbuddy_v16"] = dict(CATALOGUE["servbuddy"], nom="ServBuddy 1.6 (archive, carenages visses)", fn=_servbuddy_v16)
