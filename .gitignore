@@ -1,0 +1,25 @@
+# --- generes / lourds (jamais dans le depot)
+sortie/
+__pycache__/
+*.pyc
+.venv/
+build/
+dist/
+*.spec
+# --- donnees personnelles de chaque machine
+data/projets/
+data/images/
+data/*.json
+!data/logo_shwork_src.png
+data/jobs/
+# --- local
+*.log
+.claude/
+data/apercus/
+data/scenes/
+data/test_slice/
+# licence Typodermic : redistribution interdite
+polices/_tmp/
+polices/PricedownBl.otf
+polices/Typodermic*
+serveur.log

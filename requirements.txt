@@ -1,0 +1,23 @@
+# SHW 3DLAB - dependances Python (Python 3.12)
+fastapi==0.141.1
+uvicorn==0.53.0
+pydantic==2.13.5
+numpy==2.5.3
+scipy==1.18.1
+shapely==2.1.2
+trimesh==5.1.0
+manifold3d==3.5.3
+opencv-python-headless==5.0.0.93
+pillow==12.3.0
+cadquery==2.8.0
+qrcode==8.2
+mujoco==3.14.0
+libigl==2.6.3
+embreex==4.4.0
+rtree==1.4.1
+networkx==3.7
+scikit-image
+fonttools
+matplotlib
+# lanceur (icone barre des taches)
+pystray

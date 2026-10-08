@@ -1,0 +1,69 @@
+{
+ "version": 2,
+ "name": "Creality K2 SE (ATELIER-3D)",
+ "inherits": "creality_base",
+ "metadata": {
+  "visible": true,
+  "manufacturer": "Creality3D",
+  "file_formats": "text/x-gcode",
+  "machine_extruder_trains": {
+   "0": "atelier_k2se_extruder_0"
+  }
+ },
+ "overrides": {
+  "machine_name": {
+   "default_value": "Creality K2 SE"
+  },
+  "machine_width": {
+   "default_value": 220
+  },
+  "machine_depth": {
+   "default_value": 215
+  },
+  "machine_height": {
+   "default_value": 245
+  },
+  "machine_heated_bed": {
+   "default_value": true
+  },
+  "machine_gcode_flavor": {
+   "default_value": "RepRap (Marlin/Sprinter)"
+  },
+  "machine_start_gcode": {
+   "default_value": "M140 S0\nM104 S0 \nSTART_PRINT EXTRUDER_TEMP={material_print_temperature_layer_0} BED_TEMP={material_bed_temperature_layer_0}\nT0\nM104 S{material_print_temperature_layer_0}\nM204 S2000\nG1 Z3 F600\nM83\nG1 Y150 F12000\nG1 X0 F12000\nG1 Z0.2 F600\nG1 X0 Y150 F6000\nG1 E0.8 F300\nG1 X0 Y0 E9 F1500\nG1 X150 Y0 E9 F1500\nG92 E0\nG1 Z1 F600"
+  },
+  "machine_end_gcode": {
+   "default_value": "END_PRINT"
+  },
+  "machine_max_feedrate_x": {
+   "value": 800
+  },
+  "machine_max_feedrate_y": {
+   "value": 800
+  },
+  "machine_max_acceleration_x": {
+   "value": 20000
+  },
+  "machine_max_acceleration_y": {
+   "value": 20000
+  },
+  "retraction_amount": {
+   "value": 0.8
+  },
+  "retraction_speed": {
+   "value": 30
+  },
+  "retraction_hop_enabled": {
+   "value": true
+  },
+  "retraction_hop": {
+   "value": 0.4
+  },
+  "material_diameter": {
+   "value": 1.75
+  },
+  "adhesion_type": {
+   "value": "'skirt'"
+  }
+ }
+}
