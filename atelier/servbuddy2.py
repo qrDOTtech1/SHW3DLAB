@@ -1,4 +1,4 @@
-"""LE ServBuddy v2 (by SHWork) : bracelet porte-assiette en MONOCOQUE + CARENAGES, facon armure (Iron Man).
+"""LE ServBuddy v2.3 (by SHWork) - SANS VISSERIE : bracelet porte-assiette en MONOCOQUE + CARENAGES, facon armure (Iron Man).
 
 Repere : X = avant-bras (+X vers la main), Y = largeur du poignet (+Y = cote cubitus / petit doigt), Z = dos du poignet.
 
@@ -89,10 +89,11 @@ def servbuddy2(p: dict):
     pal = pal - alveoles(R(-138), R(-44), -L / 2 + 8.0, L / 2 - 8.0)
     # ================= CHARNIERE (axe X, 5 noeuds alternes)
     H = P(ec + 1.6, t_h)                              # axe de charniere noye dans la lame d'air (sous le carenage)
-    rh = 2.5
+    rh = 3.0                                          # noeuds renforces (choc)
+    r_ax, j_ax = 1.75, 0.4                            # axe imprime d3.5, jeu radial 0.4
     noeuds = np.linspace(-L / 2, L / 2, 6)
     for i in range(5):
-        x0, x1 = noeuds[i] + 0.3, noeuds[i + 1] - 0.3
+        x0, x1 = noeuds[i] + 0.25, noeuds[i + 1] - 0.25
         c = extrude_x(Point(H).buffer(rh, 48).union(Polygon([H + [0, 0], P(ec * 0.5, t_h + (R(8) if i % 2 == 0 else -R(8))), P(ec * 0.5, t_h)]).buffer(1.6)), x0, x1)
         if i % 2 == 0:
             dor = dor + (c - cav)
@@ -105,8 +106,9 @@ def servbuddy2(p: dict):
             pal = pal - z_
         else:
             dor = dor - z_
-    axe_h = tube((-L / 2 - 1, H[0], H[1]), (L / 2 + 1, H[0], H[1]), 1.05)          # axe = tige acier / clou d2
-    dor, pal = dor - axe_h, pal - axe_h
+    # l'AXE fait partie de la coque dorsale (imprime en place, debout) ; la coque palmaire tourne autour
+    pal = pal - tube((-L / 2 - 1, H[0], H[1]), (L / 2 + 1, H[0], H[1]), r_ax + j_ax)
+    dor = dor + tube((noeuds[0] + 0.25, H[0], H[1]), (noeuds[-1] - 0.25, H[0], H[1]), r_ax)
     # ================= REGLAGE : SECTEUR DENTE (palmaire) + PIGNON (nacelle dorsale)
     from .meca import profil_engrenage
     m_, z_p = 1.0, 11
@@ -163,14 +165,12 @@ def servbuddy2(p: dict):
         a0 = i * 2 * math.pi / 36
         mol = mol - mf.Manifold.cylinder(10, 0.55, 0.55, 8).translate((Rm * math.cos(a0), Rm * math.sin(a0), x_m0 - 1))
     mol = mol - mf.Manifold.extrude(section(hexa.buffer(0.15, join_style=2)), 30).translate((0, 0, x_m0 - 5))
-    mol = mol - mf.Manifold.cylinder(2.2, 3.2, 3.2, 32).translate((0, 0, x_m1 - 2.2 + 0.01))           # logement tete + rondelle
     out["molette"] = mol.transform(T_ax)
     # AXE hexagonal + BASE RONDE (cache, semelle d'impression), percage M3 en bout (vis de la molette)
     x_a0 = x_n0 - 2.0
     axe = mf.Manifold.extrude(section(hexa), x_m1 - 1.0 - x_n0).translate((0, 0, x_n0))
     axe = axe + mf.Manifold.cylinder(2.0, 6.0, 6.0, 64).translate((0, 0, x_a0))
     axe = axe + mf.Manifold.cylinder(0.6, 6.0, 5.4, 64).translate((0, 0, x_a0 - 0.6))               # chanfrein du cache
-    axe = axe - mf.Manifold.cylinder(9, 1.25, 1.25, 24).translate((0, 0, x_m1 - 1.0 - 8.5))
     out["axe"] = axe.transform(T_ax)
     # NACELLE
     n_out = (C - np.array([0, 0])) / np.linalg.norm(C)
@@ -246,10 +246,18 @@ def servbuddy2(p: dict):
     def rebords(car, t0, t1, x0, x1):
         for xb, sens in ((x0, 1), (x1, -1)):
             lev = extrude_x(arc(ec + 0.35, ec + gap + 0.3, t0, t1, 80), min(xb, xb + sens * 1.2), max(xb, xb + sens * 1.2))
-            car = car + lev
+            xa_, xb_ = sorted((xb + sens * 0.35, xb + sens * 0.85))
+            perle = extrude_x(arc(ec - 0.45, ec + 0.4, t0 + R(2), t1 - R(2), 80), xa_, xb_)        # bourrelet continu
+            car = car + lev + perle
+            gorges.append((t0, t1, xa_ - 0.1, xb_ + 0.1))
         return car
+    gorges = []
     kd = rebords(kd, t_h + R(4), t_d1 - R(4), -L / 2 + 1, L / 2 - 1)
+    for t0_, t1_, xa_, xb_ in gorges:
+        dor = dor - extrude_x(arc(ec - 0.6, ec + 0.6, t0_ + R(1), t1_ - R(1), 80), xa_, xb_)
+    gorges = []
     kp = rebords(kp, t_p0 + R(4), t_h - R(6), -L / 2 + 5, L / 2 - 5)
+    gorges_p = list(gorges)
     kd, kp = kd - env_sect, kp - env_sect
     dor = dor - extrude_x(Point(H).buffer(Rg + 1.8, 160).difference(Point(H).buffer(Rg - 4.4, 160)).intersection(balai).union(bras2d.buffer(0.6)), -wg / 2 - 0.6, wg / 2 + 0.6)
     # entretoises : plots coque -> carenage (vis M2.5 / M3 depuis l'exterieur, tetes noyees)
@@ -260,16 +268,27 @@ def servbuddy2(p: dict):
                 coque = coque + tube((x, P(0.02, t)[0], P(0.02, t)[1]), (x, P(ec, t)[0], P(ec, t)[1]), 4.2)    # ilot plein sous le plot
                 pl = tube((x, a_[0], a_[1]), (x, b_[0], b_[1]), 2.6)
                 coque = coque + pl
-                o_ = P(ec + gap + ek + 2, t); i_ = P(ec - 1.2, t)
-                trou = tube((x, i_[0], i_[1]), (x, o_[0], o_[1]), 1.25)
-                coque = coque - trou
-                car = car - tube((x, P(ec + gap - 0.2, t)[0], P(ec + gap - 0.2, t)[1]), (x, o_[0], o_[1]), M3)
-                car = car - tube((x, P(ec + gap + ek - 1.0, t)[0], P(ec + gap + ek - 1.0, t)[1]), (x, o_[0], o_[1]), 2.9)
+                # entretoise creuse (allegee) + poche d'accroche noyee dans la coque (0.5 mm de peau cote poignet)
+                q3 = lambda off: np.array([x, P(off, t)[0], P(off, t)[1]])
+                coque = coque - tube(q3(0.5), q3(ec + gap + 0.5), 1.8) - tube(q3(0.5), q3(ec - 0.2), 2.35)
+                coque = coque + (tube(q3(ec - 0.2), q3(ec + 0.05), 2.6) - tube(q3(ec - 0.3), q3(ec + 0.2), 1.8))   # levre de retenue
+                # pion a ailettes sous le carenage : tige fendue + bec conique qui s'enclenche sous la levre
+                tige = tube(q3(ec + gap + 0.4), q3(0.75), 1.5)
+                bec = mf.Manifold.hull(union([tube(q3(1.55), q3(1.6), 2.15, 24), tube(q3(0.75), q3(0.8), 1.45, 24)]))
+                pion = tige + bec
+                n3 = np.array([0, P(1, t)[0] - P(0, t)[0], P(1, t)[1] - P(0, t)[1]]); n3 /= np.linalg.norm(n3)
+                fente = mf.Manifold.cube((0.7, 30, 30), True).translate(tuple(q3(0.75) + n3 * 0))
+                fente = fente ^ mf.Manifold.hull(union([tube(q3(0.6), q3(3.9), 3.0, 24)]))
+                car = car + (pion - fente)
         return coque, car
     dor, kd = plots(dor, kd, (R(20), R(90), R(160)), (-L / 2 + 6, L / 2 - 6))
     out["coque_palmaire"], kp = plots(out["coque_palmaire"], kp, (R(-110), R(-70)), (-L / 2 + 10, L / 2 - 10))
+    for t0_, t1_, xa_, xb_ in gorges_p:
+        out["coque_palmaire"] = out["coque_palmaire"] - extrude_x(arc(ec - 0.6, ec + 0.6, t0_ + R(1), t1_ - R(1), 80), xa_, xb_)
     # fente de la molette dans le carenage dorsal (la molette affleure, bord moletee visible)
     kd = kd - extrude_x(Point(C).buffer(Rm + 1.0, 96), x_m0 - 0.6, x_m1 + 0.6)
+    # le carenage arrete la molette en bout d'axe (joue de 1.6 mm) : plus de vis
+
     # ENCOCHE DE POUCE : creusee vers l'exterieur, evasee -> le bord moletee de la molette affleure
     enc = Point(C + n_out * (Rm + 2.5)).buffer(Rm * 0.75, 64).union(Point(C).buffer(Rm + 1.0, 96)).convex_hull
     kd = kd - extrude_x(enc, x_m0 - 0.6, x_m1 + 0.6)
@@ -344,7 +363,14 @@ def servbuddy2(p: dict):
         for sx in (-1, 1):
             pl = pl - tube((sx * PX * 0.2, sy * (PY / 2 + 0.5), z_pl + ep / 2), (sx * PX * 0.2, sy * (PY / 2 - 3.2), z_pl + ep / 2), 5.1)
     pl = pl - coulisse(L - 8) - kd
-    pl = pl - mf.Manifold.cylinder(30, 1.6, 1.6, 16).translate((L / 2 - 9, 0, z_k - 1))          # ergot = vis M3 de blocage
+    def cran(mod, xh):
+        """Languette souple taillee dans le module + bossage qui tombe dans le trou du rail : on pousse, ca clique."""
+        zt = z_k - 0.4 + 3.45                                    # plafond de la glissiere femelle
+        mod = mod - mf.Manifold.cube((12.0, 7.6, 0.8)).translate((xh - 9.0, -3.8, zt + 2.6))        # fente de flexion
+        for y_ in (-3.8, 3.0):
+            mod = mod - mf.Manifold.cube((12.0, 0.8, 3.4)).translate((xh - 9.0, y_, zt))
+        return mod + mf.Manifold.cylinder(1.1, 1.3, 1.1, 24).translate((xh, 0, zt - 1.05))
+    pl = cran(pl, L / 2 - 9)
     out["module_plateau"] = pl
     # --- module PINCE PORTE-SERVIETTE (meme rail : se glisse a la place, ou sur un 2e bracelet)
     Lp = 26
@@ -404,9 +430,11 @@ def servbuddy2(p: dict):
     for k_, v_ in list(out.items()):
         parts = sorted(v_.decompose(), key=lambda q: -q.volume())
         out[k_] = union([q for q in parts if q.volume() > 0.02 * parts[0].volume()])
-    info = {"poignet_mm": [round(2 * a, 1), round(2 * b, 1)], "tour_poignet": tour, "secteur_dents": z_g, "charniere_yz": [float(H[0]), float(H[1])],
-            "quincaillerie": ["Axe de charniere : vis M3 x " + str(int(L + 2)) + " (ou tige filetee M3) + ecrou",
-                              "Molette : vis M3 x 8 + rondelle dans le bout de l'axe", "10 vis M3 x 8 (carenages sur entretoises) + 1 M3 x 10 (ergot du port)",
+    if not p.get("separer_coques"):                    # CHARNIERE IMPRIMEE EN PLACE : les 2 coques = 1 seule impression
+        out["coquille_charniere"] = out.pop("coque_dorsale") + out.pop("coque_palmaire")
+    info = {"version": "2.3", "poignet_mm": [round(2 * a, 1), round(2 * b, 1)], "tour_poignet": tour, "secteur_dents": z_g, "charniere_yz": [float(H[0]), float(H[1])],
+            "quincaillerie": ["AUCUNE VIS : charniere imprimee en place (coquille debout, axe d3.5 jeu 0.4), carenages clipses (bourrelets peripheriques + 10 pions a ailettes), molette tenue par le carenage, modules du port a cran",
+                              
                               "4 aimants neodyme 10 x 3 (module plateau)", "Silicone alimentaire (pistes du plateau)",
                               "Film alcantara adhesif 0.8 mm (interieur des 2 coques)", "Tout en PLA, 4 perimetres sur molette, secteur et charniere"],
             "fonctionnement": "Ouvrir (bouton de liberation), poser sur le poignet, refermer : le cliquet verrouille ; regler a la molette."}

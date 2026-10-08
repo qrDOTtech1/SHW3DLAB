@@ -1005,7 +1005,11 @@ def _servbuddy(p: dict):
     out, noms, poses = [], [], []
     for nom, sol in pieces.items():
         m = vers_trimesh(sol)
-        R, _ = orienter(m)
+        if nom == "coquille_charniere":                       # imprimee DEBOUT (axe de charniere vertical)
+            import trimesh as _tm
+            R = _tm.transformations.rotation_matrix(-math.pi / 2, [0, 1, 0])
+        else:
+            R, _ = orienter(m)
         mm = m.copy(); mm.apply_transform(R)
         t = -mm.bounds[0]; mm.apply_translation(t)
         T = np.eye(4); T[:3, 3] = t
@@ -1015,8 +1019,8 @@ def _servbuddy(p: dict):
 
 
 CATALOGUE["servbuddy"] = {"nom": "ServBuddy (by SHWork)", "cat": "Projets", "fn": _servbuddy,
-    "description": "v2 : monocoque en coquille + carenages facon armure. On ouvre, on pose, on ferme (cliquet), on regle a la molette. Port a modules (plateau, pince). 100 % PLA.",
-    "couleurs": {"coque_dorsale": "#3a3f4b", "coque_palmaire": "#3a3f4b", "carenage_dorsal": "#e9ebef", "carenage_palmaire": "#e9ebef",
+    "description": "v2.3 sans visserie : charniere imprimee en place, carenages clipses. Monocoque en coquille + carenages facon armure. On ouvre, on pose, on ferme (cliquet), on regle a la molette. Port a modules (plateau, pince). 100 % PLA.",
+    "couleurs": {"coquille_charniere": "#3a3f4b", "coque_dorsale": "#3a3f4b", "coque_palmaire": "#3a3f4b", "carenage_dorsal": "#e9ebef", "carenage_palmaire": "#e9ebef",
                  "molette": "#ff6a13", "pignon_rochet": "#c9ced6", "axe": "#ff6a13", "trappe_cliquet": "#3a3f4b", "module_plateau": "#ff6a13", "module_pince": "#ff6a13"},
     "champs": [
         dict(_c("tour_poignet", "Tour de poignet (mesure)", 165, 130, 220, 1), groupe="Taille"),
@@ -1036,7 +1040,11 @@ def _servbuddy_v16(p: dict):
     out, noms, poses = [], [], []
     for nom, sol in pieces.items():
         m = vers_trimesh(sol)
-        R, _ = orienter(m)
+        if nom == "coquille_charniere":                       # imprimee DEBOUT (axe de charniere vertical)
+            import trimesh as _tm
+            R = _tm.transformations.rotation_matrix(-math.pi / 2, [0, 1, 0])
+        else:
+            R, _ = orienter(m)
         mm = m.copy(); mm.apply_transform(R)
         t = -mm.bounds[0]; mm.apply_translation(t)
         T = np.eye(4); T[:3, 3] = t
@@ -1045,4 +1053,5 @@ def _servbuddy_v16(p: dict):
     return out, info
 
 
-CATALOGUE["servbuddy_v16"] = dict(CATALOGUE["servbuddy"], nom="ServBuddy 1.6 (archive, carenages visses)", fn=_servbuddy_v16)
+CATALOGUE["servbuddy_v16"] = dict(CATALOGUE["servbuddy"], nom="ServBuddy v2.2 (archive, carenages visses)", fn=_servbuddy_v16,
+    description="Archive v2.2 : carenages visses, axe de charniere en acier.")
