@@ -1186,21 +1186,14 @@ def _figurine(p: dict):
 
 
 CATALOGUE["figurine"] = {"nom": "Figurine photo", "cat": "Projets", "fn": _figurine,
-    "description": "Depose une photo de visage : la figurine imprimable se construit toute seule, d'un seul tenant, avec le nom grave sur le socle. Une photo de face, bien nette, donne le meilleur resultat.",
+    "description": "Depose une photo de visage : un buste est reconstruit par IA sur la carte graphique (3 min, installation automatique de plusieurs Go la premiere fois), avec le nom grave sur le socle.",
     "couleurs": {"figurine": "#c9ced6"},
     "champs": [
         dict(_c("photo", "Photo du visage", "", type_="image"), groupe="Photo"),
         dict(_c("nom_socle", "Nom sur le socle", "", type_="texte"), groupe="Photo"),
-        dict(_c("hauteur", "Hauteur (mm)", 90, 50, 200, 5), groupe="Format"),
-        dict(_c("grosse_tete", "Grosse tete (1 = realiste)", 1.6, 1.0, 2.2, 0.1), groupe="Format"),
+        dict(_c("hauteur", "Hauteur (mm)", 110, 50, 240, 5), groupe="Format"),
         dict(_c("socle", "Epaisseur du socle (mm)", 6, 3, 12, 0.5), groupe="Format"),
-        dict(_c("relief", "Relief du visage", 1.35, 1.0, 2.0, 0.05), groupe="Visage"),
-        dict(_c("symetrie", "Visage symetrique", 1, type_="bool"), groupe="Visage"),
-        dict(_c("cheveux", "Cheveux", 1, type_="bool"), groupe="Visage"),
-        dict(_c("volume_cheveux", "Volume des cheveux", 0.11, 0.02, 0.3, 0.01), groupe="Visage"),
-        dict(_c("barbe", "Barbe (lue sur la photo)", 1, type_="bool"), groupe="Visage"),
-        dict(_c("volume_barbe", "Volume de la barbe", 0.075, 0.01, 0.2, 0.005), groupe="Visage"),
-        dict(_c("detail", "Finesse du maillage", 62, 40, 100, 2), groupe="Qualite"),
+        dict(_c("variante", "Variante (autre essai de l'IA, 3 min)", 42, 1, 99, 1), groupe="IA"),
     ]}
 
 
