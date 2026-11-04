@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { STLExporter } from 'three/addons/exporters/STLExporter.js';
+import { TessellateModifier } from 'three/addons/modifiers/TessellateModifier.js';
 
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const A = () => window.ATELIER, api = (u, b) => A().api(u, b), toast = m => A().toast(m);
@@ -164,7 +165,14 @@ function ouvrirPinceau() {
   aller('c3d');
   const o = C().sel[0]; if (!o) return toast('Selectionne d abord l objet a modeler');
   if ($('#at-pinceau')) return;
-  const g = mergeVertices(o.mesh.geometry.index ? o.mesh.geometry : o.mesh.geometry.clone(), 1e-4);
+  // surface continue et assez fine pour etre modelee : pas de couture aux aretes, sommets ajoutes si besoin
+  let g = o.mesh.geometry.clone(); g.deleteAttribute('normal'); g.deleteAttribute('uv');
+  g.computeBoundingSphere();
+  const ech0 = (o.mesh.scale.x + o.mesh.scale.y + o.mesh.scale.z) / 3;
+  const nb = g.index ? g.index.count / 3 : g.attributes.position.count / 3;
+  if (nb < 150000) g = new TessellateModifier(Math.max(g.boundingSphere.radius / 45, 0.6 / ech0), 8).modify(g.index ? g.toNonIndexed() : g);
+  g.deleteAttribute('normal'); g.deleteAttribute('uv');
+  g = mergeVertices(g, 1e-3);
   g.computeVertexNormals(); g.computeBoundingSphere();
   o.mesh.geometry = g; Object.assign(PI, { actif: true, o, geo: g, modifie: false });
   I().tc.detach();
