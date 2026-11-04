@@ -55,6 +55,8 @@ function construireInterface() {
   $('#cfg-reglages').innerHTML = Object.entries(groupes).map(([g, l], gi) => `<details class="cfg-groupe" ${gi < 3 ? 'open' : ''}><summary>${g}</summary>
     ${l.map(c => {
       const v = F.params[c.k] ?? c.val;
+      if (c.type === 'image') return `<label class="cfg-ligne"><span>${c.label}<b data-v="${c.k}">${v ? 'chargee' : ''}</b></span><input type="file" accept="image/*" data-img="${c.k}"></label>`;
+      if (c.type === 'texte') return `<label class="cfg-ligne"><span>${c.label}</span><input type="text" data-txt="${c.k}" value="${String(v ?? '').replace(/"/g, '&quot;')}"></label>`;
       if (c.type === 'bool') return `<label class="cfg-ligne chk"><span>${c.label}</span><input type="checkbox" data-k="${c.k}" ${v ? 'checked' : ''}></label>`;
       if (c.type === 'choix') return `<label class="cfg-ligne"><span>${c.label}</span><div class="cfg-segments" data-k="${c.k}">${c.options.map(o => `<button class="${o == v ? 'on' : ''}" data-v="${o}">${LIBELLES[o] || o}</button>`).join('')}</div></label>`;
       return `<label class="cfg-ligne"><span>${c.label}<b data-v="${c.k}">${v}</b></span><input type="range" data-k="${c.k}" min="${c.min}" max="${c.max}" step="${c.pas}" value="${v}"></label>`;
@@ -63,6 +65,14 @@ function construireInterface() {
     F.params[i.dataset.k] = i.type === 'checkbox' ? (i.checked ? 1 : 0) : +i.value;
     const b = $(`#cfg-reglages [data-v="${i.dataset.k}"]`); if (b) b.textContent = i.value;
     F.version = null; majVersions(); regenerer();
+  }));
+  $$('#cfg-reglages input[data-txt]').forEach(i => i.addEventListener('change', () => { F.params[i.dataset.txt] = i.value; F.version = null; majVersions(); regenerer(); }));
+  $$('#cfg-reglages input[data-img]').forEach(i => i.addEventListener('change', async () => {
+    const f = i.files[0]; if (!f) return;
+    const data = await new Promise(ok => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(f); });
+    F.params[i.dataset.img] = (await api('/api/image', { data })).id;
+    const b = $(`#cfg-reglages [data-v="${i.dataset.img}"]`); if (b) b.textContent = 'chargee';
+    F.version = null; majVersions(); generer();
   }));
   $$('#cfg-reglages .cfg-segments button').forEach(b => b.onclick = e => {
     e.preventDefault(); const k = b.parentElement.dataset.k; F.params[k] = b.dataset.v;

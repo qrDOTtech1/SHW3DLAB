@@ -1175,11 +1175,40 @@ CATALOGUE["davinbot_complet"] = dict(CATALOGUE["davinbot"], nom="DaVinBot V2 (co
     description="Version complete : J1, double moteur sur J2 et J3, poignet motorise.")
 
 
+# ================================================================== PROJET : figurine a partir d'une photo
+def _figurine(p: dict):
+    from pathlib import Path as _P
+    from atelier.produits.figurine import figurine
+    im = _P(__file__).resolve().parents[1] / "data" / "images" / f"{p.get('photo') or ''}.img"
+    if not p.get("photo") or not im.exists():
+        raise ValueError("Depose une photo de visage (bouton Choisir une photo)")
+    return figurine(im, p)
+
+
+CATALOGUE["figurine"] = {"nom": "Figurine photo", "cat": "Projets", "fn": _figurine,
+    "description": "Depose une photo de visage : la figurine imprimable se construit toute seule, d'un seul tenant, avec le nom grave sur le socle. Une photo de face, bien nette, donne le meilleur resultat.",
+    "couleurs": {"figurine": "#c9ced6"},
+    "champs": [
+        dict(_c("photo", "Photo du visage", "", type_="image"), groupe="Photo"),
+        dict(_c("nom_socle", "Nom sur le socle", "", type_="texte"), groupe="Photo"),
+        dict(_c("hauteur", "Hauteur (mm)", 90, 50, 200, 5), groupe="Format"),
+        dict(_c("grosse_tete", "Grosse tete (1 = realiste)", 1.6, 1.0, 2.2, 0.1), groupe="Format"),
+        dict(_c("socle", "Epaisseur du socle (mm)", 6, 3, 12, 0.5), groupe="Format"),
+        dict(_c("relief", "Relief du visage", 1.35, 1.0, 2.0, 0.05), groupe="Visage"),
+        dict(_c("symetrie", "Visage symetrique", 1, type_="bool"), groupe="Visage"),
+        dict(_c("cheveux", "Cheveux", 1, type_="bool"), groupe="Visage"),
+        dict(_c("volume_cheveux", "Volume des cheveux", 0.11, 0.02, 0.3, 0.01), groupe="Visage"),
+        dict(_c("barbe", "Barbe (lue sur la photo)", 1, type_="bool"), groupe="Visage"),
+        dict(_c("volume_barbe", "Volume de la barbe", 0.075, 0.01, 0.2, 0.005), groupe="Visage"),
+        dict(_c("detail", "Finesse du maillage", 62, 40, 100, 2), groupe="Qualite"),
+    ]}
+
+
 # ================================================================== CLASSEMENT des projets (vue Projets : familles / versions)
 _FAMILLES = {
     "servbuddy": ("ServBuddy", "2.7", False, "&#9711;"), "servbuddy_v26": ("ServBuddy", "2.6", True, "&#9711;"), "servbuddy_v25": ("ServBuddy", "2.5", True, "&#9711;"), "servbuddy_v24": ("ServBuddy", "2.4", True, "&#9711;"), "servbuddy_v23": ("ServBuddy", "2.3", True, "&#9711;"), "servbuddy_v16": ("ServBuddy", "2.2", True, "&#9711;"),
     "servbuddy_v1": ("ServBuddy", "1", True, "&#9711;"), "swork190": ("SHWork 190 SE", "1", False, "&#9951;"),
-    "compresseur": ("Compresseur Wankel", "2", False, "&#10042;"), "vibedeck": ("Vibe Deck", "1", False, "&#9635;"), "davinbot": ("DaVinBot", "2 - 3 NEMA", False, "&#9881;"), "davinbot_complet": ("DaVinBot", "2 - complet 8 NEMA", False, "&#9881;"),
+    "compresseur": ("Compresseur Wankel", "2", False, "&#10042;"), "vibedeck": ("Vibe Deck", "1", False, "&#9635;"), "figurine": ("Figurines", "1", False, "&#9786;"), "davinbot": ("DaVinBot", "2 - 3 NEMA", False, "&#9881;"), "davinbot_complet": ("DaVinBot", "2 - complet 8 NEMA", False, "&#9881;"),
 }
 for _k, (_f, _v, _a, _i) in _FAMILLES.items():
     if _k in CATALOGUE:
