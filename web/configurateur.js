@@ -235,7 +235,7 @@ F.ouvrirModele = async (modele, donnees = {}) => {
   F.modele = modele; F.cadre = false;
   F.params = JSON.parse(JSON.stringify(donnees.params || {}));
   F.reference = donnees.reference || null; afficherReference();
-  F.versions = donnees.versions || {}; F.version = donnees.version || null; F.bobines = donnees.bobines || {}; F.couleurs = donnees.couleurs || {};
+  F.versions = donnees.versions || {}; F.version = donnees.version || null; F.bobines = donnees.bobines || {}; F.couleurs = donnees.couleurs || {}; F.masques = new Set(donnees.masques || []);
   const m = F.modeles[modele];
   for (const c of m.champs) if (F.params[c.k] === undefined) F.params[c.k] = c.val;
   $('#nav-cfg').hidden = false; $('#nav-cfg').textContent = m.nom; $('#nav-cfg').click();
@@ -249,13 +249,18 @@ function afficherReference() {
   if (!F.reference) return;
   charger(F.reference.fichier).then(g => { const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0x9fb4d0, transparent: true, opacity: 0.3, depthWrite: false })); m.name = 'reference'; scene.add(m); });
 }
-F.exporter = () => ({ reference: F.reference || null, modele: F.modele, params: F.params, versions: F.versions, version: F.version, bobines: F.bobines, couleurs: F.couleurs });
+F.exporter = () => ({ masques: [...(F.masques || [])], reference: F.reference || null, modele: F.modele, params: F.params, versions: F.versions, version: F.version, bobines: F.bobines, couleurs: F.couleurs });
 F.charger = d => F.ouvrirModele(d.modele || F.modele, d);
 F.cam = cam; F.orb = orb;
 F.appliquer = async d => {                          // mode equipe : meme etat, sans changer d'onglet ni recadrer
-  F.params = JSON.parse(JSON.stringify(d.params || {})); F.reference = d.reference || null; afficherReference();
+  if (d.modele && d.modele !== F.modele) return F.ouvrirModele(d.modele, d);
+  const calcul = JSON.stringify([F.params, F.reference]) !== JSON.stringify([d.params || {}, d.reference || null]);
+  F.params = JSON.parse(JSON.stringify(d.params || {})); F.reference = d.reference || null;
   F.versions = d.versions || {}; F.version = d.version || null; F.bobines = d.bobines || {}; F.couleurs = d.couleurs || {};
-  construireInterface(); await generer(); majCouleurs();
+  F.masques = new Set(d.masques || []);
+  if (calcul) { afficherReference(); construireInterface(); await generer(); }   // seul un vrai changement relance le calcul
+  groupe.traverse(o => { if (o.isMesh && o.userData.nom) o.visible = !F.masques.has(o.userData.nom); });
+  majCouleurs();
 };
 F.vider = type => F.ouvrirModele(type || F.modele, {});
 F.miniature = () => { ren.render(scene, cam); const c = document.createElement('canvas'); c.width = 320; c.height = 220; c.getContext('2d').drawImage(ren.domElement, 0, 0, 320, 220); return c.toDataURL('image/png'); };

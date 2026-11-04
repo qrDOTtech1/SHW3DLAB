@@ -66,7 +66,8 @@
     if (nouvelleAction) p.actionTs = Date.now();
     pairs.set(m.id, p);
     if (m.t === 'etat') recevoirEtat(m);
-    if (m.t === 'demande' && m.pid === moi.projet?.id && rev) envoyerEtat(true);
+    if (m.t === 'demande' && m.pid === cleCourante) envoyerEtat(true);
+    if (m.t === 'suivi' && m.cible === moi.id) envoyerEtat(true);
     if (suivi === m.id) suivre(p);
     if (m.t === 'save') {                              // un coequipier a enregistre : on recupere apres son envoi
       clearTimeout(recevoir._s);
@@ -77,23 +78,33 @@
   }
 
   // ------------------------------------------------------------ PROJET PARTAGE : meme etat chez tous, en direct
-  const moduleCourant = () => window.__PROJETS?.TYPES?.[moi.projet?.type]?.module?.();
-  const lireEtat = () => { try { return JSON.stringify(moduleCourant()?.exporter?.() ?? null); } catch { return null; } };
-  let rev = 0, dernierEtat = null, applique = false, attente = null, envoyes = new Set(), suivi = null;
+  // La "session" = projet enregistre, ou espace de travail de l'onglet s'il n'est pas encore enregistre.
+  // Versions : compteur logique (jamais l'heure du PC : les horloges des postes different).
+  const ONGLET_TYPE = t => window.__PROJETS?.TYPES?.[t]?.onglet;
+  const cleLocale = () => {
+    if (moi.projet?.id && ONGLET_TYPE(moi.projet.type) === moi.onglet) return moi.projet.id;
+    if (moi.onglet === 'cfg') return window.__CFG?.modele ? 'libre:cfg:' + window.__CFG.modele : null;
+    return moduleVue()?.exporter ? 'libre:' + moi.onglet : null;
+  };
+  const lireEtat = () => { try { return JSON.stringify(moduleVue()?.exporter?.() ?? null); } catch { return null; } };
+  let rev = 0, dernierEtat = null, applique = false, attente = null, envoyes = new Set(), suivi = null, cleCourante = null;
   const idsFichiers = j => [...new Set([...(j || '').matchAll(/"fichier":\s*"([0-9a-f]{12})"/g)].map(x => x[1]))];
-  async function envoyerEtat(repli = false) {
-    if (!moi.projet?.id || dernierEtat == null) return;
-    if (dernierEtat.length > 200000) { if (!repli) action('modifie (trop gros pour le direct : enregistrer pour partager)'); return; }
+  async function envoyerEtat(force = false) {
+    if (!cleCourante || dernierEtat == null || dernierEtat === 'null') return;
+    if (dernierEtat.length > 200000) { if (!force) action('modifie (trop gros pour le direct : enregistrer pour partager)'); return; }
     const neufs = idsFichiers(dernierEtat).filter(i => !envoyes.has(i));
     if (neufs.length) {
       neufs.forEach(i => envoyes.add(i));
       await fetch0('/api/equipe/partager', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: neufs }) });
     }
-    envoyer({ t: 'etat', pid: moi.projet.id, rev, donnees: dernierEtat }, true);
+    envoyer({ t: 'etat', pid: cleCourante, rev, force, donnees: dernierEtat }, true);
   }
   function recevoirEtat(m) {
-    if (m.pid !== moi.projet?.id || m.rev <= rev) return;
-    rev = m.rev; attente = m; if (!applique) appliquerAttente();
+    const pourMoi = m.pid === cleCourante || (suivi === m.id && m.force);
+    if (!pourMoi) return;
+    if (!m.force && (m.rev < rev || (m.rev === rev && m.id < moi.id))) return;
+    if (m.force && suivi !== m.id && m.rev <= rev) return;     // une reponse a "demande" n'ecrase que si elle est plus recente
+    rev = Math.max(rev, m.rev); attente = m; if (!applique) appliquerAttente();
   }
   async function appliquerAttente() {
     applique = true;
@@ -106,20 +117,27 @@
           if (!r.manquants.length) break;
           await fetch0('/api/synchro', { method: 'POST' }); await new Promise(r_ => setTimeout(r_, 5000));
         }
-        const mod = moduleCourant(), d = JSON.parse(m.donnees);
+        const mod = moduleVue(), d = JSON.parse(m.donnees);
         await (mod?.appliquer || mod?.charger)?.call(mod, d);
-        dernierEtat = lireEtat();
+        cleCourante = m.pid; moi.cle = m.pid; dernierEtat = lireEtat();
       } catch (e) { console.warn('equipe : etat non applique', e); }
     }
     applique = false;
   }
-  setInterval(() => {                                  // detection generique de TOUT changement du projet ouvert
-    if (applique || !moi.projet?.id) return;
+  setInterval(() => {                                  // detection generique de TOUT changement de la session
+    if (applique || suivre.ouvre) return;
+    const cle = (suivi && pairs.get(suivi)?.cle) || cleLocale();
+    if (cle !== cleCourante) {
+      cleCourante = cle; moi.cle = cle; rev = 0; dernierEtat = lireEtat(); envoyes = new Set();
+      if (cle) envoyer({ t: 'demande', pid: cle }, true);   // recupere l'etat en cours chez les autres
+      return;
+    }
+    if (!cle) return;
     const e = lireEtat();
     if (e == null) return;
     if (dernierEtat == null) { dernierEtat = e; return; }
-    if (e !== dernierEtat) { dernierEtat = e; rev = Date.now(); envoyerEtat(); }
-  }, 700);
+    if (e !== dernierEtat) { dernierEtat = e; rev += 1; envoyerEtat(); }
+  }, 500);
   // SUIVRE : meme onglet, meme projet, meme angle de vue
   function suivre(p) {
     if (p.onglet && p.onglet !== moi.onglet) document.querySelector(`[data-tab="${p.onglet}"]`)?.click();
@@ -178,7 +196,7 @@
     if (s) {
       const p = pairs.get(s.dataset.suivre); if (!p) return;
       suivi = suivi === p.id ? null : p.id;
-      if (suivi) suivre(p);
+      if (suivi) { suivre(p); envoyer({ t: 'suivi', cible: p.id }, true); }   // l'etat exact de la personne suivie, tout de suite
       rendre();
     }
   });
@@ -220,9 +238,7 @@
     action(`regle « ${lab.replace(/\s+/g, ' ').trim().slice(0, 30)} »`);
   }, true);
   window.addEventListener('shw:projet', e => {
-    const change = moi.projet?.id !== e.detail.id;
     moi.projet = e.detail;
-    if (change) { rev = 0; dernierEtat = lireEtat(); envoyes = new Set(); envoyer({ t: 'demande', pid: e.detail.id }, true); }  // recupere l'etat en cours
     action(`ouvre « ${e.detail.nom} »`);
   });
   // chargements (fenetre SHWCharge) : "Hugo fait : Generation du projet..."
