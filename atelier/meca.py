@@ -1124,17 +1124,19 @@ def _davinbot_manifeste():
         return _j.loads(z.read("manifest.json"))
 
 
-def _davinbot(p: dict):
+def _davinbot(p: dict, complet=False):
     """Build de reference a7a7f0a8e7 (tout vert) : pieces en orientation d'impression, pose calculee pour la vue montee."""
     import io, zipfile as _z, trimesh as _tm
     from pathlib import Path as _P
     from atelier.projets.davinbot.checks import _rot_to_z
+    from atelier.projets.davinbot import phase3 as _p3
+    from atelier.noyau.c3d import vers_trimesh
     m = _davinbot_manifeste()
     out, noms, poses, coul = [], [], [], {}
     with _z.ZipFile(_P(__file__).resolve().parents[1] / "data" / "bases" / _DAVINBOT_PACK) as z:
         lire = lambda f: _tm.load(io.BytesIO(z.read(f)), file_type="stl", force="mesh")
         for q in m["parts"]:
-            if q["kind"] == "keepout":
+            if q["kind"] == "keepout" or (not complet and q["id"] in _p3.RETIRES):
                 continue
             vue = lire(q["view"])
             if q["kind"] == "print" and q.get("print_up"):
@@ -1149,21 +1151,35 @@ def _davinbot(p: dict):
                 mesh = vue.copy(); A = np.eye(4)
                 d = -mesh.bounds[0]; mesh.apply_translation(d); A[:3, 3] = -d
             out.append(mesh); noms.append(q["id"]); poses.append(A.tolist()); coul[q["id"]] = q["color"]
+        if not complet:                                       # poignet oriente a la main : un bloqueur par axe
+            for j in ("J4", "J5", "J6"):
+                b, T, _ = _p3.bloqueur(z, m["joints"], None, j)
+                mesh = vers_trimesh(b); d = -mesh.bounds[0]; mesh.apply_translation(d)   # semelle sur le plateau
+                A = T.copy() @ np.array([[1, 0, 0, -d[0]], [0, 1, 0, -d[1]], [0, 0, 1, -d[2]], [0, 0, 0, 1]], float)
+                out.append(mesh); noms.append(f"{j}_bloqueur"); poses.append(A.tolist()); coul[f"{j}_bloqueur"] = "#ff6410"
     t = m["torque"]
-    return out, {"version": "V2", "noms": noms, "assemblage": poses, "couleurs": coul, "build": m["hash"], "couples": t,
+    return out, {"version": "V2 complet" if complet else "V2 3 NEMA", "noms": noms, "assemblage": poses, "couleurs": coul, "build": m["hash"], "couples": t,
                  "masse_bras_kg": m["info"]["masse_bras_kg"], "filament_g": m["info"]["filament_total_g"], "nomenclature": m["bom"]}
 
 
-CATALOGUE["davinbot"] = {"nom": "DaVinBot V2 (bras 6 axes)", "cat": "Projets", "fn": _davinbot, "champs": [],
-    "description": "Bras 6 axes importe de l'ancien logiciel, build de reference : 177 pieces imprimees, 1 tole, 97 composants. 8 NEMA 17 dans la version complete.",
-    "couleurs": {q["id"]: q["color"] for q in _davinbot_manifeste()["parts"]}}
+CATALOGUE["davinbot"] = {"nom": "DaVinBot V2 (3 NEMA)", "cat": "Projets", "fn": _davinbot, "champs": [],
+    "description": "Phase 3 NEMA : J1, J2 et J3 motorises (rapports 30.6, 90 et 90), poignet oriente a la main avec un bloqueur par axe. Evolutif vers la version complete sans changer les autres pieces.",
+    "couleurs": {**{q["id"]: q["color"] for q in _davinbot_manifeste()["parts"]}, "J4_bloqueur": "#ff6410", "J5_bloqueur": "#ff6410", "J6_bloqueur": "#ff6410"}}
+
+
+def _davinbot_complet(p: dict):
+    return _davinbot(p, True)
+
+
+CATALOGUE["davinbot_complet"] = dict(CATALOGUE["davinbot"], nom="DaVinBot V2 (complet, 8 NEMA)", fn=_davinbot_complet,
+    description="Version complete : J1, double moteur sur J2 et J3, poignet motorise.")
 
 
 # ================================================================== CLASSEMENT des projets (vue Projets : familles / versions)
 _FAMILLES = {
     "servbuddy": ("ServBuddy", "2.7", False, "&#9711;"), "servbuddy_v26": ("ServBuddy", "2.6", True, "&#9711;"), "servbuddy_v25": ("ServBuddy", "2.5", True, "&#9711;"), "servbuddy_v24": ("ServBuddy", "2.4", True, "&#9711;"), "servbuddy_v23": ("ServBuddy", "2.3", True, "&#9711;"), "servbuddy_v16": ("ServBuddy", "2.2", True, "&#9711;"),
     "servbuddy_v1": ("ServBuddy", "1", True, "&#9711;"), "swork190": ("SHWork 190 SE", "1", False, "&#9951;"),
-    "compresseur": ("Compresseur Wankel", "2", False, "&#10042;"), "vibedeck": ("Vibe Deck", "1", False, "&#9635;"), "davinbot": ("DaVinBot", "2", False, "&#9881;"),
+    "compresseur": ("Compresseur Wankel", "2", False, "&#10042;"), "vibedeck": ("Vibe Deck", "1", False, "&#9635;"), "davinbot": ("DaVinBot", "2 - 3 NEMA", False, "&#9881;"), "davinbot_complet": ("DaVinBot", "2 - complet 8 NEMA", False, "&#9881;"),
 }
 for _k, (_f, _v, _a, _i) in _FAMILLES.items():
     if _k in CATALOGUE:

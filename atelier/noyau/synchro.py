@@ -88,7 +88,11 @@ def synchroniser(pousser=True) -> dict:
         if c:
             return _fin(False, "hors ligne : synchro reportee", 0, 0)
         env = dict(os.environ, GIT_EDITOR="true")
-        c, out = git(*_ident(), "rebase", "--autostash", "@{u}", env=env, timeout=120)
+        _, retard = git("rev-list", "--count", "HEAD..@{u}")
+        if retard.strip() == "0":                       # rien a recuperer : ne jamais toucher au code en cours d'edition
+            c, out = 0, ""
+        else:
+            c, out = git(*_ident(), "rebase", "--autostash", "@{u}", env=env, timeout=120)
         tours = 0
         while c and tours < 50 and ("CONFLICT" in out or "conflit" in out.lower() or "could not apply" in out.lower()):
             if not _resoudre_conflits():
