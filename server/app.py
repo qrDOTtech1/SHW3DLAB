@@ -1322,6 +1322,8 @@ def projet_ecrire(p: Projet):
     tmp = f.with_suffix(".tmp")
     tmp.write_text(json.dumps(d), encoding="utf8")
     tmp.replace(f)
+    for i_ in set(re.findall(r'"fichier":\s*"([0-9a-f]{12})"', f.read_text(encoding="utf8"))):   # les maillages partent avec le projet
+        _c3d_partager(i_)
     _synchro.planifier()                                 # partage avec les autres postes (GitHub)
     return {"id": pid}
 
@@ -1370,6 +1372,44 @@ def _equipe():
     return {"nom": d["nom"], "code": d.get("code", ""), "couleur": d.get("couleur", "")}
 
 
+# maillages des projets (sortie/c3d, local) <-> data/bases/c3d (gzip, partage par la synchro)
+BASES_C3D = DATA / "bases" / "c3d"
+
+
+def _c3d_partager(fid: str) -> bool:
+    import gzip
+    src, gz = C3D_DIR / f"{fid}.stl", BASES_C3D / f"{fid}.stl.gz"
+    if gz.exists() or not src.exists():
+        return False
+    BASES_C3D.mkdir(parents=True, exist_ok=True)
+    gz.write_bytes(gzip.compress(src.read_bytes(), 6))
+    return True
+
+
+def _c3d_restaurer(fid: str) -> bool:
+    import gzip, trimesh
+    gz, stl, ply = BASES_C3D / f"{fid}.stl.gz", C3D_DIR / f"{fid}.stl", C3D_DIR / f"{fid}.ply"
+    if not stl.exists():
+        if not gz.exists():
+            return False
+        stl.write_bytes(gzip.decompress(gz.read_bytes()))
+    if not ply.exists():
+        trimesh.load(stl, force="mesh").export(ply)
+    return True
+
+
+@app.post("/api/equipe/partager")
+def equipe_partager(d: dict):
+    if any([_c3d_partager(i) for i in d.get("ids", []) if re.fullmatch(r"[0-9a-f]{12}", str(i))]):
+        _synchro.planifier(1.0)
+    return {"ok": True}
+
+
+@app.post("/api/equipe/dispo")
+def equipe_dispo(d: dict):
+    return {"manquants": [i for i in d.get("ids", []) if re.fullmatch(r"[0-9a-f]{12}", str(i)) and not _c3d_restaurer(i)]}
+
+
 @app.get("/api/equipe")
 def equipe_lire():
     return _equipe()
@@ -1398,6 +1438,8 @@ def c3d_fichier(nom: str):
     if not re.fullmatch(r"[0-9a-f]{12}\.stl", nom):
         raise HTTPException(404)
     f = C3D_DIR / nom
+    if not f.exists():
+        _c3d_restaurer(nom[:12])
     if not f.exists():
         raise HTTPException(404)
     return FileResponse(f, filename=nom, headers={"Cache-Control": "max-age=86400"})

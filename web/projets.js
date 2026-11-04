@@ -157,7 +157,7 @@ async function _ouvrir(id) {
   if (t.modele) window.__CFG.projet = { id: d.id, nom: d.nom };
   P.courant[d.type] = { id: d.id, nom: d.nom };
   majTitres();
-  window.dispatchEvent(new CustomEvent('shw:projet', { detail: { id: d.id, nom: d.nom } }));   // mode equipe
+  window.dispatchEvent(new CustomEvent('shw:projet', { detail: { id: d.id, nom: d.nom, type: d.type } }));   // mode equipe
   toast(`Projet "${d.nom}" ouvert`);
 }
 
@@ -172,6 +172,7 @@ export async function enregistrer(type, sousNom = false) {
   try { miniature = m.miniature?.() || ''; } catch { }
   const r = await api('/api/projets', { id: cur.id, nom: cur.nom, type, donnees: m.exporter(), miniature });
   P.courant[type] = { id: r.id, nom: cur.nom }; majTitres();
+  window.dispatchEvent(new CustomEvent('shw:projet', { detail: { id: r.id, nom: cur.nom, type } }));
   toast(`Projet "${cur.nom}" enregistre`);
   if ($('#tab-pj').classList.contains('on')) rafraichir();
 }

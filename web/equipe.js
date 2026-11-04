@@ -51,7 +51,9 @@
     const t = performance.now();
     if (!force && extra.t === 'p' && t - dernierEnvoi < 70) return;
     dernierEnvoi = t;
-    const m = { ...moi, souris, ...extra, ts: Date.now() };
+    const mv = moduleVue();
+    const vue = mv?.cam ? [mv.cam.position.toArray().map(x => +x.toFixed(1)), mv.orb.target.toArray().map(x => +x.toFixed(1))] : null;
+    const m = { ...moi, souris, vue, ...extra, ts: Date.now() };
     client.publish(sujet, await chiffrer(m), { qos: 0 });
   }
 
@@ -63,6 +65,9 @@
     Object.assign(p, m, { vu: Date.now() });
     if (nouvelleAction) p.actionTs = Date.now();
     pairs.set(m.id, p);
+    if (m.t === 'etat') recevoirEtat(m);
+    if (m.t === 'demande' && m.pid === moi.projet?.id && rev) envoyerEtat(true);
+    if (suivi === m.id) suivre(p);
     if (m.t === 'save') {                              // un coequipier a enregistre : on recupere apres son envoi
       clearTimeout(recevoir._s);
       recevoir._s = setTimeout(() => document.getElementById('pj-synchro')?.click(), 25000);
@@ -70,6 +75,61 @@
     dessinerCurseur(p);
     rendre();
   }
+
+  // ------------------------------------------------------------ PROJET PARTAGE : meme etat chez tous, en direct
+  const moduleCourant = () => window.__PROJETS?.TYPES?.[moi.projet?.type]?.module?.();
+  const lireEtat = () => { try { return JSON.stringify(moduleCourant()?.exporter?.() ?? null); } catch { return null; } };
+  let rev = 0, dernierEtat = null, applique = false, attente = null, envoyes = new Set(), suivi = null;
+  const idsFichiers = j => [...new Set([...(j || '').matchAll(/"fichier":\s*"([0-9a-f]{12})"/g)].map(x => x[1]))];
+  async function envoyerEtat(repli = false) {
+    if (!moi.projet?.id || dernierEtat == null) return;
+    if (dernierEtat.length > 200000) { if (!repli) action('modifie (trop gros pour le direct : enregistrer pour partager)'); return; }
+    const neufs = idsFichiers(dernierEtat).filter(i => !envoyes.has(i));
+    if (neufs.length) {
+      neufs.forEach(i => envoyes.add(i));
+      await fetch0('/api/equipe/partager', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: neufs }) });
+    }
+    envoyer({ t: 'etat', pid: moi.projet.id, rev, donnees: dernierEtat }, true);
+  }
+  function recevoirEtat(m) {
+    if (m.pid !== moi.projet?.id || m.rev <= rev) return;
+    rev = m.rev; attente = m; if (!applique) appliquerAttente();
+  }
+  async function appliquerAttente() {
+    applique = true;
+    while (attente) {
+      const m = attente; attente = null;
+      try {
+        const ids = idsFichiers(m.donnees);
+        for (let i = 0; ids.length && i < 10; i++) {   // maillage neuf : il arrive par la synchro GitHub
+          const r = await (await fetch0('/api/equipe/dispo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids }) })).json();
+          if (!r.manquants.length) break;
+          await fetch0('/api/synchro', { method: 'POST' }); await new Promise(r_ => setTimeout(r_, 5000));
+        }
+        const mod = moduleCourant(), d = JSON.parse(m.donnees);
+        await (mod?.appliquer || mod?.charger)?.call(mod, d);
+        dernierEtat = lireEtat();
+      } catch (e) { console.warn('equipe : etat non applique', e); }
+    }
+    applique = false;
+  }
+  setInterval(() => {                                  // detection generique de TOUT changement du projet ouvert
+    if (applique || !moi.projet?.id) return;
+    const e = lireEtat();
+    if (e == null) return;
+    if (dernierEtat == null) { dernierEtat = e; return; }
+    if (e !== dernierEtat) { dernierEtat = e; rev = Date.now(); envoyerEtat(); }
+  }, 700);
+  // SUIVRE : meme onglet, meme projet, meme angle de vue
+  function suivre(p) {
+    if (p.onglet && p.onglet !== moi.onglet) document.querySelector(`[data-tab="${p.onglet}"]`)?.click();
+    if (p.projet?.id && p.projet.id !== moi.projet?.id && !suivre.ouvre) {
+      suivre.ouvre = true; Promise.resolve(window.SHWOuvrirProjet?.(p.projet.id)).finally(() => { suivre.ouvre = false; });
+    }
+    const mod = moduleVue();
+    if (p.vue && mod?.cam && p.onglet === moi.onglet) { mod.cam.position.fromArray(p.vue[0]); mod.orb.target.fromArray(p.vue[1]); mod.orb.update(); }
+  }
+  function moduleVue() { return { cfg: window.__CFG, c3d: window.__C3D, kc: window.__KC, sw: window.__SW }[moi.onglet]; }
 
   // ------------------------------------------------------------ curseurs
   const calque = document.createElement('div');
@@ -100,7 +160,7 @@
     const ou = (ONGLETS[p.onglet] || p.onglet || '?') + (p.projet ? ` · ${p.projet.nom}` : '');
     return `<div class="eq-l"><i style="background:${p.couleur}"></i><div class="eq-t"><b>${p.nom}${estMoi ? ' (moi)' : ''}</b>
       <span>${ou}</span><em>${p.action || ''}${estMoi ? '' : ' · ' + ilya(p.actionTs || p.vu)}</em></div>
-      ${estMoi ? '' : `<button data-suivre="${p.id}" title="Aller ou il est">Suivre</button>`}</div>`;
+      ${estMoi ? '' : `<button data-suivre="${p.id}" title="Meme onglet, meme projet, meme angle de vue">${suivi === p.id ? 'Ne plus suivre' : 'Suivre'}</button>`}</div>`;
   }
   function rendre() {
     const repli = fen.classList.contains('repli');
@@ -117,8 +177,9 @@
     const s = e.target.closest('[data-suivre]');
     if (s) {
       const p = pairs.get(s.dataset.suivre); if (!p) return;
-      if (p.projet?.id && window.SHWOuvrirProjet) window.SHWOuvrirProjet(p.projet.id);
-      else document.querySelector(`[data-tab="${p.onglet}"]`)?.click();
+      suivi = suivi === p.id ? null : p.id;
+      if (suivi) suivre(p);
+      rendre();
     }
   });
   async function reglages() {
@@ -158,7 +219,12 @@
     const lab = el.closest('label')?.textContent || el.labels?.[0]?.textContent || el.previousElementSibling?.textContent || el.name || el.id || 'un reglage';
     action(`regle « ${lab.replace(/\s+/g, ' ').trim().slice(0, 30)} »`);
   }, true);
-  window.addEventListener('shw:projet', e => { moi.projet = e.detail; action(`ouvre « ${e.detail.nom} »`); });
+  window.addEventListener('shw:projet', e => {
+    const change = moi.projet?.id !== e.detail.id;
+    moi.projet = e.detail;
+    if (change) { rev = 0; dernierEtat = lireEtat(); envoyes = new Set(); envoyer({ t: 'demande', pid: e.detail.id }, true); }  // recupere l'etat en cours
+    action(`ouvre « ${e.detail.nom} »`);
+  });
   // chargements (fenetre SHWCharge) : "Hugo fait : Generation du projet..."
   const attendreCharge = setInterval(() => {
     const C = window.SHWCharge; if (!C || C.__eq) return;

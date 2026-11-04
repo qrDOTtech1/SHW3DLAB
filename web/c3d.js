@@ -1287,6 +1287,8 @@ function ouvrirMenu(x, y, hit, pt) {
 }
 
 C.exporter = () => ({ objets: C.objets.map(serial) });
+C.cam = cam; C.orb = orb;
+C.appliquer = async d => { await restaurer(JSON.stringify(d.objets || [])); };   // mode equipe : sans recadrer
 C.baseImportee = async (r, nom) => { const o = await ajouterObjet({ type: 'import', fichier: r.fichier, nom: 'BASE ' + nom }, { placer: { x: 0, y: 0 } }); selectionner([o]); memo(); vue('iso'); };
 C.charger = async d => { await restaurer(JSON.stringify(d.objets || [])); C.hist = []; memo(); vue('iso'); };
 C.vider = async () => { for (const o of [...C.objets]) retirer(o); selectionner([]); memo(); };

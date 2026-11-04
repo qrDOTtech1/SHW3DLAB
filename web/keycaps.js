@@ -208,6 +208,7 @@ v('mode').addEventListener('change', () => { if (['percer', 'translucide'].inclu
 const champsKC = () => $$('#tab-kc input:not([type=file]), #tab-kc select, #tab-kc textarea').filter(i => i.id);
 let defauts = null;
 K.exporter = () => ({ champs: Object.fromEntries(champsKC().filter(i => !['kc-clavier', 'kc-qte', 'kc-rangee'].includes(i.id)).map(i => [i.id, i.type === 'checkbox' ? i.checked : i.value])), image: K.image, lot: K.lot });
+K.cam = cam; K.orb = orb;
 K.charger = async d => {
   for (const [id, v] of Object.entries(d.champs || {})) { const i = document.getElementById(id); if (!i) continue; if (i.type === 'checkbox') i.checked = v; else i.value = v; }
   K.image = d.image || ''; if (d.lot) { K.lot = d.lot; rendreLot(); } apercu();

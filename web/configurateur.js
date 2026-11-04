@@ -251,6 +251,12 @@ function afficherReference() {
 }
 F.exporter = () => ({ reference: F.reference || null, modele: F.modele, params: F.params, versions: F.versions, version: F.version, bobines: F.bobines, couleurs: F.couleurs });
 F.charger = d => F.ouvrirModele(d.modele || F.modele, d);
+F.cam = cam; F.orb = orb;
+F.appliquer = async d => {                          // mode equipe : meme etat, sans changer d'onglet ni recadrer
+  F.params = JSON.parse(JSON.stringify(d.params || {})); F.reference = d.reference || null; afficherReference();
+  F.versions = d.versions || {}; F.version = d.version || null; F.bobines = d.bobines || {}; F.couleurs = d.couleurs || {};
+  construireInterface(); await generer(); majCouleurs();
+};
 F.vider = type => F.ouvrirModele(type || F.modele, {});
 F.miniature = () => { ren.render(scene, cam); const c = document.createElement('canvas'); c.width = 320; c.height = 220; c.getContext('2d').drawImage(ren.domElement, 0, 0, 320, 220); return c.toDataURL('image/png'); };
 

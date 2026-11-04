@@ -239,6 +239,7 @@ $('#sw-imprimer').onclick = async () => {
 
 // ------------------------------------------------------------------ projets (sauvegarde / chargement)
 W.exporter = () => ({ reference: W.reference ? { fichier: W.reference.fichier, nom: W.reference.nom } : null, pieces: W.pieces.map(p => ({ type: p.type, nom: p.nom, params: p.params, variantes: p.variantes || {}, version: p.version || null, position: p.groupe.position.toArray(), rotation: p.groupe.rotation.toArray().slice(0, 3), couleur: p.couleur })) });
+W.cam = cam; W.orb = orb;
 W.charger = async d => {
   for (const p of [...W.pieces]) scene.remove(p.groupe); W.pieces = []; selectionner(null);
   for (const x of d.pieces || []) { const p = await ajouter(x.type, x.params, { position: x.position }); p.nom = x.nom; p.variantes = x.variantes || {}; p.version = x.version; if (x.rotation) p.groupe.rotation.set(...x.rotation); }
