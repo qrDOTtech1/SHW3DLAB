@@ -1,1 +1,1 @@
-{"id": "5594d62c6964", "nom": "DaVinBot V2", "type": "davinbot", "donnees": {"modele": "davinbot", "params": {}}, "description": "Bras 6 axes importe (build de reference)", "miniature": "", "date": 1793806211.8810046, "cree": 1793806211.8810046}
+{"id": "5594d62c6964", "nom": "DaVinBot V2 - 3 NEMA", "type": "davinbot", "donnees": {"modele": "davinbot", "params": {}}, "description": "J1 + J2 + J3 motorises, poignet a la main", "miniature": "", "date": 1793807925.051927, "cree": 1793806211.8810046}
