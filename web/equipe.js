@@ -74,13 +74,23 @@
     if (m.onglet === 'c3d' && moi.onglet === 'c3d' && m.sel) window.__C3D?.surlignerPair?.(m.id, m.sel, m.couleur);
     if (suivi === m.id) suivre(p);
     if (m.t === 'save') {                              // un coequipier a enregistre : on recupere apres son envoi
-      clearTimeout(recevoir._s);
-      recevoir._s = setTimeout(() => document.getElementById('pj-synchro')?.click(), 25000);
+      notifier(`${m.nom} a sauvegarde ${m.quoi || 'un projet'}`, m.couleur);
+      clearTimeout(recevoir._s);                       // recupere sa sauvegarde des qu'elle est en ligne, sans rien relancer
+      const recup = async () => {
+        await fetch0('/api/synchro', { method: 'POST' }).catch(() => { });
+        window.__PROJETS?.rafraichir?.();
+      };
+      recevoir._s = setTimeout(recup, 12000); setTimeout(recup, 30000);
     }
     dessinerCurseur(p);
     rendre();
   }
 
+  function notifier(txt, coul) {
+    const d = document.createElement('div');
+    d.style.cssText = `position:fixed;right:16px;bottom:16px;z-index:9650;background:#14171d;color:#e9ebef;border-left:4px solid ${coul || '#ff6410'};padding:10px 14px;border-radius:8px;font:13px 'Segoe UI',sans-serif;box-shadow:0 8px 24px #0008`;
+    d.textContent = txt; document.body.appendChild(d); setTimeout(() => d.remove(), 7000);
+  }
   // ------------------------------------------------------------ PROJET PARTAGE : meme etat chez tous, en direct
   // La "session" = projet enregistre, ou espace de travail de l'onglet s'il n'est pas encore enregistre.
   // Versions : compteur logique (jamais l'heure du PC : les horloges des postes different).
@@ -263,7 +273,7 @@
   function ilya(ts) { const s = Math.round((Date.now() - ts) / 1000); return s < 5 ? "a l'instant" : s < 60 ? `il y a ${s} s` : `il y a ${Math.round(s / 60)} min`; }
   function ligne(p, estMoi) {
     const ou = (ONGLETS[p.onglet] || p.onglet || '?') + (p.projet ? ` · ${p.projet.nom}` : '');
-    return `<div class="eq-l"><i style="background:${p.couleur}"></i><div class="eq-t"><b>${p.nom}${estMoi ? ' (moi)' : ''}</b>
+    return `<div class="eq-l"><i style="background:${p.couleur}"></i><div class="eq-t"><b>${p.nom}${estMoi ? ' (moi)' : ''}${p.claude ? ' <span title="Une session Claude modifie le code sur ce poste" style="color:#c77dff;font-weight:500">+ Claude au travail</span>' : ''}</b>
       <span>${ou}</span><em>${p.action || ''}${estMoi ? '' : ' · ' + ilya(p.actionTs || p.vu)}</em></div>
       ${estMoi ? '' : `<button data-suivre="${p.id}" title="Meme onglet, meme projet, meme angle de vue">${suivi === p.id ? 'Ne plus suivre' : 'Suivre'}</button>
       <button data-avec="${p.id}" class="${avec === p.id ? 'on' : ''}" title="Les mains sur le meme objet : meme page, meme projet, memes modifications, meme vue">${avec === p.id ? 'Arreter' : 'Travailler avec'}</button>`}</div>`;
@@ -273,7 +283,7 @@
     const n = pairs.size;
     fen.innerHTML = `<div class="eq-h"><span class="eq-pt" style="background:${ok ? '#3ddc97' : (cle ? '#f5c542' : '#8b919c')}"></span>
       <b>Equipe</b><span class="eq-n">${cle ? (ok ? (n ? `${n} en ligne` : 'seul pour l\'instant') : 'connexion...') : 'non configuree'}</span>
-      <button data-r title="Reglages">&#9881;</button><button data-p title="Replier">${repli ? '&#9650;' : '&#9660;'}</button></div>
+      <button data-coul title="Choisir ma couleur" style="color:${moi.couleur}">&#9679;</button><button data-r title="Reglages">&#9881;</button><button data-p title="Replier">${repli ? '&#9650;' : '&#9660;'}</button></div>
       ${fen.dataset.code ? `<div class="eq-code">Nouveau code recu <button data-maj>Mettre a jour</button></div>` : ''}
       ${avec ? `<div class="eq-avec">En direct avec ${pairs.get(avec)?.nom || '...'} <button data-cam>${camLiee ? 'Vue liee' : 'Vue libre'}</button></div>` : ''}
       <div class="eq-b">${cle ? [...pairs.values()].map(p => ligne(p, false)).join('') + ligne(moi, true)
@@ -281,6 +291,7 @@
   }
   fen.addEventListener('click', async e => {
     if (e.target.closest('[data-p]')) { fen.classList.toggle('repli'); return rendre(); }
+    if (e.target.closest('[data-coul]')) return choisirCouleur();
     if (e.target.closest('[data-r]')) return reglages();
     if (e.target.closest('[data-cam]')) { camLiee = !camLiee; return rendre(); }
     if (e.target.closest('[data-maj]')) {
@@ -301,6 +312,16 @@
       rendre();
     }
   });
+  // couleur personnelle : seul le poste change, ni le nom ni le code ne sont redemandes
+  function choisirCouleur() {
+    const i = document.createElement('input'); i.type = 'color'; i.value = moi.couleur || '#ff6410';
+    i.addEventListener('change', async () => {
+      moi.couleur = i.value; rendre(); envoyer({ t: 'p' }, true);
+      await fetch0('/api/equipe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ couleur: i.value }) });
+    });
+    i.click();
+  }
+  setInterval(async () => { try { moi.claude = (await (await fetch0('/api/claude')).json()).actif; } catch { } }, 10000);
   async function reglages() {
     const nom = prompt('Ton nom (vu par l\'equipe) :', moi.nom); if (nom === null) return;
     let code = (await (await fetch('/api/equipe')).json()).code || '';
@@ -357,7 +378,7 @@
     const url = typeof u === 'string' ? u : u?.url || '';
     if (/\/api\/projets/.test(url) && /POST|DELETE/i.test(o.method || '')) monEcriture = performance.now() + 4000;
     if (/\/api\/projets(\/[^/]+(\/dupliquer)?)?$/.test(url) && /POST|DELETE/i.test(o.method || '') && r.ok) {
-      action(/DELETE/i.test(o.method) ? 'met un projet a la corbeille' : 'enregistre un projet'); envoyer({ t: 'save' }, true);
+      action(/DELETE/i.test(o.method) ? 'met un projet a la corbeille' : 'enregistre un projet'); envoyer({ t: 'save', quoi: moi.projet?.nom ? `« ${moi.projet.nom} »` : '' }, true);
     }
     return r;
   };

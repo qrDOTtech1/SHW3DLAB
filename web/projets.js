@@ -230,4 +230,5 @@ $('#pj-synchro')?.addEventListener('click', async () => {
 });
 surveillerSynchro(); setInterval(surveillerSynchro, 20000);
 
-window.SHWOuvrirProjet = id => _ouvrir(id);              // bouton "Suivre" du mode equipe
+window.SHWOuvrirProjet = id => _ouvrir(id);
+window.__PROJETS.rafraichir = rafraichir;              // bouton "Suivre" du mode equipe

@@ -1358,6 +1358,64 @@ from atelier.noyau import ia3d as _ia3d
 _ia3d.preparer()
 
 
+_IA_JOBS = {}
+_IA_VERROU = threading.Lock()
+
+
+@app.post("/api/ia/generer")
+def ia_generer(d: dict):
+    ids = [str(i) for i in d.get("images", []) if re.fullmatch(r"[0-9a-f]{12}", str(i))][:6]
+    if not ids:
+        raise HTTPException(400, "aucune image")
+    if not _ia3d.etat["dispo"]:
+        raise HTTPException(400, _ia3d.etat["raison"] or "IA indisponible")
+    job = uuid.uuid4().hex[:10]
+    J = _IA_JOBS[job] = {"message": "En attente de la carte graphique...", "objets": [], "fini": False, "erreur": ""}
+
+    def tourner():
+        import trimesh
+        import numpy as np
+        from atelier.produits.figurine import maillage_ia
+        with _IA_VERROU:                              # une generation a la fois : 6 Go de memoire graphique chacune
+            for k, i in enumerate(ids):
+                J["message"] = f"Photo {k + 1} / {len(ids)} : reconstruction (3 a 5 min)..."
+                try:
+                    m = trimesh.load(maillage_ia(DATA / "images" / f"{i}.img", int(d.get("variante", 42)), 50), force="mesh")
+                    m.invert()
+                    m.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [1, 0, 0]))
+                    parts = m.split(only_watertight=False)
+                    if len(parts) > 1:
+                        m = max(parts, key=lambda x: abs(x.volume))
+                    m.apply_scale(float(d.get("taille", 100)) / m.extents.max())
+                    m.apply_translation([0, 0, -m.bounds[0][2]])
+                    J["objets"].append(_c3d_sauver(m, f"IA 3D {k + 1}"))
+                except Exception as e:
+                    J["erreur"] = str(e)[:300]
+            J["message"] = "Termine"
+            J["fini"] = True
+    threading.Thread(target=tourner, daemon=True).start()
+    return {"job": job}
+
+
+@app.get("/api/ia/job/{job}")
+def ia_job(job: str):
+    if job not in _IA_JOBS:
+        raise HTTPException(404)
+    return _IA_JOBS[job]
+
+
+@app.get("/api/claude")
+def claude_actif():
+    """Une session Claude travaille ici : processus Claude Code present ET code modifie dans les 3 dernieres minutes."""
+    import subprocess
+    try:
+        lst = subprocess.run(["tasklist"], capture_output=True, text=True, timeout=8, creationflags=0x08000000).stdout.lower()
+    except Exception:
+        lst = ""
+    recent = (time.time_ns() - max(_signature(["web"], {".js", ".html", ".css"}), _signature(["atelier", "server"], {".py"}))) < 180e9
+    return {"actif": "claude" in lst and recent}
+
+
 @app.get("/api/ia/etat")
 def ia_etat():
     return _ia3d.etat
