@@ -53,21 +53,25 @@
     dernierEnvoi = t;
     const mv = moduleVue();
     const vue = mv?.cam ? [mv.cam.position.toArray().map(x => +x.toFixed(1)), mv.orb.target.toArray().map(x => +x.toFixed(1))] : null;
-    const m = { ...moi, souris, vue, ...extra, ts: Date.now() };
+    const sel = moi.onglet === 'c3d' ? (window.__C3D?.sel || []).map(o => o.id) : null;
+    const m = { ...moi, souris, vue, sel, ...extra, ts: Date.now() };
     client.publish(sujet, await chiffrer(m), { qos: 0 });
   }
 
   // ------------------------------------------------------------ reception
   function recevoir(m) {
-    if (m.t === 'bye') { pairs.delete(m.id); retirerCurseur(m.id); return rendre(); }
+    if (m.t === 'bye') { pairs.delete(m.id); retirerCurseur(m.id); if (avec === m.id) quitterAvec(false); return rendre(); }
     const p = pairs.get(m.id) || { premier: Date.now() };
     const nouvelleAction = m.action && m.action !== p.action;
     Object.assign(p, m, { vu: Date.now() });
     if (nouvelleAction) p.actionTs = Date.now();
     pairs.set(m.id, p);
+    if (m.t === 'ww' && m.cible === moi.id) return recevoirWW(m);
+    if (avec === m.id) recevoirAvec(m, p);
     if (m.t === 'etat') recevoirEtat(m);
     if (m.t === 'demande' && m.pid === cleCourante) envoyerEtat(true);
     if (m.t === 'suivi' && m.cible === moi.id) envoyerEtat(true);
+    if (m.onglet === 'c3d' && moi.onglet === 'c3d' && m.sel) window.__C3D?.surlignerPair?.(m.id, m.sel, m.couleur);
     if (suivi === m.id) suivre(p);
     if (m.t === 'save') {                              // un coequipier a enregistre : on recupere apres son envoi
       clearTimeout(recevoir._s);
@@ -100,14 +104,16 @@
     envoyer({ t: 'etat', pid: cleCourante, rev, force, donnees: dernierEtat }, true);
   }
   function recevoirEtat(m) {
-    const pourMoi = m.pid === cleCourante || (suivi === m.id && m.force);
+    const meneur = suivi === m.id || (avec === m.id && rejoint);
+    const pourMoi = m.pid === cleCourante || (meneur && m.force) || (avec === m.id && m.onglet === moi.onglet);
     if (!pourMoi) return;
     if (!m.force && (m.rev < rev || (m.rev === rev && m.id < moi.id))) return;
-    if (m.force && suivi !== m.id && m.rev <= rev) return;     // une reponse a "demande" n'ecrase que si elle est plus recente
+    if (m.force && !meneur && m.rev <= rev) return;     // une reponse a "demande" n'ecrase que si elle est plus recente
     rev = Math.max(rev, m.rev); attente = m; if (!applique) appliquerAttente();
   }
   async function appliquerAttente() {
     applique = true;
+    while (suivre.ouvre) await new Promise(r => setTimeout(r, 100));   // d'abord finir d'ouvrir le projet, sinon objets en double
     while (attente) {
       const m = attente; attente = null;
       try {
@@ -126,7 +132,8 @@
   }
   setInterval(() => {                                  // detection generique de TOUT changement de la session
     if (applique || suivre.ouvre) return;
-    const cle = (suivi && pairs.get(suivi)?.cle) || cleLocale();
+    if (!avec && ++tic % 6) return;                    // 80 ms en travail commun, 480 ms sinon
+    const cle = (suivi && pairs.get(suivi)?.cle) || (avec && rejoint && pairs.get(avec)?.cle) || cleLocale();
     if (cle !== cleCourante) {
       cleCourante = cle; moi.cle = cle; rev = 0; dernierEtat = lireEtat(); envoyes = new Set();
       if (cle) envoyer({ t: 'demande', pid: cle }, true);   // recupere l'etat en cours chez les autres
@@ -137,13 +144,93 @@
     if (e == null) return;
     if (dernierEtat == null) { dernierEtat = e; return; }
     if (e !== dernierEtat) { dernierEtat = e; rev += 1; envoyerEtat(); }
-  }, 500);
-  // SUIVRE : meme onglet, meme projet, meme angle de vue
-  function suivre(p) {
+  }, 80);
+
+  // ------------------------------------------------------------ TRAVAILLER AVEC : les mains sur le meme objet
+  // Deux postes lies : meme page, meme projet, memes modifications, meme vue. Le dernier qui agit mene la vue.
+  let avec = null, rejoint = false, camLiee = true, tic = 0, interaction = 0, distant = false;
+  function quitterAvec(prevenir = true) {
+    if (prevenir && avec) envoyer({ t: 'ww', cible: avec, on: false }, true);
+    avec = null; rejoint = false; rendre();
+  }
+  function travaillerAvec(p) {
+    if (avec === p.id) return quitterAvec();
+    suivi = null; avec = p.id; rejoint = true; camLiee = true;
+    aller(p); envoyer({ t: 'ww', cible: p.id, on: true }, true); envoyer({ t: 'suivi', cible: p.id }, true); rendre();
+  }
+  function recevoirWW(m) {
+    if (!m.on) { if (avec === m.id) { avec = null; rejoint = false; } }
+    else { suivi = null; avec = m.id; rejoint = false; camLiee = true; envoyerEtat(true); }
+    rendre();
+  }
+  function aller(p) {
+    distant = true;
     if (p.onglet && p.onglet !== moi.onglet) document.querySelector(`[data-tab="${p.onglet}"]`)?.click();
+    distant = false;
     if (p.projet?.id && p.projet.id !== moi.projet?.id && !suivre.ouvre) {
       suivre.ouvre = true; Promise.resolve(window.SHWOuvrirProjet?.(p.projet.id)).finally(() => { suivre.ouvre = false; });
     }
+  }
+  function recevoirAvec(m, p) {
+    if (m.t === 'nav') aller(p);
+    if (m.t === 'cam' && camLiee && m.onglet === moi.onglet && performance.now() > interaction && m.vue) {
+      const mod = moduleVue();
+      if (mod?.cam) { mod.cam.position.fromArray(m.vue[0]); mod.orb.target.fromArray(m.vue[1]); mod.orb.update(); }
+    }
+    if (m.t === 'champ' && moi.onglet === 'creer' && m.onglet === 'creer') {   // page sans projet : seulement les champs, jamais un bouton
+      const el = document.getElementById(m.champ); if (!el) return;
+      distant = true;
+      if (el.type === 'checkbox') el.checked = m.val; else el.value = m.val;
+      el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true }));
+      distant = false;
+    }
+  }
+  ['pointerdown', 'pointermove', 'wheel'].forEach(t => document.addEventListener(t, e => {
+    if (e.target?.tagName !== 'CANVAS' || (t === 'pointermove' && !e.buttons)) return;
+    interaction = performance.now() + 500;
+  }, { capture: true, passive: true }));
+  setInterval(() => { if (avec && camLiee && performance.now() < interaction && moduleVue()?.cam) envoyer({ t: 'cam' }, true); }, 60);
+  document.addEventListener('input', e => {
+    if (distant || !avec || moi.onglet !== 'creer' || !e.target.id || e.target.closest('#eq-fen')) return;
+    envoyer({ t: 'champ', champ: e.target.id, val: e.target.type === 'checkbox' ? e.target.checked : e.target.value }, true);
+  }, true);
+
+  // ------------------------------------------------------------ modification sur le disque (session Claude, synchro GitHub)
+  let mtimeProjet = null, idMtime = null, monEcriture = 0;
+  setInterval(async () => {
+    const id = moi.projet?.id;
+    if (!id || applique || id !== cleCourante) { mtimeProjet = null; idMtime = id; return; }
+    try {
+      const r = await (await fetch0(`/api/projets/${id}/rev`)).json();
+      if (idMtime !== id || mtimeProjet == null) { idMtime = id; mtimeProjet = r.mtime; return; }
+      if (r.mtime === mtimeProjet) return;
+      mtimeProjet = r.mtime;
+      if (performance.now() < monEcriture) return;
+      const d = await (await fetch0('/api/projets/' + id)).json();
+      const texte = JSON.stringify(d.donnees);
+      if (texte === dernierEtat || applique) return;
+      applique = true;
+      const mod = moduleVue();
+      await (mod?.appliquer || mod?.charger)?.call(mod, moi.projet.type && mod === window.__CFG ? { modele: moi.projet.type, ...d.donnees } : d.donnees);
+      dernierEtat = lireEtat(); applique = false;
+      action('projet modifie sur le disque : a jour');
+    } catch { applique = false; }
+  }, 2000);
+
+  // ------------------------------------------------------------ nouveau code recu (ou ecrit par une session Claude)
+  let sigVue = null, bandeau = false;
+  setInterval(async () => {
+    try {
+      const v = await (await fetch0('/api/version')).json();
+      sigVue ??= v.web;
+      bandeau = v.web !== sigVue || v.py !== v.py_demarrage;
+      fen.dataset.code = bandeau ? (v.py !== v.py_demarrage ? 'py' : 'web') : '';
+      rendre();
+    } catch { }
+  }, 5000);
+  // SUIVRE : meme onglet, meme projet, meme angle de vue
+  function suivre(p) {
+    aller(p);
     const mod = moduleVue();
     if (p.vue && mod?.cam && p.onglet === moi.onglet) { mod.cam.position.fromArray(p.vue[0]); mod.orb.target.fromArray(p.vue[1]); mod.orb.update(); }
   }
@@ -178,7 +265,8 @@
     const ou = (ONGLETS[p.onglet] || p.onglet || '?') + (p.projet ? ` · ${p.projet.nom}` : '');
     return `<div class="eq-l"><i style="background:${p.couleur}"></i><div class="eq-t"><b>${p.nom}${estMoi ? ' (moi)' : ''}</b>
       <span>${ou}</span><em>${p.action || ''}${estMoi ? '' : ' · ' + ilya(p.actionTs || p.vu)}</em></div>
-      ${estMoi ? '' : `<button data-suivre="${p.id}" title="Meme onglet, meme projet, meme angle de vue">${suivi === p.id ? 'Ne plus suivre' : 'Suivre'}</button>`}</div>`;
+      ${estMoi ? '' : `<button data-suivre="${p.id}" title="Meme onglet, meme projet, meme angle de vue">${suivi === p.id ? 'Ne plus suivre' : 'Suivre'}</button>
+      <button data-avec="${p.id}" class="${avec === p.id ? 'on' : ''}" title="Les mains sur le meme objet : meme page, meme projet, memes modifications, meme vue">${avec === p.id ? 'Arreter' : 'Travailler avec'}</button>`}</div>`;
   }
   function rendre() {
     const repli = fen.classList.contains('repli');
@@ -186,15 +274,28 @@
     fen.innerHTML = `<div class="eq-h"><span class="eq-pt" style="background:${ok ? '#3ddc97' : (cle ? '#f5c542' : '#8b919c')}"></span>
       <b>Equipe</b><span class="eq-n">${cle ? (ok ? (n ? `${n} en ligne` : 'seul pour l\'instant') : 'connexion...') : 'non configuree'}</span>
       <button data-r title="Reglages">&#9881;</button><button data-p title="Replier">${repli ? '&#9650;' : '&#9660;'}</button></div>
+      ${fen.dataset.code ? `<div class="eq-code">Nouveau code recu <button data-maj>Mettre a jour</button></div>` : ''}
+      ${avec ? `<div class="eq-avec">En direct avec ${pairs.get(avec)?.nom || '...'} <button data-cam>${camLiee ? 'Vue liee' : 'Vue libre'}</button></div>` : ''}
       <div class="eq-b">${cle ? [...pairs.values()].map(p => ligne(p, false)).join('') + ligne(moi, true)
         : `<p class="eq-v">Entre le meme <b>code d'equipe</b> (1 lettre + 4 chiffres) sur chaque poste pour travailler ensemble.</p>`}</div>`;
   }
   fen.addEventListener('click', async e => {
     if (e.target.closest('[data-p]')) { fen.classList.toggle('repli'); return rendre(); }
     if (e.target.closest('[data-r]')) return reglages();
+    if (e.target.closest('[data-cam]')) { camLiee = !camLiee; return rendre(); }
+    if (e.target.closest('[data-maj]')) {
+      if (fen.dataset.code === 'py') {
+        await fetch0('/api/redemarrer', { method: 'POST' }).catch(() => { });
+        for (let i = 0; i < 60; i++) { await new Promise(r => setTimeout(r, 1500)); try { if ((await fetch0('/api/equipe')).ok && i > 2) break; } catch { } }
+      }
+      return location.reload();
+    }
+    const w = e.target.closest('[data-avec]');
+    if (w) { const p = pairs.get(w.dataset.avec); if (p) travaillerAvec(p); return; }
     const s = e.target.closest('[data-suivre]');
     if (s) {
       const p = pairs.get(s.dataset.suivre); if (!p) return;
+      if (avec) quitterAvec();
       suivi = suivi === p.id ? null : p.id;
       if (suivi) { suivre(p); envoyer({ t: 'suivi', cible: p.id }, true); }   // l'etat exact de la personne suivie, tout de suite
       rendre();
@@ -227,7 +328,7 @@
   document.addEventListener('click', e => {
     if (e.target.closest('#eq-fen')) return;
     const nav = e.target.closest('[data-tab]');
-    if (nav) { moi.onglet = nav.dataset.tab; [...pairs.values()].forEach(dessinerCurseur); return action('dans ' + (ONGLETS[moi.onglet] || moi.onglet)); }
+    if (nav) { moi.onglet = nav.dataset.tab; [...pairs.values()].forEach(dessinerCurseur); if (avec && !distant) setTimeout(() => envoyer({ t: 'nav' }, true)); return action('dans ' + (ONGLETS[moi.onglet] || moi.onglet)); }
     const b = e.target.closest('button, [role=menuitem], .menu-item, li[data-a], .pj-carte, a');
     if (b) { const l = libelle(b); if (l) action(`clique « ${l} »`); }
   }, true);
@@ -238,7 +339,8 @@
     action(`regle « ${lab.replace(/\s+/g, ' ').trim().slice(0, 30)} »`);
   }, true);
   window.addEventListener('shw:projet', e => {
-    moi.projet = e.detail;
+    moi.projet = e.detail; monEcriture = performance.now() + 4000;
+    if (avec) envoyer({ t: 'nav' }, true);
     action(`ouvre « ${e.detail.nom} »`);
   });
   // chargements (fenetre SHWCharge) : "Hugo fait : Generation du projet..."
@@ -253,6 +355,7 @@
   window.fetch = async (u, o = {}) => {
     const r = await fetch0(u, o);
     const url = typeof u === 'string' ? u : u?.url || '';
+    if (/\/api\/projets/.test(url) && /POST|DELETE/i.test(o.method || '')) monEcriture = performance.now() + 4000;
     if (/\/api\/projets(\/[^/]+(\/dupliquer)?)?$/.test(url) && /POST|DELETE/i.test(o.method || '') && r.ok) {
       action(/DELETE/i.test(o.method) ? 'met un projet a la corbeille' : 'enregistre un projet'); envoyer({ t: 'save' }, true);
     }
@@ -260,7 +363,7 @@
   };
   setInterval(() => {                                  // presence + menage des absents
     envoyer({ t: 'p' }, true);
-    for (const [id, p] of pairs) if (Date.now() - p.vu > 20000) { pairs.delete(id); retirerCurseur(id); }
+    for (const [id, p] of pairs) if (Date.now() - p.vu > 20000) { pairs.delete(id); retirerCurseur(id); if (avec === id) quitterAvec(false); if (suivi === id) suivi = null; }
     rendre();
   }, 5000);
   window.addEventListener('beforeunload', () => envoyer({ t: 'bye' }, true));
@@ -285,6 +388,10 @@
 #eq-fen .eq-t span{color:#c9ced6;font-size:11px}
 #eq-fen .eq-t em{color:#ff9a5c;font-size:11px;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #eq-fen .eq-l button{background:#1d2027;border:1px solid #2a2e37;color:#e9ebef;border-radius:6px;font-size:11px;padding:3px 7px;cursor:pointer}
+#eq-fen .eq-l button.on{background:#ff6410;color:#0d0f13;border-color:#ff6410}
+#eq-fen .eq-avec,#eq-fen .eq-code{display:flex;justify-content:space-between;align-items:center;gap:6px;margin:0 10px 8px;padding:5px 8px;border-radius:8px;background:#ff641022;color:#ffb48a;font-size:11px}
+#eq-fen .eq-avec button,#eq-fen .eq-code button{background:#1d2027;border:1px solid #2a2e37;color:#e9ebef;border-radius:6px;font-size:11px;padding:2px 6px;cursor:pointer}
+#eq-fen .eq-l{flex-wrap:wrap}
 #eq-fen .eq-v{color:#8b919c;margin:0}`;
   document.head.appendChild(css);
   document.body.append(calque, fen);

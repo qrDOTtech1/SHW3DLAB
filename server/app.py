@@ -1423,6 +1423,34 @@ def equipe_ecrire(d: dict):
     return e
 
 
+@app.get("/api/projets/{pid}/rev")
+def projet_rev(pid: str):
+    f = PROJETS_DIR / f"{_pid_ok(pid)}.json"
+    return {"mtime": f.stat().st_mtime_ns if f.exists() else 0}
+
+
+def _signature(racines, ext):
+    return max((f.stat().st_mtime_ns for r in racines for f in (ICI / r).rglob("*") if f.suffix in ext and "__pycache__" not in f.parts), default=0)
+
+
+_PY_DEMARRAGE = _signature(["atelier", "server"], {".py"})
+
+
+@app.get("/api/version")
+def version_code():
+    return {"web": _signature(["web"], {".js", ".html", ".css"}), "py": _signature(["atelier", "server"], {".py"}), "py_demarrage": _PY_DEMARRAGE}
+
+
+@app.post("/api/redemarrer")
+def redemarrer():
+    """Recharge le code Python : relance le serveur 2 s apres sa propre sortie."""
+    import subprocess
+    relance = "import time,subprocess,sys;time.sleep(2);subprocess.Popen([sys.executable,'server/run_server.py'])"
+    subprocess.Popen([sys.executable, "-c", relance], cwd=ICI, creationflags=0x08000008 if os.name == "nt" else 0)
+    threading.Timer(0.4, lambda: os._exit(0)).start()
+    return {"ok": True}
+
+
 @app.get("/api/synchro")
 def synchro_etat():
     return _synchro.etat

@@ -77,7 +77,8 @@ let _t = null, _n = 0;
 function regenerer() { clearTimeout(_t); _t = setTimeout(generer, 220); }
 async function generer() {
   const n = ++_n; $('#cfg-etat').textContent = 'Calcul...';
-  const ch = window.SHWCharge?.debut(`Calcul du projet ${F.modeles[F.modele]?.nom || F.modele}`, { cle: 'gen-' + F.modele });
+  const ch = F._distant ? null : window.SHWCharge?.debut(`Calcul du projet ${F.modeles[F.modele]?.nom || F.modele}`, { cle: 'gen-' + F.modele });
+  F._distant = false;
   try {
     const r = await api('/api/meca/piece', { nom: F.modele, params: avecBase() }).finally(() => ch?.fin());
     if (n !== _n) return;
@@ -258,7 +259,16 @@ F.appliquer = async d => {                          // mode equipe : meme etat, 
   F.params = JSON.parse(JSON.stringify(d.params || {})); F.reference = d.reference || null;
   F.versions = d.versions || {}; F.version = d.version || null; F.bobines = d.bobines || {}; F.couleurs = d.couleurs || {};
   F.masques = new Set(d.masques || []);
-  if (calcul) { afficherReference(); construireInterface(); await generer(); }   // seul un vrai changement relance le calcul
+  if (calcul) {                                      // seul un vrai changement relance le calcul ; les champs restent en place
+    afficherReference();
+    for (const [k, v] of Object.entries(F.params)) {
+      const i = $(`#cfg-reglages input[data-k="${k}"]`), b = $(`#cfg-reglages [data-v="${k}"]`), seg = $(`#cfg-reglages .cfg-segments[data-k="${k}"]`);
+      if (i && document.activeElement !== i) { if (i.type === 'checkbox') i.checked = !!v; else i.value = v; }
+      if (b) b.textContent = v;
+      seg?.querySelectorAll('button').forEach(x => x.classList.toggle('on', x.dataset.v == v));
+    }
+    F._distant = true; regenerer();                  // sans fenetre de chargement : l'autre poste continue de travailler
+  }
   groupe.traverse(o => { if (o.isMesh && o.userData.nom) o.visible = !F.masques.has(o.userData.nom); });
   majCouleurs();
 };

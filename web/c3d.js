@@ -1288,7 +1288,31 @@ function ouvrirMenu(x, y, hit, pt) {
 
 C.exporter = () => ({ objets: C.objets.map(serial) });
 C.cam = cam; C.orb = orb;
-C.appliquer = async d => { await restaurer(JSON.stringify(d.objets || [])); };   // mode equipe : sans recadrer
+// mode equipe : applique seulement les differences (pas de clignotement, la selection et le geste en cours restent)
+C.appliquer = async d => {
+  const vus = new Set(d.objets?.map(s => s.id) || []);
+  let bouge = false;
+  const deja = new Set();
+  for (const o of [...C.objets]) { if (deja.has(o.id)) { C.sel = C.sel.filter(x => x !== o); retirer(o); } deja.add(o.id); }
+  for (const o of [...C.objets]) if (!vus.has(o.id)) { C.sel = C.sel.filter(x => x !== o); retirer(o); bouge = true; }
+  for (const s of d.objets || []) {
+    let o = C.objets.find(x => x.id === s.id);
+    if (o && (o.fichier !== s.fichier || !!o.trou !== !!s.trou || o.bobine !== s.bobine)) { C.sel = C.sel.filter(x => x !== o); retirer(o); o = null; }
+    if (!o) { await ajouterObjet({ ...s }); bouge = true; continue; }
+    o.nom = s.nom; o.params = s.params;
+    if (tc.dragging && C.sel.includes(o)) continue;     // ce que je tiens en main reste en main
+    if (s.matrice) { new THREE.Matrix4().fromArray(s.matrice).decompose(o.mesh.position, o.mesh.quaternion, o.mesh.scale); o.mesh.updateMatrixWorld(); bouge = true; }
+  }
+  if (bouge && !tc.dragging) { selectionner([...C.sel]); majInspecteur(); analyserBientot(); sauverLocal(); }
+};
+const _pairs = new Map();                             // ce que le coequipier a selectionne : cadre a sa couleur
+C.surlignerPair = (id, ids, coul) => {
+  const clef = id + '|' + ids.join();
+  if (_pairs.get(id)?.clef === clef) { _pairs.get(id).boites.forEach(b => b.update()); return; }
+  _pairs.get(id)?.boites.forEach(b => scene.remove(b));
+  const boites = ids.map(i => C.objets.find(o => o.id === i)).filter(Boolean).map(o => { const b = new THREE.BoxHelper(o.mesh, coul); scene.add(b); return b; });
+  _pairs.set(id, { clef, boites });
+};
 C.baseImportee = async (r, nom) => { const o = await ajouterObjet({ type: 'import', fichier: r.fichier, nom: 'BASE ' + nom }, { placer: { x: 0, y: 0 } }); selectionner([o]); memo(); vue('iso'); };
 C.charger = async d => { await restaurer(JSON.stringify(d.objets || [])); C.hist = []; memo(); vue('iso'); };
 C.vider = async () => { for (const o of [...C.objets]) retirer(o); selectionner([]); memo(); };

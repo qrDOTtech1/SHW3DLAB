@@ -29,9 +29,14 @@ etat = {"derniere": None, "message": "jamais synchronise", "ok": None, "recus": 
 
 def git(*args, timeout=90, env=None):
     try:
-        r = subprocess.run(["git", *args], cwd=ICI, capture_output=True, text=True, timeout=timeout, encoding="utf8",
-                           errors="replace", creationflags=NOWIN, env=env)
-        return r.returncode, (r.stdout + r.stderr).strip()
+        for essai in range(6):                         # une session Claude peut etre en train de committer
+            r = subprocess.run(["git", *args], cwd=ICI, capture_output=True, text=True, timeout=timeout, encoding="utf8",
+                               errors="replace", creationflags=NOWIN, env=env)
+            sortie = (r.stdout + r.stderr).strip()
+            if "index.lock" not in sortie:
+                break
+            time.sleep(2)
+        return r.returncode, sortie
     except Exception as e:
         return 1, str(e)
 
@@ -54,14 +59,15 @@ def _date(txt: str) -> float:
         return 0.0
 
 
-def _resoudre_conflits() -> bool:
+def _resoudre_conflits(fusion=False) -> bool:
     """Pendant un rebase : chaque fichier en conflit sous data/ -> version la plus recente. False si conflit de code."""
     _, lst = git("diff", "--name-only", "--diff-filter=U")
     for f in [l for l in lst.splitlines() if l.strip()]:
         if not any(f.startswith(d + "/") for d in DOSSIERS):
             return False
-        c2, amont = git("show", f":2:{f}")            # en rebase : 2 = version deja sur GitHub, 3 = la notre
-        c3, local = git("show", f":3:{f}")
+        n_amont, n_local = (3, 2) if fusion else (2, 3)   # rebase : 2 = GitHub, 3 = la notre ; merge : l'inverse
+        c2, amont = git("show", f":{n_amont}:{f}")
+        c3, local = git("show", f":{n_local}:{f}")
         a_amont, a_local = c2 == 0, c3 == 0
         if not a_amont and not a_local:                 # supprime des deux cotes
             git("rm", "--quiet", f)
@@ -70,13 +76,13 @@ def _resoudre_conflits() -> bool:
             local_gagne = _date(local) >= _date(amont)   # le plus recent gagne (egalite : le notre)
         else:
             local_gagne = a_local                       # une seule version existe : on la garde
-        git("checkout", "--theirs" if local_gagne else "--ours", "--", f)   # en rebase, theirs = notre commit
+        git("checkout", ("--ours" if local_gagne else "--theirs") if fusion else ("--theirs" if local_gagne else "--ours"), "--", f)
         git("add", f)
     return True
 
 
 def synchroniser(pousser=True) -> dict:
-    """Commit local des projets + recuperation + envoi. Ne touche jamais au code local modifie (autostash)."""
+    """Commit local des projets + recuperation + envoi. Ne touche jamais au code local en cours."""
     with _verrou:
         avant = git("rev-parse", "HEAD")[1]
         git("add", "-A", *DOSSIERS)
@@ -91,8 +97,19 @@ def synchroniser(pousser=True) -> dict:
         _, retard = git("rev-list", "--count", "HEAD..@{u}")
         if retard.strip() == "0":                       # rien a recuperer : ne jamais toucher au code en cours d'edition
             c, out = 0, ""
+        elif git("status", "--porcelain", "--untracked-files=no")[1].strip():
+            # du code est en cours d'ecriture (toi, Hugo, une session Claude) : JAMAIS de stash. Une fusion ne touche
+            # pas les fichiers en cours, et git refuse sans rien changer si les memes fichiers sont concernes.
+            c, out = git(*_ident(), "merge", "--no-edit", "@{u}", env=env, timeout=120)
+            if c and "CONFLICT" in out:
+                if not _resoudre_conflits(True):
+                    git("merge", "--abort")
+                    return _fin(False, "conflit dans le CODE : a regler a la main", 0, 0)
+                c, out = git(*_ident(), "commit", "--no-edit", env=env)
+            if c:
+                return _fin(False, "code en cours sur les memes fichiers : committer, la synchro reprendra", 0, 0)
         else:
-            c, out = git(*_ident(), "rebase", "--autostash", "@{u}", env=env, timeout=120)
+            c, out = git(*_ident(), "rebase", "@{u}", env=env, timeout=120)
         tours = 0
         while c and tours < 50 and ("CONFLICT" in out or "conflit" in out.lower() or "could not apply" in out.lower()):
             if not _resoudre_conflits():
