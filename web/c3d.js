@@ -1322,7 +1322,7 @@ C._ajout = async (x, bobine) => {           // ajout depuis un autre onglet (Key
   const o = await ajouterObjet({ type: 'import', fichier: x.fichier, nom: x.nom || x.role || 'objet', bobine }, { placer: { x: xLibre(x.analyse?.dimensions_mm?.[0] || 20), y: 0 } });
   memo(); return o;
 };
-C._int = { boite, selectionner, memo, tc, orb, cam, recharger: async o => { const g = (await geometrie(o.fichier)).clone(); o.mesh.geometry = g; } };
+C._int = { boite, selectionner, memo, tc, orb, cam, ren, ajouterObjet, retirer, xLibre, recharger: async o => { const g = (await geometrie(o.fichier)).clone(); o.mesh.geometry = g; } };
 Object.assign(C, { _f: { integrer, poserSurSurface, effetSurface, ouvrirMenu, vue, coller, copier, cliquerArete, modeArete, ouvrirGen } });   // debogage
 
 // ------------------------------------------------------------------ clavier

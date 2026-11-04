@@ -46,6 +46,8 @@ body.at-actif #at-rail{display:flex} body.at-actif main{margin-left:58px}
 const MODULES = [['c3d', '&#9651;', 'Atelier'], ['creer', '&#9998;', 'Prenoms'], ['kc', '&#9000;', 'Keycaps'], ['sw', '&#9881;', 'Pieces']];
 const CREATION = new Set(MODULES.map(m => m[0]));
 const rail = el(`<div id="at-rail">${MODULES.map(([t, i, n]) => `<button data-m="${t}" title="${n}"><i>${i}</i>${n}</button>`).join('')}
+  <button data-a="biblio" title="Tous les modeles parametriques, dans la meme scene (L)"><i>&#9638;</i>Biblio</button>
+  <button data-a="coupe" title="Vue en coupe (C)"><i>&#9707;</i>Coupe</button>
   <button data-a="ia" title="Image vers 3D niveau 2 (IA locale)"><i>&#10022;</i>IA 3D</button>
   <button data-a="cotes" title="Cotes au clavier (N)"><i>&#8645;</i>Cotes</button>
   <button data-a="pinceau" title="Pinceau de modelage (B)"><i>&#9673;</i>Modeler</button>
@@ -64,7 +66,7 @@ new MutationObserver(majRail).observe(document.querySelector('main'), { attribut
 rail.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.m) return aller(b.dataset.m);
-  ({ ia: ouvrirIA, cotes: ouvrirCotes, pinceau: ouvrirPinceau, cherche: ouvrirRecherche, tuto: () => lancerTuto() })[b.dataset.a]();
+  ({ biblio: ouvrirBiblio, coupe: ouvrirCoupe, ia: ouvrirIA, cotes: ouvrirCotes, pinceau: ouvrirPinceau, cherche: ouvrirRecherche, tuto: () => lancerTuto() })[b.dataset.a]();
 });
 majRail(); setTimeout(() => { if (document.querySelector('.tab.on')?.id === 'tab-creer') aller('c3d'); majRail(); }, 400);
 
@@ -83,6 +85,8 @@ function index() {
   out.push({ t: 'Cotes au clavier : position, dimensions, rotation (N)', famille: 'Outil', run: ouvrirCotes });
   out.push({ t: 'Pinceau de modelage : tirer, pousser, lisser, aplatir (B)', famille: 'Outil', run: ouvrirPinceau });
   out.push({ t: 'Image vers 3D niveau 2 (IA locale)', famille: 'IA', run: ouvrirIA });
+  out.push({ t: 'Vue en coupe (C)', famille: 'Outil', run: ouvrirCoupe });
+  for (const [k, m] of Object.entries(window.__CFG?.modeles || {})) if (!m.archive) out.push({ t: m.nom + ' : ajouter a la scene', famille: 'Bibliotheque', run: () => ouvrirBiblio(k) });
   out.push({ t: 'Guide de l atelier', famille: 'Aide', run: () => lancerTuto() });
   for (const p of window.__PROJETS?.P?.liste || []) out.push({ t: p.nom, famille: 'Projet', run: () => window.SHWOuvrirProjet(p.id) });
   for (const [k, m] of Object.entries(window.__CFG?.modeles || {})) if (!m.archive) out.push({ t: m.nom, famille: 'Projet parametrique', run: () => window.__CFG.ouvrirModele(k, {}) });
@@ -314,8 +318,126 @@ setTimeout(async () => {
   } catch { }
 }, 3000);
 
+// ------------------------------------------------------------------ BIBLIOTHEQUE : tout le catalogue dans la meme scene
+const lotId = () => Math.random().toString(36).slice(2, 9);
+function champHTML(c, v) {
+  v = v ?? c.val;
+  if (c.type === 'image') return '';
+  if (c.type === 'bool') return `<label style="grid-template-columns:1fr 18px"><span>${c.label}</span><input type="checkbox" data-k="${c.k}" ${v ? 'checked' : ''}></label>`;
+  if (c.type === 'choix') return `<label style="grid-template-columns:1fr 1fr"><span>${c.label}</span><select data-k="${c.k}">${c.options.map(o => `<option ${o == v ? 'selected' : ''}>${o}</option>`).join('')}</select></label>`;
+  if (c.type === 'texte') return `<label style="grid-template-columns:1fr 1fr"><span>${c.label}</span><input data-k="${c.k}" value="${String(v ?? '').replace(/"/g, '&quot;')}"></label>`;
+  return `<label style="grid-template-columns:1fr 70px"><span>${c.label}</span><input type="number" data-k="${c.k}" min="${c.min}" max="${c.max}" step="${c.pas}" value="${v}"></label>`;
+}
+async function poserModele(modele, params, lot, origine) {
+  const r = await api('/api/meca/piece', { nom: modele, params });
+  const noms = r.info?.noms || [], poses = r.info?.assemblage;
+  const x0 = origine?.x ?? I().xLibre(60), y0 = origine?.y ?? 0;
+  const objs = [];
+  for (let i = 0; i < r.objets.length; i++) {
+    const m = poses?.[i] ? new THREE.Matrix4().fromArray(poses[i].flat ? poses[i].flat() : poses[i]) : new THREE.Matrix4();
+    if (poses?.[i]) m.transpose();
+    m.premultiply(new THREE.Matrix4().makeTranslation(x0, y0, 0));
+    objs.push(await I().ajouterObjet({ type: 'import', fichier: r.objets[i].fichier, nom: noms[i] || modele, matrice: m.toArray(), params: { biblio: { modele, params, lot } } }));
+  }
+  const b = I().boite(objs);
+  if (b.min.z < 0) for (const o of objs) { o.mesh.position.z -= b.min.z; o.mesh.updateMatrixWorld(); }
+  return objs;
+}
+async function ouvrirBiblio(cle) {
+  aller('c3d');
+  $('#at-biblio')?.remove();
+  const M = await catalogue();
+  const d = el(`<div class="at-flot" id="at-biblio" style="width:320px;max-height:78vh;overflow:auto"><h3>Bibliotheque <button data-f>&#10005;</button></h3>
+    <input data-cherche placeholder="Chercher un modele..." style="width:100%;box-sizing:border-box;background:#0d0f13;color:#fff;border:1px solid #2a2e37;border-radius:6px;padding:6px"><div data-corps style="margin-top:8px"></div></div>`);
+  document.body.appendChild(d);
+  const corps = d.querySelector('[data-corps]');
+  const liste = () => {
+    const q = d.querySelector('[data-cherche]').value.toLowerCase(), cats = {};
+    for (const [k, m] of Object.entries(M)) if (!m.archive && m.nom.toLowerCase().includes(q)) (cats[m.cat || 'Autres'] ||= []).push([k, m]);
+    corps.innerHTML = Object.entries(cats).sort().map(([c, l]) => `<div style="color:#ff6410;margin:8px 0 3px;font-weight:600">${c}</div>` + l.map(([k, m]) => `<div data-mod="${k}" style="padding:4px 6px;cursor:pointer;border-radius:5px">${m.nom}</div>`).join('')).join('');
+  };
+  const fiche = k => {
+    const m = M[k];
+    corps.innerHTML = `<a data-ret style="cursor:pointer;color:#8b919c">&larr; Retour</a><p style="font-weight:600;margin:6px 0 2px">${m.nom}</p><small style="color:#8b919c">${m.description || ''}</small>
+      ${(m.champs || []).map(c => champHTML(c)).join('')}<div class="act"><button class="ok" data-aj="${k}">Ajouter a la scene</button></div>`;
+  };
+  d.addEventListener('click', async e => {
+    if (e.target.closest('[data-f]')) d.remove();
+    if (e.target.closest('[data-ret]')) liste();
+    const m = e.target.closest('[data-mod]'); if (m) fiche(m.dataset.mod);
+    const a = e.target.closest('[data-aj]');
+    if (a) {
+      a.disabled = true; a.textContent = 'Calcul...';
+      try { const o = await poserModele(a.dataset.aj, lireChamps(corps), lotId()); I().selectionner(o); I().memo(); toast('Ajoute a la scene'); }
+      catch (er) { toast(er.message); }
+      a.disabled = false; a.textContent = 'Ajouter a la scene';
+    }
+  });
+  d.addEventListener('input', e => { if (e.target.dataset.cherche !== undefined) liste(); });
+  d.addEventListener('keydown', e => e.stopPropagation());
+  cle ? fiche(cle) : liste();
+}
+function lireChamps(z) {
+  const p = {};
+  z.querySelectorAll('[data-k]').forEach(i => { p[i.dataset.k] = i.type === 'checkbox' ? (i.checked ? 1 : 0) : i.type === 'number' ? +i.value : i.value; });
+  return p;
+}
+// re-regler un modele deja dans la scene : il suffit de le selectionner
+let _lotVu = null;
+setInterval(async () => {
+  if (!$('#tab-c3d').classList.contains('on') || PI.actif) return;
+  const b = window.__C3D?.sel?.[0]?.params?.biblio, ouvert = $('#at-regl');
+  if (!b) { ouvert?.remove(); _lotVu = null; return; }
+  if (_lotVu === b.lot && ouvert) return;
+  ouvert?.remove(); _lotVu = b.lot;
+  const M = (await catalogue())[b.modele]; if (!M) return;
+  const d = el(`<div class="at-flot" id="at-regl" style="width:290px;max-height:70vh;overflow:auto"><h3>${M.nom} <button data-f>&#10005;</button></h3>${(M.champs || []).map(c => champHTML(c, b.params?.[c.k])).join('')}<div class="act"><button class="ok" data-maj>Mettre a jour</button></div></div>`);
+  document.body.appendChild(d);
+  d.addEventListener('keydown', e => e.stopPropagation());
+  d.addEventListener('click', async e => {
+    if (e.target.closest('[data-f]')) d.remove();
+    if (!e.target.closest('[data-maj]')) return;
+    const lot = window.__C3D.objets.filter(o => o.params?.biblio?.lot === b.lot), bb = I().boite(lot);
+    const bt = e.target.closest('[data-maj]'); bt.textContent = 'Calcul...';
+    try {
+      const n = await poserModele(b.modele, lireChamps(d), b.lot, { x: 0, y: 0 });
+      const nb = I().boite(n), dep = new THREE.Vector3(bb.min.x - nb.min.x, bb.min.y - nb.min.y, bb.min.z - nb.min.z);
+      for (const o of n) { o.mesh.position.add(dep); o.mesh.updateMatrixWorld(); }
+      lot.forEach(o => I().retirer(o));
+      d.remove(); _lotVu = null; I().selectionner(n); I().memo(); toast('Modele mis a jour');
+    } catch (er) { toast(er.message); bt.textContent = 'Mettre a jour'; }
+  });
+}, 500);
+
+// ------------------------------------------------------------------ VUE EN COUPE
+const COUPE = { plan: new THREE.Plane(new THREE.Vector3(0, 0, -1), 0) };
+function ouvrirCoupe() {
+  aller('c3d');
+  if ($('#at-coupe')) return;
+  const b = I().boite(C().objets), z = b.isEmpty() ? [0, 100] : [b.min.z, b.max.z];
+  I().ren.localClippingEnabled = true; I().ren.clippingPlanes = [COUPE.plan];
+  const d = el(`<div class="at-flot" id="at-coupe"><h3>Vue en coupe <button data-f>&#10005;</button></h3>
+    <div class="at-seg"><button data-ax="x">X</button><button data-ax="y">Y</button><button data-ax="z" class="on">Z</button></div>
+    <input type="range" style="width:100%" data-pos min="${z[0]}" max="${z[1]}" step="0.1" value="${z[1]}"><small style="color:#8b919c">Pour voir l interieur. Ne change pas les pieces.</small></div>`);
+  document.body.appendChild(d);
+  const maj = () => { COUPE.plan.constant = +d.querySelector('[data-pos]').value; };
+  maj();
+  d.addEventListener('input', maj);
+  d.addEventListener('click', e => {
+    if (e.target.closest('[data-f]')) { I().ren.clippingPlanes = []; d.remove(); }
+    const a = e.target.closest('[data-ax]');
+    if (a) {
+      const k = a.dataset.ax, bb = I().boite(C().objets);
+      COUPE.plan.normal.set(k === 'x' ? -1 : 0, k === 'y' ? -1 : 0, k === 'z' ? -1 : 0);
+      const r = d.querySelector('[data-pos]'); r.min = bb.min[k]; r.max = bb.max[k]; r.value = bb.max[k];
+      d.querySelectorAll('[data-ax]').forEach(x => x.classList.toggle('on', x === a)); maj();
+    }
+  });
+}
+
 // ------------------------------------------------------------------ TUTO
 const ETAPES = [
+  ['[data-a="biblio"]', 'La bibliotheque', 'Touche L : tous les modeles parametriques. Ils arrivent dans cette scene et se re-reglent quand tu les selectionnes.'],
   ['#at-rail', 'Tous les modules ici', 'Atelier, prenoms, keycaps, pieces mecaniques et IA 3D. Tout ce que tu crees peut rejoindre la meme scene.'],
   ['#tab-c3d .c3d-lib', 'Formes et generateurs', 'Clique ou glisse une forme sur le plan. Les generateurs creent des objets complets : vase, keycap, texte, image...'],
   ['#c3d-view', 'La scene', 'Clic : selectionner. Clic droit : menu de l objet. W, E, R : deplacer, tourner, etirer.'],
@@ -345,7 +467,11 @@ document.addEventListener('keydown', e => {
   const ctrl = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
   if (ctrl && k === 'k') { e.preventDefault(); e.stopPropagation(); return ouvrirRecherche(); }
   if (dansSaisie() || !$('#tab-c3d').classList.contains('on')) return;
+  if (k === 'l' && !ctrl) { e.preventDefault(); ouvrirBiblio(); }
+  if (k === 'c' && !ctrl) { e.preventDefault(); ouvrirCoupe(); }
   if (k === 'n' && !ctrl) { e.preventDefault(); ouvrirCotes(); }
   if (k === 'b' && !ctrl) { e.preventDefault(); ouvrirPinceau(); }
   if (PI.actif && (k === '[' || k === ']')) { PI.r = Math.max(1, Math.min(60, PI.r + (k === ']' ? 1 : -1))); const b = $('#at-pinceau [data-vr]'); if (b) { b.textContent = PI.r; $('#at-pinceau [data-r]').value = PI.r; } }
 }, true);
+let _cat = null;
+const catalogue = async () => _cat ||= await (await fetch('/api/catalogue')).json();

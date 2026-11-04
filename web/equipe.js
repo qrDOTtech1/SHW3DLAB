@@ -143,7 +143,8 @@
   setInterval(() => {                                  // detection generique de TOUT changement de la session
     if (applique || suivre.ouvre) return;
     if (!avec && ++tic % 6) return;                    // 80 ms en travail commun, 480 ms sinon
-    const cle = (suivi && pairs.get(suivi)?.cle) || (avec && rejoint && pairs.get(avec)?.cle) || cleLocale();
+    let cle = (suivi && pairs.get(suivi)?.cle) || (avec && rejoint && pairs.get(avec)?.cle) || cleLocale();
+    if (cle?.startsWith('libre:') && !suivi && !avec) cle = null;   // sans projet enregistre, on ne partage que si on travaille ensemble
     if (cle !== cleCourante) {
       cleCourante = cle; moi.cle = cle; rev = 0; dernierEtat = lireEtat(); envoyes = new Set();
       if (cle) envoyer({ t: 'demande', pid: cle }, true);   // recupere l'etat en cours chez les autres
@@ -290,7 +291,7 @@
         : `<p class="eq-v">Entre le meme <b>code d'equipe</b> (1 lettre + 4 chiffres) sur chaque poste pour travailler ensemble.</p>`}</div>`;
   }
   fen.addEventListener('click', async e => {
-    if (e.target.closest('[data-p]')) { fen.classList.toggle('repli'); return rendre(); }
+    if (e.target.closest('[data-p]')) { fen.classList.toggle('repli'); memoFen(); return rendre(); }
     if (e.target.closest('[data-coul]')) return choisirCouleur();
     if (e.target.closest('[data-r]')) return reglages();
     if (e.target.closest('[data-cam]')) { camLiee = !camLiee; return rendre(); }
@@ -334,6 +335,20 @@
     location.reload();
   }
 
+  // deplacable par sa barre de titre, position memorisee ; repliee par defaut quand on l'a repliee
+  try {
+    const m_ = JSON.parse(localStorage.getItem('shw-eq-fen') || '{}');
+    if (m_.x != null) Object.assign(fen.style, { left: Math.min(m_.x, innerWidth - 60) + 'px', top: Math.min(m_.y, innerHeight - 30) + 'px', bottom: 'auto' });
+    if (m_.repli) fen.classList.add('repli');
+  } catch { }
+  const memoFen = () => { try { const r = fen.getBoundingClientRect(); localStorage.setItem('shw-eq-fen', JSON.stringify({ x: fen.style.top ? r.left : null, y: r.top, repli: fen.classList.contains('repli') })); } catch { } };
+  fen.addEventListener('pointerdown', e => {
+    if (!e.target.closest('.eq-h') || e.target.closest('button')) return;
+    const r = fen.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top;
+    const bouge = ev => Object.assign(fen.style, { left: Math.max(0, Math.min(innerWidth - 60, ev.clientX - dx)) + 'px', top: Math.max(0, Math.min(innerHeight - 30, ev.clientY - dy)) + 'px', bottom: 'auto' });
+    const fin = () => { removeEventListener('pointermove', bouge); removeEventListener('pointerup', fin); memoFen(); };
+    addEventListener('pointermove', bouge); addEventListener('pointerup', fin);
+  });
   // ------------------------------------------------------------ ce que JE fais
   function action(txt) { moi.action = txt; moi.actionTs = Date.now(); envoyer({ t: 'p' }, true); rendre(); }
   function libelle(el) {
@@ -395,14 +410,16 @@
 #eq-calque{position:fixed;inset:0;pointer-events:none;z-index:9000}
 .eq-curseur{position:absolute;left:0;top:0;transition:transform .09s linear;will-change:transform}
 .eq-curseur span{position:absolute;left:14px;top:14px;white-space:nowrap;font:600 11px 'Segoe UI',sans-serif;color:#0d0f13;padding:2px 7px;border-radius:8px;max-width:320px;overflow:hidden;text-overflow:ellipsis}
-#eq-fen{position:fixed;left:14px;bottom:14px;z-index:9001;width:290px;background:#0d0f13ee;border:1px solid #2a2e37;border-radius:12px;color:#e9ebef;
+#eq-fen{position:fixed;left:72px;bottom:14px;z-index:9001;width:290px;background:#0d0f13ee;border:1px solid #2a2e37;border-radius:12px;color:#e9ebef;
   font:12px 'Segoe UI',system-ui,sans-serif;box-shadow:0 10px 30px #0007;backdrop-filter:blur(4px)}
 #eq-fen .eq-h{display:flex;align-items:center;gap:7px;padding:8px 10px}
 #eq-fen .eq-h .eq-n{flex:1;color:#8b919c;font-size:11px}
 #eq-fen .eq-h button{background:none;border:0;color:#8b919c;cursor:pointer;font-size:12px;padding:0 3px}
 #eq-fen .eq-pt{width:8px;height:8px;border-radius:50%}
 #eq-fen .eq-b{padding:0 10px 9px;display:grid;gap:7px;max-height:40vh;overflow:auto}
-#eq-fen.repli .eq-b{display:none}
+#eq-fen.repli .eq-b,#eq-fen.repli .eq-avec,#eq-fen.repli .eq-code,#eq-fen.repli [data-coul],#eq-fen.repli [data-r]{display:none}
+#eq-fen.repli{width:auto}#eq-fen.repli .eq-h{padding:4px 8px;gap:5px}#eq-fen.repli .eq-n{flex:none}
+#eq-fen .eq-h{cursor:move;user-select:none}
 #eq-fen .eq-l{display:flex;gap:8px;align-items:center}
 #eq-fen .eq-l i{width:10px;height:10px;border-radius:50%;flex:none}
 #eq-fen .eq-t{flex:1;display:grid;line-height:1.3;min-width:0}

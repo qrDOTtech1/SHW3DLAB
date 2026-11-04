@@ -1167,6 +1167,13 @@ def meca_catalogue():
     return {k: {"nom": c["nom"], "cat": c["cat"], "champs": c["champs"]} for k, c in CATALOGUE.items()}
 
 
+@app.get("/api/catalogue")
+def catalogue_complet():
+    from atelier.meca import CATALOGUE
+    return {k: {"nom": c["nom"], "cat": c["cat"], "description": c.get("description", ""), "champs": c["champs"], "archive": bool(c.get("archive"))}
+            for k, c in CATALOGUE.items()}
+
+
 @app.get("/api/modeles")
 def modeles():
     """Modeles de PROJET (chacun a sa propre interface de personnalisation, construite depuis son schema)."""
