@@ -1113,11 +1113,57 @@ CATALOGUE["servbuddy_v16"] = dict(CATALOGUE["servbuddy"], nom="ServBuddy v2.2 (a
 
 
 
+# ================================================================== PROJET : DaVinBot V2 (bras 6 axes, importe de l'ancien logiciel)
+_DAVINBOT_PACK = "davinbot_a7a7f0a8e7.zip"
+
+
+def _davinbot_manifeste():
+    import json as _j, zipfile as _z
+    from pathlib import Path as _P
+    with _z.ZipFile(_P(__file__).resolve().parents[1] / "data" / "bases" / _DAVINBOT_PACK) as z:
+        return _j.loads(z.read("manifest.json"))
+
+
+def _davinbot(p: dict):
+    """Build de reference a7a7f0a8e7 (tout vert) : pieces en orientation d'impression, pose calculee pour la vue montee."""
+    import io, zipfile as _z, trimesh as _tm
+    from pathlib import Path as _P
+    from atelier.projets.davinbot.checks import _rot_to_z
+    m = _davinbot_manifeste()
+    out, noms, poses, coul = [], [], [], {}
+    with _z.ZipFile(_P(__file__).resolve().parents[1] / "data" / "bases" / _DAVINBOT_PACK) as z:
+        lire = lambda f: _tm.load(io.BytesIO(z.read(f)), file_type="stl", force="mesh")
+        for q in m["parts"]:
+            if q["kind"] == "keepout":
+                continue
+            vue = lire(q["view"])
+            if q["kind"] == "print" and q.get("print_up"):
+                mesh = lire(q["stl"])
+                R = np.eye(4); R[:3, :3] = _rot_to_z(tuple(q["print_up"]))
+                a_ = math.radians(q.get("print_rot_z") or 0)
+                Rz = np.eye(4); Rz[:2, :2] = [[math.cos(a_), -math.sin(a_)], [math.sin(a_), math.cos(a_)]]
+                A = np.asarray(q["T"], float) @ np.linalg.inv(Rz @ R)      # impression -> monde, a une translation pres
+                t_ = mesh.copy(); t_.apply_transform(A)
+                A[:3, 3] += vue.bounds.mean(axis=0) - t_.bounds.mean(axis=0)
+            else:                                                 # vitamines, tole : deja en position monde
+                mesh = vue.copy(); A = np.eye(4)
+                d = -mesh.bounds[0]; mesh.apply_translation(d); A[:3, 3] = -d
+            out.append(mesh); noms.append(q["id"]); poses.append(A.tolist()); coul[q["id"]] = q["color"]
+    t = m["torque"]
+    return out, {"version": "V2", "noms": noms, "assemblage": poses, "couleurs": coul, "build": m["hash"], "couples": t,
+                 "masse_bras_kg": m["info"]["masse_bras_kg"], "filament_g": m["info"]["filament_total_g"], "nomenclature": m["bom"]}
+
+
+CATALOGUE["davinbot"] = {"nom": "DaVinBot V2 (bras 6 axes)", "cat": "Projets", "fn": _davinbot, "champs": [],
+    "description": "Bras 6 axes importe de l'ancien logiciel, build de reference : 177 pieces imprimees, 1 tole, 97 composants. 8 NEMA 17 dans la version complete.",
+    "couleurs": {q["id"]: q["color"] for q in _davinbot_manifeste()["parts"]}}
+
+
 # ================================================================== CLASSEMENT des projets (vue Projets : familles / versions)
 _FAMILLES = {
     "servbuddy": ("ServBuddy", "2.7", False, "&#9711;"), "servbuddy_v26": ("ServBuddy", "2.6", True, "&#9711;"), "servbuddy_v25": ("ServBuddy", "2.5", True, "&#9711;"), "servbuddy_v24": ("ServBuddy", "2.4", True, "&#9711;"), "servbuddy_v23": ("ServBuddy", "2.3", True, "&#9711;"), "servbuddy_v16": ("ServBuddy", "2.2", True, "&#9711;"),
     "servbuddy_v1": ("ServBuddy", "1", True, "&#9711;"), "swork190": ("SHWork 190 SE", "1", False, "&#9951;"),
-    "compresseur": ("Compresseur Wankel", "2", False, "&#10042;"), "vibedeck": ("Vibe Deck", "1", False, "&#9635;"),
+    "compresseur": ("Compresseur Wankel", "2", False, "&#10042;"), "vibedeck": ("Vibe Deck", "1", False, "&#9635;"), "davinbot": ("DaVinBot", "2", False, "&#9881;"),
 }
 for _k, (_f, _v, _a, _i) in _FAMILLES.items():
     if _k in CATALOGUE:
