@@ -74,7 +74,7 @@
     if (m.onglet === 'c3d' && moi.onglet === 'c3d' && m.sel) window.__C3D?.surlignerPair?.(m.id, m.sel, m.couleur);
     if (suivi === m.id) suivre(p);
     if (m.t === 'save') {                              // un coequipier a enregistre : on recupere apres son envoi
-      notifier(`${m.nom} a sauvegarde ${m.quoi || 'un projet'}`, m.couleur);
+      notifier(`${hasard(CLARKSON.sauve, m.nom)} ${m.quoi ? 'Projet : ' + m.quoi : ''}`, m.couleur);
       clearTimeout(recevoir._s);                       // recupere sa sauvegarde des qu'elle est en ligne, sans rien relancer
       const recup = async () => {
         await fetch0('/api/synchro', { method: 'POST' }).catch(() => { });
@@ -164,14 +164,65 @@
     if (prevenir && avec) envoyer({ t: 'ww', cible: avec, on: false }, true);
     avec = null; rejoint = false; rendre();
   }
-  function travaillerAvec(p) {
+  // ---- le klaxon : on previent AVANT de toucher au travail de quelqu'un
+  const CLARKSON = {
+    sauve: [n => `${n} a sauvegarde. Oui, sauvegarde. Comme un adulte responsable. Incroyable.`, n => `Nouvelle sauvegarde de ${n}. Puissance. Beaucoup de puissance.`, n => `${n} vient de sauvegarder. Et sur cette planete, c'est deja un exploit.`],
+    rejoint: [n => `${n} monte a bord. Accrochez-vous, ca va mal se passer. Ou tres bien.`, n => `${n} met les mains sur le meme objet. Que pourrait-il arriver de mal ?`],
+    parti: [n => `${n} a quitte le navire. Sans un mot. Typique.`],
+  };
+  const hasard = (l, n) => l[Math.floor(Math.random() * l.length)](n);
+  function nonEnregistre() {
+    const mod = moduleVue(); if (!mod?.exporter) return 0;
+    const n = moi.onglet === 'c3d' ? mod.objets.length : 1;
+    if (moi.onglet === 'c3d' && !n) return 0;
+    if (moi.onglet === 'cfg' && !mod.modele) return 0;
+    if (moi.onglet !== 'c3d' && moi.onglet !== 'cfg' && !(moi.projet?.id && rev)) return 0;
+    const projetIci = moi.projet?.id && ONGLET_TYPE(moi.projet.type) === moi.onglet;
+    return (!projetIci || rev) ? n : 0;
+  }
+  function demander(titre, texte, choix) {
+    return new Promise(ok => {
+      const v = document.createElement('div');
+      v.style.cssText = 'position:fixed;inset:0;background:#0008;z-index:9800;display:grid;place-items:center';
+      v.innerHTML = `<div style="width:min(440px,92vw);background:#14171d;color:#e9ebef;border:1px solid #ff6410;border-radius:14px;padding:18px 20px;font:13px 'Segoe UI',sans-serif">
+        <b style="font-size:15px">${titre}</b><p style="line-height:1.45">${texte}</p>
+        <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">${choix.map(([k, l, fort]) => `<button data-c="${k}" style="padding:7px 12px;border-radius:8px;cursor:pointer;border:1px solid ${fort ? '#ff6410' : '#2a2e37'};background:${fort ? '#ff6410' : '#1d2027'};color:${fort ? '#14171d' : '#e9ebef'};font-weight:${fort ? 600 : 400}">${l}</button>`).join('')}</div></div>`;
+      v.addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (b) { v.remove(); ok(b.dataset.c); } });
+      v.addEventListener('keydown', e => e.stopPropagation());
+      document.body.appendChild(v);
+    });
+  }
+  async function enregistrerIci() {
+    const t = { c3d: 'creation3d', kc: 'keycaps', sw: 'swork', cfg: window.__CFG?.modele }[moi.onglet];
+    if (t) await window.__PROJETS?.enregistrer?.(t);
+  }
+  // true = on peut y aller. Rejoindre quelqu'un remplace ce qu'il y a sur mon plan.
+  async function avantDeRejoindre(p) {
+    const n = nonEnregistre(); if (!n) return true;
+    const quoi = moi.onglet === 'c3d' ? `${n} objet${n > 1 ? 's' : ''} non enregistre${n > 1 ? 's' : ''}` : 'des modifications non enregistrees';
+    const c = await demander('Une petite seconde.', `Tu as ${quoi} sur ton plan. Si tu rejoins ${p.nom}, ca disparait de ton ecran. Definitivement. Comme une boite manuelle sur une supercar moderne. Que fait-on ?`,
+      [['non', 'Annuler'], ['go', 'Foncer quand meme'], ['save', 'Enregistrer puis rejoindre', true]]);
+    if (c === 'save') await enregistrerIci();
+    return c !== 'non';
+  }
+  async function travaillerAvec(p) {
     if (avec === p.id) return quitterAvec();
+    if (!await avantDeRejoindre(p)) return;
     suivi = null; avec = p.id; rejoint = true; camLiee = true;
     aller(p); envoyer({ t: 'ww', cible: p.id, on: true }, true); envoyer({ t: 'suivi', cible: p.id }, true); rendre();
   }
   function recevoirWW(m) {
-    if (!m.on) { if (avec === m.id) { avec = null; rejoint = false; } }
-    else { suivi = null; avec = m.id; rejoint = false; camLiee = true; envoyerEtat(true); }
+    if (!m.on) { if (avec === m.id) { avec = null; rejoint = false; notifier(hasard(CLARKSON.parti, m.nom), m.couleur); } }
+    else {
+      suivi = null; avec = m.id; rejoint = false; camLiee = true; envoyerEtat(true);
+      notifier(hasard(CLARKSON.rejoint, m.nom), m.couleur);
+      const n = nonEnregistre();
+      if (n) demander(`${m.nom} veut bosser avec toi.`, `Ton plan n'est pas enregistre, et ${m.nom} le voit maintenant. Il peut le modifier. Avec ses mains. Tu enregistres, par prudence ?`,
+        [['non', 'Refuser'], ['go', 'Bosser sans filet'], ['save', 'Enregistrer et bosser', true]]).then(c => {
+          if (c === 'save') enregistrerIci();
+          if (c === 'non') quitterAvec();
+        });
+    }
     rendre();
   }
   function aller(p) {
@@ -308,6 +359,7 @@
     if (s) {
       const p = pairs.get(s.dataset.suivre); if (!p) return;
       if (avec) quitterAvec();
+      if (suivi !== p.id && !await avantDeRejoindre(p)) return;
       suivi = suivi === p.id ? null : p.id;
       if (suivi) { suivre(p); envoyer({ t: 'suivi', cible: p.id }, true); }   // l'etat exact de la personne suivie, tout de suite
       rendre();

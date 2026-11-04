@@ -20,7 +20,8 @@ const CSS = `
 #shw-charge .logo{position:absolute;left:16px;top:12px;height:20px;opacity:0;transition:opacity .5s}
 `;
 // etapes classiques des chargements de projet, avec une pointe d'humour de temps a autre
-const ETAPES = ['Lecture du projet', 'Génération de la géométrie', 'Vérification des collisions',
+const ETAPES = ['Ajout de puissance. Encore. On ne sait jamais.', 'Le processeur transpire. C\'est bon signe. Enfin, je crois.', 'Consultation d\'un ingenieur allemand. Il desapprouve.',
+  'Calcul de la geometrie. C\'est comme une boite manuelle : plus lent, mais tellement plus noble.', 'Lecture du projet', 'Génération de la géométrie', 'Vérification des collisions',
   'Rien ne touche la peau ? Vérifié.', 'Assemblage des pièces', 'Ajout de puissance. Pas trop. Juste ce qu\'il faut.',
   'Calcul de la course d\'ouverture', 'Mise en cache pour la prochaine fois', 'Préparation de l\'affichage 3D',
   'Patience. Les grands projets, comme les grandes voitures, ne démarrent pas au quart de tour.'];

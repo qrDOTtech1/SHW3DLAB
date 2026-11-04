@@ -1167,6 +1167,37 @@ def meca_catalogue():
     return {k: {"nom": c["nom"], "cat": c["cat"], "champs": c["champs"]} for k, c in CATALOGUE.items()}
 
 
+# ---- Mes pieces : pieces reutilisables, partagees entre postes par la sauvegarde
+PIECES_DIR = DATA / "bases" / "pieces"
+
+
+@app.get("/api/pieces")
+def pieces_liste():
+    PIECES_DIR.mkdir(parents=True, exist_ok=True)
+    return sorted((json.loads(f.read_text(encoding="utf8")) for f in PIECES_DIR.glob("*.json")), key=lambda p: p["nom"].lower())
+
+
+@app.post("/api/pieces")
+def pieces_ajouter(d: dict):
+    PIECES_DIR.mkdir(parents=True, exist_ok=True)
+    pid = uuid.uuid4().hex[:12]
+    for o in d.get("objets", []):
+        if re.fullmatch(r"[0-9a-f]{12}", str(o.get("fichier"))):
+            _c3d_partager(o["fichier"])
+    (PIECES_DIR / f"{pid}.json").write_text(json.dumps({"id": pid, "nom": str(d.get("nom", "piece"))[:60], "objets": d.get("objets", [])}), encoding="utf8")
+    _synchro.planifier(2.0)
+    return {"id": pid}
+
+
+@app.delete("/api/pieces/{pid}")
+def pieces_retirer(pid: str):
+    f = PIECES_DIR / f"{_pid_ok(pid)}.json"
+    if f.exists():
+        f.unlink()
+    _synchro.planifier(2.0)
+    return {"ok": True}
+
+
 @app.get("/api/catalogue")
 def catalogue_complet():
     from atelier.meca import CATALOGUE

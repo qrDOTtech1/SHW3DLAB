@@ -47,6 +47,8 @@ const MODULES = [['c3d', '&#9651;', 'Atelier'], ['creer', '&#9998;', 'Prenoms'],
 const CREATION = new Set(MODULES.map(m => m[0]));
 const rail = el(`<div id="at-rail">${MODULES.map(([t, i, n]) => `<button data-m="${t}" title="${n}"><i>${i}</i>${n}</button>`).join('')}
   <button data-a="biblio" title="Tous les modeles parametriques, dans la meme scene (L)"><i>&#9638;</i>Biblio</button>
+  <button data-a="pieces" title="Mes pieces : reutilisables et partagees (P)"><i>&#10070;</i>Pieces+</button>
+  <button data-a="design" title="Outils de placement (G)"><i>&#8982;</i>Design</button>
   <button data-a="coupe" title="Vue en coupe (C)"><i>&#9707;</i>Coupe</button>
   <button data-a="ia" title="Image vers 3D niveau 2 (IA locale)"><i>&#10022;</i>IA 3D</button>
   <button data-a="cotes" title="Cotes au clavier (N)"><i>&#8645;</i>Cotes</button>
@@ -66,7 +68,7 @@ new MutationObserver(majRail).observe(document.querySelector('main'), { attribut
 rail.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.m) return aller(b.dataset.m);
-  ({ biblio: ouvrirBiblio, coupe: ouvrirCoupe, ia: ouvrirIA, cotes: ouvrirCotes, pinceau: ouvrirPinceau, cherche: ouvrirRecherche, tuto: () => lancerTuto() })[b.dataset.a]();
+  ({ pieces: ouvrirPieces, design: ouvrirDesign, biblio: ouvrirBiblio, coupe: ouvrirCoupe, ia: ouvrirIA, cotes: ouvrirCotes, pinceau: ouvrirPinceau, cherche: ouvrirRecherche, tuto: () => lancerTuto() })[b.dataset.a]();
 });
 majRail(); setTimeout(() => { if (document.querySelector('.tab.on')?.id === 'tab-creer') aller('c3d'); majRail(); }, 400);
 
@@ -85,6 +87,8 @@ function index() {
   out.push({ t: 'Cotes au clavier : position, dimensions, rotation (N)', famille: 'Outil', run: ouvrirCotes });
   out.push({ t: 'Pinceau de modelage : tirer, pousser, lisser, aplatir (B)', famille: 'Outil', run: ouvrirPinceau });
   out.push({ t: 'Image vers 3D niveau 2 (IA locale)', famille: 'IA', run: ouvrirIA });
+  out.push({ t: 'Mes pieces : enregistrer et reutiliser (P)', famille: 'Outil', run: ouvrirPieces });
+  for (const [t, f] of OUTILS_DESIGN) out.push({ t, famille: 'Design', run: f });
   out.push({ t: 'Vue en coupe (C)', famille: 'Outil', run: ouvrirCoupe });
   for (const [k, m] of Object.entries(window.__CFG?.modeles || {})) if (!m.archive) out.push({ t: m.nom + ' : ajouter a la scene', famille: 'Bibliotheque', run: () => ouvrirBiblio(k) });
   out.push({ t: 'Guide de l atelier', famille: 'Aide', run: () => lancerTuto() });
@@ -409,6 +413,72 @@ setInterval(async () => {
   });
 }, 500);
 
+// ------------------------------------------------------------------ MES PIECES
+async function ouvrirPieces() {
+  aller('c3d');
+  $('#at-pieces')?.remove();
+  const d = el(`<div class="at-flot" id="at-pieces" style="width:300px;max-height:75vh;overflow:auto"><h3>Mes pieces <button data-f>&#10005;</button></h3>
+    <div class="act"><button class="ok" data-sauve>Enregistrer la selection</button></div><div data-l style="margin-top:8px"></div></div>`);
+  document.body.appendChild(d);
+  const rendre = async () => {
+    const l = await (await fetch('/api/pieces')).json();
+    d.querySelector('[data-l]').innerHTML = l.length ? l.map(p => `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0"><a data-pose="${p.id}" style="cursor:pointer">${p.nom}</a><button data-sup="${p.id}" style="background:none;border:0;color:#8b919c;cursor:pointer">&#10005;</button></div>`).join('') : '<small style="color:#8b919c">Vide. Comme le coffre d une supercar.</small>';
+    d._l = l;
+  };
+  d.addEventListener('click', async e => {
+    if (e.target.closest('[data-f]')) d.remove();
+    if (e.target.closest('[data-sauve]')) {
+      const sel = C().sel; if (!sel.length) return toast('Selectionne d abord une piece');
+      const nom = prompt('Nom de la piece :', sel[0].nom || 'piece'); if (!nom) return;
+      const b = I().boite(sel), base = new THREE.Matrix4().makeTranslation(-(b.min.x + b.max.x) / 2, -(b.min.y + b.max.y) / 2, -b.min.z);
+      const objets = sel.map(o => { o.mesh.updateMatrixWorld(); return { fichier: o.fichier, nom: o.nom, trou: !!o.trou, bobine: o.bobine, matrice: base.clone().multiply(o.mesh.matrixWorld).toArray() }; });
+      await api('/api/pieces', { nom, objets }); toast('Piece rangee. Enfin de l ordre dans ce garage.'); rendre();
+    }
+    const s = e.target.closest('[data-sup]');
+    if (s) { await fetch('/api/pieces/' + s.dataset.sup, { method: 'DELETE' }); rendre(); }
+    const p = e.target.closest('[data-pose]');
+    if (p) {
+      const x = I().xLibre(40), T = new THREE.Matrix4().makeTranslation(x, 0, 0), n = [];
+      for (const o of d._l.find(q => q.id === p.dataset.pose).objets) {
+        const r = await fetch(`/c3d/${o.fichier}.stl`); if (!r.ok) { toast('Maillage pas encore arrive, patiente un instant'); continue; }
+        n.push(await I().ajouterObjet({ type: 'import', fichier: o.fichier, nom: o.nom, trou: o.trou, bobine: o.bobine, matrice: T.clone().multiply(new THREE.Matrix4().fromArray(o.matrice)).toArray() }));
+      }
+      I().selectionner(n); I().memo();
+    }
+  });
+  rendre();
+}
+
+// ------------------------------------------------------------------ OUTILS DE PLACEMENT
+function applique(f) { const s = C().sel; if (!s.length) return toast('Selectionne d abord un objet'); f(s); s.forEach(o => o.mesh.updateMatrixWorld()); I().selectionner(s); I().memo(); }
+const decale = (s, v) => s.forEach(o => { o.mesh.position.add(v); o.mesh.updateMatrixWorld(); });
+function repartir(ax) {
+  applique(s => {
+    if (s.length < 3) return toast('Il faut au moins 3 objets');
+    const t = [...s].sort((a, b) => I().boite([a]).min[ax] - I().boite([b]).min[ax]);
+    const b0 = I().boite([t[0]]), bn = I().boite([t.at(-1)]);
+    const tailles = t.map(o => { const b = I().boite([o]); return b.max[ax] - b.min[ax]; });
+    const vide = (bn.max[ax] - b0.min[ax] - tailles.reduce((a, b) => a + b, 0)) / (t.length - 1);
+    let pos = b0.min[ax];
+    t.forEach((o, i) => { const v = new THREE.Vector3(); v[ax] = pos - I().boite([o]).min[ax]; decale([o], v); pos += tailles[i] + vide; });
+  });
+}
+const OUTILS_DESIGN = [
+  ['Centrer sur le plateau', () => applique(s => { const c = I().boite(s).getCenter(new THREE.Vector3()); decale(s, new THREE.Vector3(-c.x, -c.y, 0)); })],
+  ['Poser au sol', () => applique(s => decale(s, new THREE.Vector3(0, 0, -I().boite(s).min.z)))],
+  ['Empiler sur le 1er selectionne', () => applique(s => { let z = I().boite([s[0]]).max.z; const c = I().boite([s[0]]).getCenter(new THREE.Vector3()); for (const o of s.slice(1)) { const b = I().boite([o]), cb = b.getCenter(new THREE.Vector3()); decale([o], new THREE.Vector3(c.x - cb.x, c.y - cb.y, z - b.min.z)); z = I().boite([o]).max.z; } })],
+  ['Repartir sur X', () => repartir('x')], ['Repartir sur Y', () => repartir('y')], ['Repartir sur Z', () => repartir('z')],
+  ['Isoler la selection', () => { const s = C().sel; C().objets.forEach(o => { o.mesh.visible = s.includes(o); }); }],
+  ['Tout afficher', () => C().objets.forEach(o => { o.mesh.visible = true; })],
+];
+function ouvrirDesign() {
+  aller('c3d');
+  if ($('#at-design')) return $('#at-design').remove();
+  const d = el(`<div class="at-flot" id="at-design"><h3>Design <button data-f>&#10005;</button></h3>${OUTILS_DESIGN.map(([t], i) => `<button data-o="${i}" style="display:block;width:100%;text-align:left;margin:3px 0;padding:6px 8px;background:#1d2027;color:#e9ebef;border:1px solid #2a2e37;border-radius:7px;cursor:pointer">${t}</button>`).join('')}</div>`);
+  document.body.appendChild(d);
+  d.addEventListener('click', e => { if (e.target.closest('[data-f]')) d.remove(); const b = e.target.closest('[data-o]'); if (b) OUTILS_DESIGN[+b.dataset.o][1](); });
+}
+
 // ------------------------------------------------------------------ VUE EN COUPE
 const COUPE = { plan: new THREE.Plane(new THREE.Vector3(0, 0, -1), 0) };
 function ouvrirCoupe() {
@@ -438,6 +508,7 @@ function ouvrirCoupe() {
 // ------------------------------------------------------------------ TUTO
 const ETAPES = [
   ['[data-a="biblio"]', 'La bibliotheque', 'Touche L : tous les modeles parametriques. Ils arrivent dans cette scene et se re-reglent quand tu les selectionnes.'],
+  ['[data-a="pieces"]', 'Mes pieces', 'Touche P : range une piece reussie. Hugo la retrouve chez lui, et elle se pose en un clic.'],
   ['#at-rail', 'Tous les modules ici', 'Atelier, prenoms, keycaps, pieces mecaniques et IA 3D. Tout ce que tu crees peut rejoindre la meme scene.'],
   ['#tab-c3d .c3d-lib', 'Formes et generateurs', 'Clique ou glisse une forme sur le plan. Les generateurs creent des objets complets : vase, keycap, texte, image...'],
   ['#c3d-view', 'La scene', 'Clic : selectionner. Clic droit : menu de l objet. W, E, R : deplacer, tourner, etirer.'],
@@ -467,6 +538,8 @@ document.addEventListener('keydown', e => {
   const ctrl = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
   if (ctrl && k === 'k') { e.preventDefault(); e.stopPropagation(); return ouvrirRecherche(); }
   if (dansSaisie() || !$('#tab-c3d').classList.contains('on')) return;
+  if (k === 'p' && !ctrl) { e.preventDefault(); ouvrirPieces(); }
+  if (k === 'g' && !ctrl) { e.preventDefault(); ouvrirDesign(); }
   if (k === 'l' && !ctrl) { e.preventDefault(); ouvrirBiblio(); }
   if (k === 'c' && !ctrl) { e.preventDefault(); ouvrirCoupe(); }
   if (k === 'n' && !ctrl) { e.preventDefault(); ouvrirCotes(); }

@@ -1175,6 +1175,29 @@ CATALOGUE["davinbot_complet"] = dict(CATALOGUE["davinbot"], nom="DaVinBot V2 (co
     description="Version complete : J1, double moteur sur J2 et J3, poignet motorise.")
 
 
+# ================================================================== PRENOMS dans la bibliotheque de l'atelier
+def _prenom_cle(p: dict):
+    from atelier.noyau.objets import _mesh
+    from atelier.produits.porte_cles import porte_cle, Style
+    c, _ = porte_cle(str(p.get("texte") or "Steven"), Style(police=str(p.get("police") or "arial_black"), hauteur=float(p.get("hauteur", 16)), contour=float(p.get("contour", 3.2))))
+    return [_mesh(c["base"]), _mesh(c["prenom"])], {"noms": ["base", "prenom"]}
+
+
+def _prenom_jeton(p: dict):
+    from atelier.noyau.objets import _mesh
+    from atelier.produits.porte_jeton import Jeton
+    from atelier.produits.porte_cle_jeton import porte_cle_jeton
+    pcs, _, _ = porte_cle_jeton(str(p.get("texte") or "Steven"), str(p.get("police") or "arial_black"), Jeton(d=float(p.get("jeton_d", 23.25))))
+    return [_mesh(v) for v in pcs.values()], {"noms": list(pcs)}
+
+
+CATALOGUE["prenom_cle"] = {"nom": "Porte-cle prenom", "cat": "Prenoms", "fn": _prenom_cle, "champs": [
+    _c("texte", "Prenom", "Steven", type_="texte"), _c("police", "Police", "arial_black", type_="texte"),
+    _c("hauteur", "Hauteur des lettres", 16, 6, 60, 1), _c("contour", "Contour", 3.2, 1, 8, 0.2)]}
+CATALOGUE["prenom_jeton"] = {"nom": "Porte-cle prenom + jeton", "cat": "Prenoms", "fn": _prenom_jeton, "champs": [
+    _c("texte", "Prenom", "Steven", type_="texte"), _c("police", "Police", "arial_black", type_="texte"), _c("jeton_d", "Diametre du jeton", 23.25, 15, 30, 0.05)]}
+
+
 # ================================================================== PROJET : figurine a partir d'une photo
 def _figurine(p: dict):
     from pathlib import Path as _P
