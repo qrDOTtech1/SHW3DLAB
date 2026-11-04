@@ -71,6 +71,11 @@ def _installer() -> tuple[Path, Path]:
     return racine, exe
 
 
+def telecharger_poids(racine: Path, exe: Path):
+    code = "import sys;from huggingface_hub import snapshot_download as s;P=sys.argv[1];s('VAST-AI/TripoSG',local_dir=P+'/TripoSG');s('briaai/RMBG-1.4',local_dir=P+'/RMBG')"
+    subprocess.run([str(exe), "-c", code, str(racine / "poids")], check=True, capture_output=True, creationflags=NOWIN)
+
+
 SCRIPT = r'''
 import sys, os, numpy as np, torch, trimesh, pymeshlab
 racine, photo, sortie, graine, pas = sys.argv[1:6]

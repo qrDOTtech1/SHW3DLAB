@@ -1354,6 +1354,13 @@ def projet_supprimer(pid: str):
 from atelier.noyau import synchro as _synchro
 if os.environ.get("SHW_SYNCHRO", "1") != "0":
     _synchro.boucle(120.0)
+from atelier.noyau import ia3d as _ia3d
+_ia3d.preparer()
+
+
+@app.get("/api/ia/etat")
+def ia_etat():
+    return _ia3d.etat
 
 
 # ================================================================== EQUIPE (temps reel : nom + code d'equipe, local)

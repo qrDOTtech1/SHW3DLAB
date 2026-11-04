@@ -6,7 +6,11 @@ __pycache__/
 build/
 dist/
 *.spec
-# --- projets, images et bases STL (data/projets, data/images, data/bases) PARTAGES via git (atelier/noyau/synchro.py)
+# --- projets, images, bases : depot a part .git-donnees, branche donnees (atelier/noyau/synchro.py)
+data/projets/
+data/images/
+data/bases/
+.git-donnees/
 data/*.json
 !data/logo_shwork_src.png
 data/jobs/

@@ -57,7 +57,7 @@ def etat_maj() -> dict:
         return {"erreur": "hors ligne ou depot inaccessible", "retard": 0}
     _, n = git("rev-list", "--count", "HEAD..@{u}")
     retard = int(n) if n.strip().isdigit() else 0
-    _, st = git("status", "--porcelain", "--untracked-files=no", "--", ".", ":!data/projets", ":!data/images", ":!data/bases")   # projets : synchro
+    _, st = git("status", "--porcelain", "--untracked-files=no", "--", ".")   # projets : synchro
     _, log = git("log", "HEAD..@{u}", "--pretty=format:- %s  (%an, %ar)")
     _, tot = git("rev-list", "--count", "@{u}")
     return {"retard": retard, "local": bool(st.strip()), "changelog": log, "cible": f"v1.{tot.strip()}"}
@@ -65,12 +65,9 @@ def etat_maj() -> dict:
 
 def appliquer_maj(e: dict, fenetre=None) -> bool:
     _, req_avant = git("rev-parse", "HEAD:requirements.txt")
-    sys.path.insert(0, str(ICI))
-    from atelier.noyau import synchro                      # projets partages : commit + rebase (+ envoi)
-    if not synchro.synchroniser().get("ok"):
-        c, out = git("pull", "--ff-only", timeout=180)
-        if c:
-            return False
+    c, out = git("pull", "--ff-only", timeout=180)        # code seulement : les projets ont leur propre sauvegarde
+    if c:
+        return False
     _, req_apres = git("rev-parse", "HEAD:requirements.txt")
     if req_avant != req_apres:
         if fenetre:
