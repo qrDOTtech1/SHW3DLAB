@@ -68,6 +68,8 @@
     pairs.set(m.id, p);
     if (m.t === 'ww' && m.cible === moi.id) return recevoirWW(m);
     if (avec === m.id) recevoirAvec(m, p);
+    if (m.t === 'rtc' && m.cible === moi.id) signalRTC(m);
+    if (!liens.has(m.id) && moi.id < m.id) ouvrirLien(m.id);   // le plus petit identifiant appelle
     if (m.t === 'etat') recevoirEtat(m);
     if (m.t === 'demande' && m.pid === cleCourante) envoyerEtat(true);
     if (m.t === 'suivi' && m.cible === moi.id) envoyerEtat(true);
@@ -91,6 +93,71 @@
     d.style.cssText = `position:fixed;right:16px;bottom:16px;z-index:9650;background:#14171d;color:#e9ebef;border-left:4px solid ${coul || '#ff6410'};padding:10px 14px;border-radius:8px;font:13px 'Segoe UI',sans-serif;box-shadow:0 8px 24px #0008`;
     d.textContent = txt; document.body.appendChild(d); setTimeout(() => d.remove(), 7000);
   }
+  // ------------------------------------------------------------ LIEN DIRECT entre les deux PC (WebRTC, chiffre)
+  // Le relais ne sert qu'a se presenter : ensuite les maillages passent de navigateur a navigateur, sans GitHub.
+  const liens = new Map(), attentes = new Map();
+  function brancher(id, pc, dc) {
+    dc.binaryType = 'arraybuffer';
+    const l = liens.get(id); l.dc = dc;
+    let enCours = null;
+    dc.onopen = rendre; dc.onclose = () => { liens.delete(id); rendre(); };
+    dc.onmessage = async ev => {
+      if (typeof ev.data === 'string') {
+        const m = JSON.parse(ev.data);
+        if (m.veut) {
+          const r = await fetch0(`/c3d/${m.veut}.stl`);
+          if (!r.ok) return dc.send(JSON.stringify({ absent: m.veut }));
+          const b = await r.arrayBuffer();
+          dc.send(JSON.stringify({ debut: m.veut, taille: b.byteLength }));
+          for (let o = 0; o < b.byteLength; o += 60000) {
+            while (dc.bufferedAmount > 4e6) await new Promise(t => setTimeout(t, 20));
+            dc.send(b.slice(o, o + 60000));
+          }
+        }
+        if (m.debut) enCours = { id: m.debut, taille: m.taille, buf: new Uint8Array(m.taille), o: 0 };
+        if (m.absent) attentes.get(m.absent)?.ko(new Error('absent'));
+        return;
+      }
+      enCours.buf.set(new Uint8Array(ev.data), enCours.o); enCours.o += ev.data.byteLength;
+      if (enCours.o >= enCours.taille) {
+        const f = enCours; enCours = null;
+        await fetch0('/api/equipe/recevoir/' + f.id, { method: 'POST', body: f.buf });
+        attentes.get(f.id)?.ok(f.taille);
+      }
+    };
+  }
+  const creerPC = id => {
+    const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+    liens.set(id, { pc, dc: null });
+    pc.ondatachannel = e => brancher(id, pc, e.channel);
+    pc.onconnectionstatechange = () => { if (['failed', 'closed'].includes(pc.connectionState)) { liens.delete(id); rendre(); } };
+    return pc;
+  };
+  const icePret = pc => new Promise(ok => { if (pc.iceGatheringState === 'complete') return ok(); const t = setTimeout(ok, 3000); pc.addEventListener('icegatheringstatechange', () => { if (pc.iceGatheringState === 'complete') { clearTimeout(t); ok(); } }); });
+  async function ouvrirLien(id) {
+    const pc = creerPC(id); brancher(id, pc, pc.createDataChannel('shw'));
+    await pc.setLocalDescription(await pc.createOffer()); await icePret(pc);
+    envoyer({ t: 'rtc', cible: id, sdp: pc.localDescription }, true);
+  }
+  async function signalRTC(m) {
+    if (m.sdp.type === 'offer') {
+      liens.get(m.id)?.pc.close();
+      const pc = creerPC(m.id);
+      await pc.setRemoteDescription(m.sdp);
+      await pc.setLocalDescription(await pc.createAnswer()); await icePret(pc);
+      envoyer({ t: 'rtc', cible: m.id, sdp: pc.localDescription }, true);
+    } else await liens.get(m.id)?.pc.setRemoteDescription(m.sdp);
+  }
+  function demanderDirect(pair, fid, delai = 60000) {
+    const dc = liens.get(pair)?.dc;
+    if (dc?.readyState !== 'open') return Promise.reject(new Error('pas de lien'));
+    return new Promise((ok, ko) => {
+      const t = setTimeout(() => ko(new Error('delai')), delai);
+      attentes.set(fid, { ok: v => { clearTimeout(t); ok(v); }, ko: e => { clearTimeout(t); ko(e); } });
+      dc.send(JSON.stringify({ veut: fid }));
+    });
+  }
+  window.__eqLien = { liens, demanderDirect };
   // ------------------------------------------------------------ PROJET PARTAGE : meme etat chez tous, en direct
   // La "session" = projet enregistre, ou espace de travail de l'onglet s'il n'est pas encore enregistre.
   // Versions : compteur logique (jamais l'heure du PC : les horloges des postes different).
@@ -128,6 +195,8 @@
       const m = attente; attente = null;
       try {
         const ids = idsFichiers(m.donnees);
+        const man = (await (await fetch0('/api/equipe/dispo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids }) })).json()).manquants;
+        for (const i of man) await demanderDirect(m.id, i).catch(() => { });   // d'abord par le lien direct, sinon par la sauvegarde
         for (let i = 0; ids.length && i < 10; i++) {   // maillage neuf : il arrive par la synchro GitHub
           const r = await (await fetch0('/api/equipe/dispo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids }) })).json();
           if (!r.manquants.length) break;
@@ -326,7 +395,7 @@
   function ligne(p, estMoi) {
     const ou = (ONGLETS[p.onglet] || p.onglet || '?') + (p.projet ? ` · ${p.projet.nom}` : '');
     return `<div class="eq-l"><i style="background:${p.couleur}"></i><div class="eq-t"><b>${p.nom}${estMoi ? ' (moi)' : ''}${p.claude ? ' <span title="Une session Claude modifie le code sur ce poste" style="color:#c77dff;font-weight:500">+ Claude au travail</span>' : ''}</b>
-      <span>${ou}</span><em>${p.action || ''}${estMoi ? '' : ' · ' + ilya(p.actionTs || p.vu)}</em></div>
+      <span>${ou}${!estMoi && liens.get(p.id)?.dc?.readyState === 'open' ? ' · lien direct' : ''}</span><em>${p.action || ''}${estMoi ? '' : ' · ' + ilya(p.actionTs || p.vu)}</em></div>
       ${estMoi ? '' : `<button data-suivre="${p.id}" title="Meme onglet, meme projet, meme angle de vue">${suivi === p.id ? 'Ne plus suivre' : 'Suivre'}</button>
       <button data-avec="${p.id}" class="${avec === p.id ? 'on' : ''}" title="Les mains sur le meme objet : meme page, meme projet, memes modifications, meme vue">${avec === p.id ? 'Arreter' : 'Travailler avec'}</button>`}</div>`;
   }

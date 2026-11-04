@@ -1198,6 +1198,20 @@ CATALOGUE["prenom_jeton"] = {"nom": "Porte-cle prenom + jeton", "cat": "Prenoms"
     _c("texte", "Prenom", "Steven", type_="texte"), _c("police", "Police", "arial_black", type_="texte"), _c("jeton_d", "Diametre du jeton", 23.25, 15, 30, 0.05)]}
 
 
+def _touche_clavier(p: dict):
+    from atelier.produits.keycaps import keycap_complet
+    q = {k: v for k, v in p.items() if v not in (None, "")}
+    if q.get("texte"):
+        q.setdefault("type_legende", "texte")
+    pieces, info = keycap_complet(q, None)
+    return [m for m, _ in pieces], {"noms": [r for _, r in pieces]}
+
+
+CATALOGUE["touche_clavier"] = {"nom": "Touche de clavier", "cat": "Keycaps", "fn": _touche_clavier, "champs": [
+    _c("texte", "Legende", "A", type_="texte"), _c("u_x", "Largeur (u)", 1, 1, 6.25, 0.25), _c("u_y", "Profondeur (u)", 1, 1, 2, 0.25),
+    _c("taille_legende", "Taille de la legende", 6, 2, 14, 0.5)]}
+
+
 # ================================================================== PROJET : figurine a partir d'une photo
 def _figurine(p: dict):
     from pathlib import Path as _P

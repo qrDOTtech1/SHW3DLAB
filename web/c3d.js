@@ -957,6 +957,10 @@ function ouvrirDessin() {
       <div class="grid2"><button data-d="annuler">Annuler point</button><button data-d="effacer">Effacer</button></div>
       <div class="grid2" style="margin-top:6px"><button data-d="rect">Rectangle 40x20</button><button data-d="cercle">Cercle d30</button></div>
       <p class="mute" data-d="info"></p>
+      <h2>Cotes</h2>
+      <div class="grid2"><label>Longueur <input type="number" data-d="ajL" value="20" step="any"></label><label>Angle &deg; <input type="number" data-d="ajA" value="0" step="any"></label></div>
+      <button data-d="aj">Ajouter ce segment</button>
+      <div data-d="cotes" style="max-height:170px;overflow:auto;margin-top:6px"></div>
       <button class="primary big" data-d="creer">Creer l'objet 3D</button>
       <button class="big" data-d="fermer" style="margin-top:6px">Fermer</button>
     </div>`;
@@ -994,6 +998,10 @@ function ouvrirDessin() {
       ctx.fillText(`${D.souris[0]} ; ${D.souris[1]}${l ? `   (${r2(l)} mm)` : ''}`, sx + 10 * dpr, sy - 10 * dpr);
     }
     const b = D.pts.length ? D.pts.reduce((a, [x, y]) => [Math.min(a[0], x), Math.min(a[1], y), Math.max(a[2], x), Math.max(a[3], y)], [1e9, 1e9, -1e9, -1e9]) : null;
+    if (!q('cotes').contains(document.activeElement)) q('cotes').innerHTML = D.pts.map((p, i) => {
+      const n = D.pts[i + 1] || (D.ferme ? D.pts[0] : null);
+      return `<div style="display:grid;grid-template-columns:18px 1fr 1fr 1fr;gap:3px;margin:2px 0;font-size:11px"><span>${i + 1}</span><input type="number" step="any" data-px="${i}" value="${r2(p[0])}" title="X"><input type="number" step="any" data-py="${i}" value="${r2(p[1])}" title="Y">${n ? `<input type="number" step="any" min="0" data-l="${i}" value="${r2(Math.hypot(n[0] - p[0], n[1] - p[1]))}" title="Longueur vers le point suivant">` : '<span></span>'}</div>`;
+    }).join('');
     q('info').textContent = `${D.pts.length} point(s)${D.ferme ? ' - forme fermee' : ''}${b ? ` - ${r2(b[2] - b[0])} x ${r2(b[3] - b[1])} mm` : ''}`;
   }
   function chaikin(p) { let a = p; for (let k = 0; k < 3; k++) { const n = []; for (let i = 0; i < a.length; i++) { const P = a[i], Q = a[(i + 1) % a.length]; n.push([0.75 * P[0] + 0.25 * Q[0], 0.75 * P[1] + 0.25 * Q[1]], [0.25 * P[0] + 0.75 * Q[0], 0.25 * P[1] + 0.75 * Q[1]]); } a = n; } return a; }
@@ -1021,6 +1029,25 @@ function ouvrirDessin() {
     q('aidemode').textContent = D.mode === 'revolution' ? 'Dessine la MOITIE du profil, a droite de l\'axe orange : il tourne autour pour faire un vase, un pion, un bouton...' : 'Dessine un contour ferme : il sera extrude vers le haut.';
     if (D.mode === 'revolution') D.ox = 30; dessiner(); };
   q('lisse').onchange = e => { D.lisse = e.target.checked; dessiner(); };
+  q('aj').onclick = () => {
+    const d = D.pts.at(-1) || [0, 0], a = +q('ajA').value * Math.PI / 180, l = +q('ajL').value;
+    if (!D.pts.length) D.pts.push([0, 0]);
+    D.pts.push([r2(d[0] + l * Math.cos(a)), r2(d[1] + l * Math.sin(a))]); dessiner();
+  };
+  q('cotes').addEventListener('change', e => {
+    const t = e.target.dataset, v = +e.target.value;
+    if (t.px !== undefined) D.pts[+t.px][0] = v;
+    if (t.py !== undefined) D.pts[+t.py][1] = v;
+    if (t.l !== undefined) {                          // longueur : le point suivant glisse, la suite garde sa forme
+      const i = +t.l, j = (i + 1) % D.pts.length, p = D.pts[i], n = D.pts[j], l0 = Math.hypot(n[0] - p[0], n[1] - p[1]);
+      if (l0 > 0 && v > 0) {
+        const dx = (n[0] - p[0]) * (v / l0 - 1), dy = (n[1] - p[1]) * (v / l0 - 1);
+        if (j === 0) { n[0] += dx; n[1] += dy; } else for (let k = j; k < D.pts.length; k++) { D.pts[k][0] += dx; D.pts[k][1] += dy; }
+      }
+    }
+    e.target.blur(); dessiner();
+  });
+  q('cotes').addEventListener('keydown', e => e.stopPropagation());
   q('annuler').onclick = () => { if (D.ferme) D.ferme = false; else D.pts.pop(); dessiner(); };
   q('effacer').onclick = () => { D.pts = []; D.ferme = false; dessiner(); };
   q('rect').onclick = () => { D.pts = [[-20, -10], [20, -10], [20, 10], [-20, 10]]; if (D.mode === 'revolution') D.pts = [[0, 0], [20, 0], [20, 20], [0, 20]]; D.ferme = true; dessiner(); };

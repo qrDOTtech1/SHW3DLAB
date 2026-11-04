@@ -1508,6 +1508,19 @@ def equipe_partager(d: dict):
     return {"ok": True}
 
 
+@app.post("/api/equipe/recevoir/{fid}")
+async def equipe_recevoir(fid: str, requete: Request):
+    """Maillage recu directement d'un coequipier (connexion directe entre navigateurs)."""
+    import trimesh
+    if not re.fullmatch(r"[0-9a-f]{12}", fid):
+        raise HTTPException(400)
+    stl = C3D_DIR / f"{fid}.stl"
+    if not stl.exists():
+        stl.write_bytes(await requete.body())
+        trimesh.load(stl, force="mesh").export(C3D_DIR / f"{fid}.ply")
+    return {"ok": True}
+
+
 @app.post("/api/equipe/dispo")
 def equipe_dispo(d: dict):
     return {"manquants": [i for i in d.get("ids", []) if re.fullmatch(r"[0-9a-f]{12}", str(i)) and not _c3d_restaurer(i)]}
