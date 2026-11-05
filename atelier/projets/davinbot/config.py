@@ -39,6 +39,7 @@ PARAMS: list[tuple] = [
     ("Moteurs", "motor_torque_leger", "Couple utile des moteurs legers J1, J4, J5 (0 = comme les autres)", 0, 0, 1.0, 0.01, "N.m", "float"),
     ("Reducteurs", "j2_double", "J2 : 2 moteurs sur le meme reducteur", False, None, None, None, "", "bool"),
     ("Reducteurs", "j6_servo", "J6 : servo MG996R et bride legere (sans changeur d'outil)", False, None, None, None, "", "bool"),
+    ("Moteurs", "as5600_renvoi", "AS5600 en sortie, par pignon sur la bride", False, None, None, None, "", "bool"),
     ("Tubes", "tube_segments", "Bras et avant-bras en 3 tubes alu (triangle) + noeuds imprimes", False, None, None, None, "", "bool"),
     ("Tubes", "tube_d", "Tube : diametre exterieur", 20, 10, 40, 0.5, "mm", "float"),
     ("Tubes", "tube_ep", "Tube : epaisseur de paroi", 1, 0.5, 3, 0.1, "mm", "float"),

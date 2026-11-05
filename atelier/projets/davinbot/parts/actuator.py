@@ -254,12 +254,41 @@ class _Common:
         return {"center": [ax, 0, -ml - cfg["mks_len"]], "d": cfg["mks_d"],
                 "h": cfg["mks_len"], "tag": tag}
 
+    def renvoi_as5600(self):
+        """Pignon Z30 engrene sur la bride : l'aimant tourne ~3 fois plus vite que la sortie. Patte et piliers d'AS5600 sont sur le couvercle."""
+        k = getattr(self, "capteur", None)
+        if not k:
+            return
+        ang = 90.0
+        zp = 30
+        r = (k["zb"] + zp) / 2 + 0.1
+        cx, cy_ = r * math.cos(math.radians(ang)), r * math.sin(math.radians(ang))
+        z5, zb0 = k["z5"], k["zb0"]
+        g = affinity.translate(Polygon(external_gear(zp, 1.0, self.tol, self.pa, flank_pts=8, arc_pts=3)), cx, cy_)
+        pign = fuse_all([extrude_shapely(g, T_BRIDE, zb0), cyl(4.0, zb0 - z5 + 7, z5 - 7, cx, cy_)])
+        self.P("pignon_capteur", "pignon de capteur Z30", -1, pign, category="gear", print_up=(0, 0, 1),
+               notes="Sur roulement 624 dans la patte du couvercle. Rapport a etalonner, repere de zero par fin de course.")
+        self.P("porte_aimant", "porte-aimant AS5600", -1, cyl(10, 5, z5 - 12, cx, cy_).cut(cyl(6.1, 2.7, z5 - 12 - 0.01, cx, cy_)).cut(cyl(4.0, 3, z5 - 9.5, cx, cy_)),
+               category="gear", print_up=(0, 0, -1), notes="Aimant diametral d6 x 2,5 colle dedans, cote carte.")
+        d, D, B_ = BEARINGS["624"]
+        self.P(f"brg_capteur", "roulement 624 (capteur)", -1, tube(D, d, B_, z5 - 6, cx, cy_), kind="vitamin", category="bearing")
+
     def front_cap(self, z4: float, Rb: float, OD: float, mount, pin_holes=None) -> float:
         O = self.O
         z5 = z4 + O[2] + LIP
         body = cyl(OD, z5 - z4, z4)
+        if self.cfg.get("as5600_renvoi"):               # patte du capteur, en porte-a-faux radial
+            out_d = OD - 2.0
+            zb = int(out_d) - 2
+            r = (zb + 30) / 2 + 0.1
+            self.capteur = dict(zb0=z5 + 0.5, z5=z5, out_d=out_d, zb=zb)
+            body = fuse_all([body, box(-13, 13, OD / 2 - 3, r + 13, z5 - 6, z5)] + [cyl(6, 8, z5 - 14, s_ * 7, r) for s_ in (-1, 1)])
+            D_ = BEARINGS["624"]
+            cap_cut = [cyl(D_[1] + self.press, D_[2] + 0.5, z5 - 6.01, 0, r), cyl(D_[0] + 2, 3, z5 - 2, 0, r)] + [cyl(1.8, 9, z5 - 14.5, s_ * 7, r) for s_ in (-1, 1)]
+        else:
+            cap_cut = []
         cut = [cyl(O[1] + self.press, O[2] + 0.01, z4 - 0.01),
-               cyl((O[0] + O[1]) / 2 + 1.0, z5 - z4 + 2, z4 - 1)]
+               cyl((O[0] + O[1]) / 2 + 1.0, z5 - z4 + 2, z4 - 1)] + cap_cut
         s = SCREW["M4"]
         for x, y in mount:
             cut.append(cyl(s["clear"], z5 - z4 + 2, z4 - 1, x, y))
@@ -294,7 +323,11 @@ class _Common:
         zb0 = z5 + 0.5
         out_d = OD - 2.0
         collar_od = (O[0] + O[1]) / 2 - 0.5
-        body = fuse_all([cyl(collar_od, zb0 - z_top_hub, z_top_hub), cyl(out_d, T_BRIDE, zb0)])
+        plateau = cyl(out_d, T_BRIDE, zb0)
+        if self.cfg.get("as5600_renvoi"):               # l'AS5600 ne peut pas etre dans l'axe creux : la bride porte une denture
+            plateau = extrude_shapely(Polygon(external_gear(int(out_d) - 2, 1.0, self.tol, self.pa, flank_pts=8, arc_pts=3)), T_BRIDE, zb0)
+            self.capteur = dict(zb0=zb0, z5=z5, out_d=out_d, zb=int(out_d) - 2)
+        body = fuse_all([cyl(collar_od, zb0 - z_top_hub, z_top_hub), plateau])
         r_m4 = max(r_m3 + SCREW["M3"]["head"] / 2 + SCREW["M4"]["insert"] / 2 + 2.0,
                    collar_od / 2 - 1)
         r_m4 = min(r_m4, out_d / 2 - SCREW["M4"]["insert"] / 2 - 2.0)
@@ -343,7 +376,7 @@ def build_servo(jid: str, d, cfg: dict, body_in: int, body_out: int) -> Actuator
         notes="Se visse sur le support. Le roulement 6805 reprend la charge d'outil.")
     c.bearing_vit("6805", "J6", 17.5, body=-1)
     z0, L, od = 25.0, 30.0, 42.0
-    moyeu = cyl(Bg[0] - c.press * 0.5, 8.5, 16.5)
+    moyeu = cyl(Bg[0] - c.press * 0.5, 8.5, 16.5).cut(cyl(7, 4.2, 15.5))
     c.P("moyeu_sortie", "moyeu de sortie (sur palonnier)", body_out, moyeu.cut(cyl(3.4, 12, 15)), category="flange", print_up=(0, 0, 1),
         anim={"type": "spin", "center": [0, 0], "k": [1.0, 0.0]})
     out_pts = bolt_circle(4, 15.0, 45)
@@ -459,6 +492,7 @@ def build_cycloid(jid: str, d, cfg: dict, body_in: int, body_out: int) -> Actuat
         anim={"type": "spin", "center": [0, 0], "k": [k_disc, 0.0]})
     c.vit.append((f"Pige cylindrique acier d{d.out_pin_d:g} x {math.ceil(opl)} mm", d.out_pins))
 
+    c.renvoi_as5600()
     return _finish(c, "cycloidal", d, L, OD, outline, mount, out_pts, out_d, keepout,
                    dict(z1=c.z1, z2=z2, z4=z4, z5=z5, L=L), body_in)
 
@@ -576,6 +610,7 @@ def build_planetary(jid: str, d, cfg: dict, body_in: int, body_out: int) -> Actu
     L, out_pts, out_d = c.output(z4, z5, OD, plate_d, scut, k_out=(k_c, 0.0), shoulder_extra=extra)
 
     info_extra = {"interference_couronne_mm2": round(interf, 3), "k_porte_satellites": k_c}
+    c.renvoi_as5600()
     b = _finish(c, "planetary", d, L, OD, outline, mount, out_pts, out_d, keepout,
                 dict(z1=c.z1, z2=z2, z4=z4, z5=z5, L=L), body_in)
     b.info.update(info_extra)

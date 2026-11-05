@@ -142,9 +142,9 @@ def mandrin_pinceau(d_max=12.0):
     """Coulisseau Z a ressort leger ; le manche est serre par 2 vis M3 contre un V. Pousse sur le capteur de force."""
     corps = cy(24, 46)
     v = cy(d_max + 0.5, 48, 0, 0, -1)
-    fente = bo(2, 26, 48, 7, 0, -1)
+    fente = bo(14, 2, 48, 7, 0, -1)
     pousse = cy(16, 9, 0, 0, 45) - cy(4.1, 6, 0, 0, 48.5)
-    vis = [cy(2.8, 22, 0, 0, 0).rotate((0, 90, 0)).translate((2, 0, z)) for z in (12, 34)]
+    vis = [cy(2.8, 26, 0, 0, 0).rotate((90, 0, 0)).translate((9.2, 13, z)) for z in (12, 34)]   # serrent la fente
     return (corps - somme([v, fente] + vis)) + pousse
 
 
