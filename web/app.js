@@ -56,7 +56,7 @@ function initViewer() {
   V.group = new THREE.Group(); V.scene.add(V.group);
   V.loader = new STLLoader();
   resize(); window.addEventListener('resize', resize);
-  (function loop() { requestAnimationFrame(loop); V.ctl.update(); V.renderer.render(V.scene, V.cam); })();
+  (function loop() { requestAnimationFrame(loop); if (!V.renderer.domElement.offsetParent) return; V.ctl.update(); V.renderer.render(V.scene, V.cam); })();
 }
 function resize() {
   const el = $('#viewer'); if (!V.renderer || !el.clientWidth) return;

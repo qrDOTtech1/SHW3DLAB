@@ -26,7 +26,7 @@ const grille = new THREE.GridHelper(200, 40, 0x3a4250, 0x232934); grille.rotatio
 const groupe = new THREE.Group(); scene.add(groupe);
 function taille() { const w = el.clientWidth, h = el.clientHeight; if (!w) return; ren.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix(); }
 new ResizeObserver(taille).observe(el);
-(function boucle() { requestAnimationFrame(boucle); orb.update(); ren.render(scene, cam); })();
+(function boucle() { requestAnimationFrame(boucle); if (!ren.domElement.offsetParent) return; orb.update(); ren.render(scene, cam); })();
 const loader = new STLLoader();
 const charger = f => K.geo[f] || (K.geo[f] = new Promise((ok, ko) => loader.load(`/c3d/${f}.stl`, g => { g.computeVertexNormals(); ok(g); }, undefined, ko)));
 const couleur = id => A().bobine(id)?.couleur || '#e8e3d8';

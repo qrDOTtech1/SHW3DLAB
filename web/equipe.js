@@ -43,18 +43,28 @@
     client.on('message', async (_, b) => {
       const m = await dechiffrer(b);
       if (!m || m.id === moi.id) return;
+      window.__eqDelaiRelais = Date.now() - m.ts;
       recevoir(m);
     });
   }
   async function envoyer(extra = {}, force = false) {
     if (!ok || !client) return;
+    if (!force && extra.t === 'p' && !pairs.size) return;   // seul : rien a envoyer, rien a calculer
     const t = performance.now();
-    if (!force && extra.t === 'p' && t - dernierEnvoi < 70) return;
+    const directs = [...liens.values()].filter(l => l.dc?.readyState === 'open');
+    const toutDirect = pairs.size > 0 && directs.length >= pairs.size;
+    if (!force && extra.t === 'p' && t - dernierEnvoi < (toutDirect ? 25 : 70)) return;
     dernierEnvoi = t;
     const mv = moduleVue();
     const vue = mv?.cam ? [mv.cam.position.toArray().map(x => +x.toFixed(1)), mv.orb.target.toArray().map(x => +x.toFixed(1))] : null;
     const sel = moi.onglet === 'c3d' ? (window.__C3D?.sel || []).map(o => o.id) : null;
     const m = { ...moi, souris, vue, sel, v: rev, h: empreinte(), ...extra, ts: Date.now() };
+    // la connexion directe d'abord ; le relais ne sert qu'a se trouver, ou si le lien direct ne passe pas
+    if (directs.length && m.t !== 'rtc') {
+      const txt = JSON.stringify({ ...m, r: 1 });
+      directs.forEach(l => { try { l.dc.send(txt); } catch { } });
+      if (toutDirect && !extra.relais) return;
+    }
     if (window.__eqPerdre && m.t === 'etat') return;   // test : simule un message perdu par le relais
     client.publish(sujet, await chiffrer(m), { qos: m.t === 'etat' ? 1 : 0 });
   }
@@ -68,9 +78,12 @@
     if (nouvelleAction) p.actionTs = Date.now();
     pairs.set(m.id, p);
     if (m.t === 'ww' && m.cible === moi.id) return recevoirWW(m);
+    if (['cam', 'etat', 'shop'].includes(m.t)) window.__C3D?.reveil?.();
     if (avec === m.id) recevoirAvec(m, p);
     if (avec === m.id && m.t === 'fen') { recevoirFen(m); return; }
     if (avec === m.id && m.t === 'fenact') { recevoirFenAct(m); return; }
+    if (m.t === 'ping' && m.cible === moi.id) { envoyer({ t: 'pong', cible: m.id, e: m.e }, true); return; }
+    if (m.t === 'pong' && m.cible === moi.id) { p.ping = Math.round(performance.now() - m.e); rendre(); return; }
     if (m.t === 'rtc' && m.cible === moi.id) signalRTC(m);
     if (!liens.has(m.id) && moi.id < m.id) ouvrirLien(m.id);   // le plus petit identifiant appelle
     if (m.t === 'shop' && avec === m.id) window.__SHOP?.appliquer(m.shop);
@@ -109,6 +122,7 @@
     dc.onmessage = async ev => {
       if (typeof ev.data === 'string') {
         const m = JSON.parse(ev.data);
+        if (m.r) { if (m.id !== moi.id) { window.__eqDelai = Date.now() - m.ts; recevoir(m); } return; }
         if (m.veut) {
           const r = await fetch0(`/c3d/${m.veut}.stl`);
           if (!r.ok) return dc.send(JSON.stringify({ absent: m.veut }));
@@ -383,13 +397,13 @@
       const av = envoyees.get(k);
       if (av?.html === html && av?.pos === pos) return;
       if (html.length > 150000) return;
-      const m = { t: 'fen', k, x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), cls: f.className };
+      const m = { t: 'fen', k, x: r.left / innerWidth, y: r.top / innerHeight, w: Math.round(r.width), cls: f.className };   // position en proportion de l'ecran
       if (av?.html !== html) m.html = html;
       envoyees.set(k, { html, pos });
       envoyer(m, true);
     });
     for (const k of [...envoyees.keys()]) if (!vues.has(k)) { envoyees.delete(k); envoyer({ t: 'fen', k, ferme: 1 }, true); }
-  }, 120);
+  }, 60);
   function recevoirFen(m) {
     let d = miroirs.get(m.k);
     if (m.ferme) { d?.remove(); miroirs.delete(m.k); return; }
@@ -399,7 +413,7 @@
         ev.preventDefault(); ev.stopPropagation();
         const c = ev.target.closest('button,a,[data-mod],[data-m],[data-i],[data-o],[data-pose],[data-sup],input[type=checkbox],input[type=radio],summary,label') || ev.target;
         if (c.matches('input[type=number],input[type=text],input[type=range],select,textarea,input:not([type])')) return;
-        envoyer({ t: 'fenact', k: m.k, q: 'click', i: [...d.querySelectorAll('*')].indexOf(c) }, true);
+        envoyer({ t: 'fenact', k: m.k, q: 'click', i: [...d.querySelectorAll('*')].indexOf(c), sig: c.tagName + '|' + (c.textContent || '').trim().slice(0, 30) }, true);
       }, true);
       const champ = ev => { if (ev.target.type === 'file') return; envoyer({ t: 'fenact', k: m.k, q: 'val', i: [...d.querySelectorAll('*')].indexOf(ev.target), v: ev.target.type === 'checkbox' ? ev.target.checked : ev.target.value, fin: ev.type === 'change' }, true); };
       d.addEventListener('input', champ); d.addEventListener('change', champ);
@@ -411,13 +425,13 @@
       d.addEventListener('pointerdown', () => { bouge = true; });
       addEventListener('pointermove', () => {
         if (!bouge || !d.isConnected || d.dataset.g) return;
-        d.dataset.g = 1; setTimeout(() => { delete d.dataset.g; const r = d.getBoundingClientRect(); envoyer({ t: 'fenact', k: m.k, q: 'pos', x: Math.round(r.left), y: Math.round(r.top) }, true); }, 60);
+        d.dataset.g = 1; setTimeout(() => { delete d.dataset.g; const r = d.getBoundingClientRect(); envoyer({ t: 'fenact', k: m.k, q: 'pos', x: r.left / innerWidth, y: r.top / innerHeight }, true); }, 60);
       });
       addEventListener('pointerup', () => { bouge = false; });
       Object.assign(d.style, { position: 'fixed', zIndex: 9390, margin: 0, right: 'auto', bottom: 'auto', transform: 'none', outline: `2px solid ${pairs.get(avec)?.couleur || '#ff6410'}` });
       miroirs.set(m.k, d); document.body.appendChild(d); d._b = () => bouge;
     }
-    if (!d._b()) { d.style.left = Math.min(m.x, innerWidth - 60) + 'px'; d.style.top = Math.min(m.y, innerHeight - 30) + 'px'; }
+    if (!d._b()) { d.style.left = Math.min(m.x * innerWidth, innerWidth - 60) + 'px'; d.style.top = Math.min(m.y * innerHeight, innerHeight - 30) + 'px'; }
     d.style.width = m.w + 'px';
     if (m.html != null) {
       const act = document.activeElement, idx = d.contains(act) ? [...d.querySelectorAll('*')].indexOf(act) : -1, val = act?.value, sel = act?.selectionStart;
@@ -427,13 +441,18 @@
   }
   function recevoirFenAct(m) {
     const f = [...document.querySelectorAll(SEL_FEN)].find(x => x.dataset.fen === m.k); if (!f) return;
-    if (m.q === 'pos') { Object.assign(f.style, { position: 'fixed', left: m.x + 'px', top: m.y + 'px', right: 'auto', bottom: 'auto', transform: 'none', margin: 0 }); return; }
+    if (m.q === 'pos') { Object.assign(f.style, { position: 'fixed', left: m.x * innerWidth + 'px', top: m.y * innerHeight + 'px', right: 'auto', bottom: 'auto', transform: 'none', margin: 0 }); return; }
     const c = f.querySelectorAll('*')[m.i]; if (!c) return;
-    if (m.q === 'click') return c.click();
+    if (m.q === 'click') {                             // jamais de clic mysterieux : la fenetre a change -> on ne fait rien
+      if (m.sig && m.sig !== c.tagName + '|' + (c.textContent || '').trim().slice(0, 30)) return;
+      return c.click();
+    }
     if (m.q === 'entree') return c.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     if (c.type === 'checkbox') c.checked = m.v; else c.value = m.v;
     c.dispatchEvent(new Event(m.fin ? 'change' : 'input', { bubbles: true }));
   }
+
+  setInterval(() => { for (const id of pairs.keys()) envoyer({ t: 'ping', cible: id, e: performance.now() }, true); }, 2000);
 
   // ------------------------------------------------------------ modification sur le disque (session Claude, synchro GitHub)
   let mtimeProjet = null, idMtime = null, monEcriture = 0;
@@ -503,14 +522,20 @@
   function ilya(ts) { const s = Math.round((Date.now() - ts) / 1000); return s < 5 ? "a l'instant" : s < 60 ? `il y a ${s} s` : `il y a ${Math.round(s / 60)} min`; }
   function ligne(p, estMoi) {
     const ou = (ONGLETS[p.onglet] || p.onglet || '?') + (p.projet ? ` · ${p.projet.nom}` : '');
-    return `<div class="eq-l"><i style="background:${p.couleur}"></i><div class="eq-t"><b>${p.nom}${estMoi ? ' (moi)' : ''}${p.claude ? ' <span title="Une session Claude modifie le code sur ce poste" style="color:#c77dff;font-weight:500">+ Claude au travail</span>' : ''}</b>
+    return `<div class="eq-l"><div class="eq-pt2"><i style="background:${p.couleur}"></i>${estMoi || p.ping == null ? '' : `<small style="color:${p.ping > 100 ? '#ff5a4f' : p.ping <= 50 ? '#3ddc97' : '#f5c542'}" title="Temps aller-retour avec ce poste">${p.ping} ms<br>${p.ping > 100 ? 'trop' : p.ping <= 50 ? 'bon' : 'moyen'}</small>`}</div><div class="eq-t"><b>${p.nom}${estMoi ? ' (moi)' : ''}${p.claude ? ' <span title="Une session Claude modifie le code sur ce poste" style="color:#c77dff;font-weight:500">+ Claude au travail</span>' : ''}</b>
       <span>${ou}${!estMoi && liens.get(p.id)?.dc?.readyState === 'open' ? ' · lien direct' : ''}</span><em>${p.action || ''}${estMoi ? '' : ' · ' + ilya(p.actionTs || p.vu)}</em></div>
       ${estMoi ? '' : `<button data-suivre="${p.id}" title="Meme onglet, meme projet, meme angle de vue">${suivi === p.id ? 'Ne plus suivre' : 'Suivre'}</button>
       <button data-avec="${p.id}" class="${avec === p.id ? 'on' : ''}" title="Les mains sur le meme objet : meme page, meme projet, memes modifications, meme vue">${avec === p.id ? 'Arreter' : 'Travailler avec'}</button>`}</div>`;
   }
-  function rendre() {
+  let _rendT = 0, _rendHTML = '';
+  function rendre() {                                  // au plus 3 fois par seconde : un clic n'est jamais perdu
+    if (_rendT) return;
+    _rendT = setTimeout(() => { _rendT = 0; rendreMaintenant(); }, 300);
+  }
+  function rendreMaintenant() {
     const repli = fen.classList.contains('repli');
     const n = pairs.size;
+    if (fen.matches(':hover') && fen.querySelector('button:active')) return;
     fen.innerHTML = `<div class="eq-h"><span class="eq-pt" style="background:${ok ? '#3ddc97' : (cle ? '#f5c542' : '#8b919c')}"></span>
       <b>Equipe</b><span class="eq-n">${cle ? (ok ? (n ? `${n} en ligne` : 'seul pour l\'instant') : 'connexion...') : 'non configuree'}</span>
       <button data-coul title="Choisir ma couleur" style="color:${moi.couleur}">&#9679;</button><button data-r title="Reglages">&#9881;</button><button data-p title="Replier">${repli ? '&#9650;' : '&#9660;'}</button></div>
@@ -629,7 +654,7 @@
     return r;
   };
   setInterval(() => {                                  // presence + menage des absents
-    envoyer({ t: 'p' }, true);
+    envoyer({ t: 'p', relais: 1 }, true);
     for (const [id, p] of pairs) if (Date.now() - p.vu > 20000) { pairs.delete(id); retirerCurseur(id); if (avec === id) quitterAvec(false); if (suivi === id) suivi = null; }
     rendre();
   }, 5000);
@@ -639,7 +664,7 @@
   const css = document.createElement('style');
   css.textContent = `
 #eq-calque{position:fixed;inset:0;pointer-events:none;z-index:9000}
-.eq-curseur{position:absolute;left:0;top:0;transition:transform .09s linear;will-change:transform}
+.eq-curseur{position:absolute;left:0;top:0;transition:transform .04s linear;will-change:transform}
 .eq-curseur span{position:absolute;left:14px;top:14px;white-space:nowrap;font:600 11px 'Segoe UI',sans-serif;color:#0d0f13;padding:2px 7px;border-radius:8px;max-width:320px;overflow:hidden;text-overflow:ellipsis}
 #eq-fen{position:fixed;left:72px;bottom:14px;z-index:9001;width:290px;background:#0d0f13ee;border:1px solid #2a2e37;border-radius:12px;color:#e9ebef;
   font:12px 'Segoe UI',system-ui,sans-serif;box-shadow:0 10px 30px #0007;backdrop-filter:blur(4px)}
@@ -661,6 +686,7 @@
 #eq-fen .eq-avec,#eq-fen .eq-code{display:flex;justify-content:space-between;align-items:center;gap:6px;margin:0 10px 8px;padding:5px 8px;border-radius:8px;background:#ff641022;color:#ffb48a;font-size:11px}
 #eq-fen .eq-avec button,#eq-fen .eq-code button{background:#1d2027;border:1px solid #2a2e37;color:#e9ebef;border-radius:6px;font-size:11px;padding:2px 6px;cursor:pointer}
 #eq-fen .eq-l{flex-wrap:wrap}
+#eq-fen .eq-pt2{display:grid;justify-items:center;gap:2px;flex:none;min-width:34px}#eq-fen .eq-pt2 small{font-size:9px;line-height:1.1;text-align:center}
 #eq-fen .eq-v{color:#8b919c;margin:0}`;
   document.head.appendChild(css);
   document.body.append(calque, fen);

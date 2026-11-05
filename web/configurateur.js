@@ -33,7 +33,7 @@ const sol = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), new THREE.Shadow
 const groupe = new THREE.Group(); scene.add(groupe);
 function taille() { const w = el.clientWidth, h = el.clientHeight; if (!w) return; ren.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix(); }
 new ResizeObserver(taille).observe(el);
-(function boucle() { requestAnimationFrame(boucle); orb.update(); ren.render(scene, cam); })();
+(function boucle() { requestAnimationFrame(boucle); if (!ren.domElement.offsetParent) return; orb.update(); ren.render(scene, cam); })();
 const loader = new STLLoader();
 const charger = f => F.geo[f] || (F.geo[f] = new Promise((ok, ko) => loader.load(`/c3d/${f}.stl`, g => { g.computeVertexNormals(); ok(g); }, undefined, ko)));
 const MATIERE = c => new THREE.MeshPhysicalMaterial({ color: c, roughness: 0.42, metalness: 0.05, clearcoat: 0.25, clearcoatRoughness: 0.6 });

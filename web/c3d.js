@@ -58,7 +58,16 @@ function taille() {
   ren.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix();
 }
 new ResizeObserver(taille).observe(el);
-(function boucle() { requestAnimationFrame(boucle); orb.update(); ren.render(scene, cam); })();
+// on ne redessine que si quelque chose bouge (sinon 2 images/s de securite) : gros maillages fluides, PC au repos
+let _vif = 0, _derniere = 0;
+C.reveil = () => { _vif = performance.now() + 1500; };
+for (const t of ['pointermove', 'pointerdown', 'pointerup', 'wheel', 'keydown']) addEventListener(t, C.reveil, { passive: true, capture: true });
+(function boucle() {
+  requestAnimationFrame(boucle);
+  const t = performance.now();
+  if (!ren.domElement.offsetParent || (t > _vif && !orb.autoRotate && t - _derniere < 500)) return;
+  _derniere = t; orb.update(); ren.render(scene, cam);
+})();
 document.addEventListener('click', e => { if (e.target.closest('[data-tab="c3d"]')) setTimeout(taille, 30); });
 
 // ------------------------------------------------------------------ materiaux

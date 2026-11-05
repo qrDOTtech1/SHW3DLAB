@@ -37,6 +37,7 @@ new ResizeObserver(taille).observe(el);
 let t0 = performance.now();
 (function boucle(t) {
   requestAnimationFrame(boucle);
+  if (!ren.domElement.offsetParent) return;
   const dt = (t - t0) / 1000; t0 = t;
   if (W.anim) animer(dt || 0);
   orb.update(); ren.render(scene, cam);
