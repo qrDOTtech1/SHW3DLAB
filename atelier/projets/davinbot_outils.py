@@ -181,9 +181,9 @@ def collier_endoscopes():
 
 def pince_endoscope(d=8.0):
     """Vise la pointe : inclinable sur sa vis M3, l'endoscope est serre par une 2e vis M3. Bague a imprimer si son diametre est plus petit."""
-    b = bo(14, 8, 10) + cy(d + 7, 22, 0, 12.5, 0).rotate((0, 0, 0))
-    tr = [cy(3.4, 12, 0, 0, 0).rotate((90, 0, 0)).translate((0, 5, 5)), cy(d + 0.3, 24, 0, 12.5, -1), bo(1.6, d + 9, 24, 0, 16.5, -1)]
-    tr.append(cy(3.4, d + 12, 0, 0, 0).rotate((0, 90, 0)).translate((-(d + 12) / 2, 12.5 + d / 2 + 2.2, 11)))
+    b = bo(14, 8, 10) + cy(d + 7, 22, 0, 10.0, 0).rotate((0, 0, 0))
+    tr = [cy(3.4, 12, 0, 0, 0).rotate((90, 0, 0)).translate((0, 5, 5)), cy(d + 0.3, 24, 0, 10.0, -1), bo(1.6, d + 9, 24, 0, 14.0, -1)]
+    tr.append(cy(3.4, d + 12, 0, 0, 0).rotate((0, 90, 0)).translate((-(d + 12) / 2, 10.0 + d / 2 + 2.2, 11)))
     return b - somme(tr)
 
 
