@@ -589,9 +589,6 @@ function photoShop() {
   const a = document.createElement('a'); a.download = `shop_${Date.now()}.png`; a.href = ren.domElement.toDataURL('image/png'); a.click();
   toast('Photo enregistree. Vendue d avance. Probablement.');
 }
-const btnShop = el(`<button id="at-shop-btn" style="position:fixed;z-index:60;right:calc(50% - 60px);top:76px;background:#ff6410;color:#14171d;border:0;border-radius:18px;padding:6px 14px;font:600 12px 'Segoe UI',sans-serif;cursor:pointer;display:none">&#128722; Scene shop</button>`);
-document.body.appendChild(btnShop); btnShop.onclick = ouvrirShop;
-setInterval(() => { btnShop.style.display = $('#tab-c3d').classList.contains('on') && !SH.actif && window.__C3D?.sel?.length ? 'block' : 'none'; }, 300);
 
 // ------------------------------------------------------------------ EASTER EGG : cinq clics sur le logo
 const CERTAINS = ['Certains disent qu il a tranche un STL a la main. Et qu il ne connait que deux facons de cliquer. Tout ce qu on sait, c est qu on l appelle : Steven.',
