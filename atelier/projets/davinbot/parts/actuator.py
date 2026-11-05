@@ -259,7 +259,7 @@ class _Common:
         k = getattr(self, "capteur", None)
         if not k:
             return
-        ang = 90.0
+        ang = ANGLE_PATTE.get(self.jid, 90.0)
         zp = 30
         r = (k["zb"] + zp) / 2 + 0.1
         cx, cy_ = r * math.cos(math.radians(ang)), r * math.sin(math.radians(ang))
@@ -268,7 +268,7 @@ class _Common:
         pign = fuse_all([extrude_shapely(g, T_BRIDE, zb0), cyl(4.0, zb0 - z5 + 7, z5 - 7, cx, cy_)])
         self.P("pignon_capteur", "pignon de capteur Z30", -1, pign, category="gear", print_up=(0, 0, 1),
                notes="Sur roulement 624 dans la patte du couvercle. Rapport a etalonner, repere de zero par fin de course.")
-        self.P("porte_aimant", "porte-aimant AS5600", -1, cyl(10, 5, z5 - 12, cx, cy_).cut(cyl(6.1, 2.7, z5 - 12 - 0.01, cx, cy_)).cut(cyl(4.0, 3, z5 - 9.5, cx, cy_)),
+        self.P("porte_aimant", "porte-aimant AS5600", -1, cyl(7.6, 5, z5 - 12, cx, cy_).cut(cyl(6.1, 2.7, z5 - 12 - 0.01, cx, cy_)).cut(cyl(4.0, 3, z5 - 9.5, cx, cy_)),
                category="gear", print_up=(0, 0, -1), notes="Aimant diametral d6 x 2,5 colle dedans, cote carte.")
         d, D, B_ = BEARINGS["624"]
         self.P(f"brg_capteur", "roulement 624 (capteur)", -1, tube(D, d, B_, z5 - 6, cx, cy_), kind="vitamin", category="bearing")
@@ -282,9 +282,11 @@ class _Common:
             zb = int(out_d) - 2
             r = (zb + 30) / 2 + 0.1
             self.capteur = dict(zb0=z5 + 0.5, z5=z5, out_d=out_d, zb=zb)
-            body = fuse_all([body, box(-13, 13, OD / 2 - 3, r + 13, z5 - 6, z5)] + [cyl(6, 8, z5 - 14, s_ * 7, r) for s_ in (-1, 1)])
+            tourne = ANGLE_PATTE.get(self.jid, 90.0) - 90.0
+            rt = lambda w: w.rotate((0, 0, 0), (0, 0, 1), tourne)
+            body = fuse_all([body, rt(box(-13, 13, OD / 2 - 3, r + 13, z5 - 6, z5))] + [rt(cyl(5, 8, z5 - 14, s_ * 7, r)) for s_ in (-1, 1)])
             D_ = BEARINGS["624"]
-            cap_cut = [cyl(D_[1] + self.press, D_[2] + 0.5, z5 - 6.01, 0, r), cyl(D_[0] + 2, 3, z5 - 2, 0, r)] + [cyl(1.8, 9, z5 - 14.5, s_ * 7, r) for s_ in (-1, 1)]
+            cap_cut = [rt(c_) for c_ in [cyl(D_[1] + self.press, D_[2] + 0.5, z5 - 6.01, 0, r), cyl(D_[0] + 2, 3, z5 - 2, 0, r)] + [cyl(1.8, 9, z5 - 14.5, s_ * 7, r) for s_ in (-1, 1)]]
         else:
             cap_cut = []
         cut = [cyl(O[1] + self.press, O[2] + 0.01, z4 - 0.01),
@@ -354,6 +356,9 @@ class _Common:
 
 
 # =====================================================================================
+ANGLE_PATTE = {"J3": 348.0}                             # J3 : patte placee la ou le bloc coude passe le moins
+
+
 def build_servo(jid: str, d, cfg: dict, body_in: int, body_out: int) -> ActuatorBuild:
     """Servo MG996R (ou format standard) : l'axe de sortie sur J6, le corps decale. Pas de canal central : les cables contournent."""
     c = _Common(jid, d, cfg)
@@ -376,7 +381,7 @@ def build_servo(jid: str, d, cfg: dict, body_in: int, body_out: int) -> Actuator
         notes="Se visse sur le support. Le roulement 6805 reprend la charge d'outil.")
     c.bearing_vit("6805", "J6", 17.5, body=-1)
     z0, L, od = 25.0, 30.0, 42.0
-    moyeu = cyl(Bg[0] - c.press * 0.5, 8.5, 16.5).cut(cyl(7, 4.2, 15.5))
+    moyeu = cyl(Bg[0] - c.press * 0.5, 8.5, 16.5).cut(cyl(7.6, 4.8, 15.4))
     c.P("moyeu_sortie", "moyeu de sortie (sur palonnier)", body_out, moyeu.cut(cyl(3.4, 12, 15)), category="flange", print_up=(0, 0, 1),
         anim={"type": "spin", "center": [0, 0], "k": [1.0, 0.0]})
     out_pts = bolt_circle(4, 15.0, 45)

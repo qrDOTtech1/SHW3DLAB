@@ -390,6 +390,10 @@ def build_assembly(cfg: dict, progress=lambda msg, f=None: None) -> Assembly:
 
     # ------------------------------------------------------------ articulations
     lim = {"J1": 170, "J2": 110, "J3": 140, "J4": 180, "J5": 115, "J6": 270}
+    if cfg.get("as5600_renvoi"):
+        lim["J3"] = 115                                 # butee imposee par la patte du capteur et le bloc coude
+    if cfg.get("j6_servo"):
+        lim["J6"] = 90                                  # MG996R : ~180 deg au total
     for j, body in zip(["J1", "J2", "J3", "J4", "J5", "J6"], range(1, 7)):
         T = frames[j]
         d = D[j]
