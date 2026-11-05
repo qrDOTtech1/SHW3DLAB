@@ -75,7 +75,7 @@ class Atteindre(gym.Env):
         self.us = [self.m.site(f"us{i}").id for i in range(3)]
         self.cible = self.m.body("cible").mocapid[0]; self.obst = self.m.body("obstacle").mocapid[0]
         self.action_space = gym.spaces.Box(-1, 1, (3,), np.float32)
-        self.observation_space = gym.spaces.Box(-np.inf, np.inf, (15,), np.float32)
+        self.observation_space = gym.spaces.Box(-np.inf, np.inf, (18,), np.float32)
 
     def _ultrasons(self):
         out = []
@@ -89,14 +89,14 @@ class Atteindre(gym.Env):
 
     def _obs(self):
         t = self.d.site_xpos[self.tip]; c = self.d.mocap_pos[self.cible]
-        return np.r_[self.d.qpos / np.pi, self.d.qvel / 3, c, c - t, self._ultrasons()].astype(np.float32)
+        return np.r_[self.d.qpos / np.pi, self.d.qvel / 3, self.ctrl / np.pi, c, (c - t) * 5, self._ultrasons() / 4].astype(np.float32)   # consigne incluse : sans elle l'etat est incomplet
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
         mujoco.mj_resetData(self.m, self.d)
         r = self.np_random
         q = r.uniform(np.radians([-120, -60, -90]), np.radians([120, 60, 90]))   # cible atteignable : tiree dans l'espace du bras
-        self.d.qpos[:] = q; mujoco.mj_forward(self.m, self.d)
+        self.q_cible = q.copy(); self.d.qpos[:] = q; mujoco.mj_forward(self.m, self.d)
         self.d.mocap_pos[self.cible] = self.d.site_xpos[self.tip].copy()
         self.d.qpos[:] = r.uniform(-0.3, 0.3, 3); self.d.qvel[:] = 0
         self.d.mocap_pos[self.obst] = [r.uniform(.25, .6) * r.choice([-1, 1]), r.uniform(-.4, .4), .1]
@@ -111,14 +111,14 @@ class Atteindre(gym.Env):
         self.d.ctrl[:] = self.ctrl
         mujoco.mj_step(self.m, self.d, self.PAS)
         e = np.linalg.norm(self.d.site_xpos[self.tip] - self.d.mocap_pos[self.cible])
-        rec = (self.av - e) * 20 - 0.01 * np.square(a).sum() - 0.02 * np.square(self.d.qvel).sum() * 0.1 + (0.2 if e < 0.02 else 0)
+        rec = -e * 3 + (self.av - e) * 10 + (1.0 if e < 0.01 else 0.3 if e < 0.03 else 0) - 0.002 * np.square(a).sum() - 0.002 * np.square(self.d.qvel).sum()
         self.av = e; self.n += 1
         return self._obs(), float(rec), False, self.n >= self.duree, {"erreur_mm": e * 1000}
 
 
 def evaluer(chemin=None, n=100):
-    from stable_baselines3 import PPO
-    pol = PPO.load(chemin or SORTIE / "politique_base", device="cpu") if chemin != "hasard" else None
+    from stable_baselines3 import SAC
+    pol = SAC.load(chemin or SORTIE / "politique_base", device="cpu") if chemin != "hasard" else None
     env = Atteindre(); E = []
     for k in range(n):
         o, _ = env.reset(seed=1000 + k)
@@ -130,12 +130,10 @@ def evaluer(chemin=None, n=100):
 
 
 def entrainer(pas=300000):
-    from stable_baselines3 import PPO
-    from stable_baselines3.common.vec_env import SubprocVecEnv
+    from stable_baselines3 import SAC
     SORTIE.mkdir(parents=True, exist_ok=True)
-    env = SubprocVecEnv([Atteindre for _ in range(8)])
-    pol = PPO("MlpPolicy", env, device="cpu", n_steps=512, batch_size=1024, gamma=0.99, learning_rate=3e-4, verbose=0)
-    tranche = max(50000, pas // 6); fait = 0
+    pol = SAC("MlpPolicy", Atteindre(), device="cpu", batch_size=512, learning_starts=3000, gamma=0.98, buffer_size=300000, policy_kwargs={"net_arch": [256, 256]}, verbose=0)
+    tranche = 40000; fait = 0
     while fait < pas:
         pol.learn(tranche, reset_num_timesteps=False); fait += tranche
         pol.save(SORTIE / "politique_base")
@@ -143,8 +141,20 @@ def entrainer(pas=300000):
     print("FINI", evaluer(), flush=True)
 
 
+def physique(n=50):
+    """Limite physique : consigne parfaite directement sur l'angle cible (sans IA)."""
+    env = Atteindre(); E = []
+    for k in range(n):
+        env.reset(seed=2000 + k); env.ctrl = env.q_cible.copy(); env.d.ctrl[:] = env.ctrl
+        for _ in range(env.duree): mujoco.mj_step(env.m, env.d, env.PAS)
+        E.append(np.linalg.norm(env.d.site_xpos[env.tip] - env.d.mocap_pos[env.cible]) * 1000)
+    return {"mediane_mm": round(float(np.median(E)), 1), "max_mm": round(float(np.max(E)), 1)}
+
+
 if __name__ == "__main__":
-    if sys.argv[1] == "entrainer":
+    if sys.argv[1] == "physique":
+        print(physique())
+    elif sys.argv[1] == "entrainer":
         print("hasard", evaluer("hasard", 30), flush=True)
         entrainer(int(sys.argv[2]) if len(sys.argv) > 2 else 300000)
     else:

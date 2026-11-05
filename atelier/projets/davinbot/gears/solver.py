@@ -383,7 +383,12 @@ def design_all(cfg: dict) -> dict:
     else:
         j5 = design_planetary(cfg, cfg["pl_module_wrist"], cfg["pl5_ratio_min"], cfg["pl5_ratio_max"])
     out = {"J1": cyc, "J4": wrist, "J5": j5, "J6": wrist}
-    out["J2"] = ds if "J2" in axes else cyc
+    cyc2 = cyc
+    if cfg.get("j2_ratio_max"):                 # J2 peut etre bien plus demultiplie que J1 (pas de ressort)
+        cyc2 = design_cycloid({**cfg, "cyc_ratio_min": cfg["j2_ratio_min"], "cyc_ratio_max": cfg["j2_ratio_max"]})
+    out["J2"] = ds if "J2" in axes else cyc2
     out["J3"] = ds if "J3" in axes else design_planetary(
         cfg, cfg["pl_module_elbow"], cfg["pl3_ratio_min"], cfg["pl3_ratio_max"])
+    if cfg.get("j3_ratio_max") and "J3" not in axes:     # cycloidal plat au coude : plus de couple, moins de plastique que le gros planetaire
+        out["J3"] = design_cycloid({**cfg, "cyc_ratio_min": cfg["j3_ratio_min"], "cyc_ratio_max": cfg["j3_ratio_max"]})
     return out

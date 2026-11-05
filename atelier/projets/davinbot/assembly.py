@@ -165,6 +165,8 @@ def build_assembly(cfg: dict, progress=lambda msg, f=None: None) -> Assembly:
     arm_z1 = max(hi3[2], z3 + A["J3"].OD / 2) + 2
     arm = LinkSpec("BRAS", "Bras superieur", 2, -W3 / 2, W3 / 2, y_o2, y_o2 + T3, arm_z0, arm_z1, w3)
     arm.mounts = [Mount(TJ2, A["J2"], "flange"), Mount(TJ3, A["J3"], "rear")]
+    if cfg.get("tube_segments"):
+        arm.tube_zone = (z2 + A["J2"].out_d / 2 + w3 + 3, z3 - a3_dn - w3 - 3)
 
     # ------------------------------------------------------------ bloc coude + J4
     wb = wall_of["J3"]
@@ -200,6 +202,8 @@ def build_assembly(cfg: dict, progress=lambda msg, f=None: None) -> Assembly:
     fa = LinkSpec("AVANT_BRAS", "Avant-bras", 4, -W4 / 2, W4 / 2, y_c3 - T4 / 2, y_f1, z4o,
                   max(hi5[2], z5 + A["J5"].OD / 2) + 2, w4)
     fa.mounts = [Mount(TJ4, A["J4"], "flange"), Mount(TJ5, A["J5"], "rear")]
+    if cfg.get("tube_segments"):
+        fa.tube_zone = (z4o + w4 + 3, z5 - a5_dn - w4 - 3)
     y_o5 = y_f1 + A["J5"].L
 
     # ------------------------------------------------------------ poignet + J6
