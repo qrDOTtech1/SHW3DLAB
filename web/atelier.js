@@ -499,6 +499,27 @@ async function geosVersion(o, k, total) {
   }
   return o.mesh.geometry;
 }
+// mode equipe : qui ouvre, regle ou ferme la vitrine le fait pour les deux ; rien n'est renvoye quand ca vient de l'autre
+let shopDistant = false;
+const annonceShop = () => { if (!shopDistant) window.dispatchEvent(new CustomEvent('shw:shop', { detail: { on: SH.actif, mode: SH.mode, n: SH.n, fond: SH.fond, sel: C().sel.map(o => o.id) } })); };
+window.__SHOP = {
+  ouvrir: () => ouvrirShop(),
+  etat: () => ({ on: SH.actif, mode: SH.mode, n: SH.n, fond: SH.fond, sel: C().sel.map(o => o.id) }),
+  appliquer(d) {
+    shopDistant = true;
+    try {
+      Object.assign(SH, { mode: d.mode, n: d.n, fond: d.fond });
+      if (d.on && !SH.actif) { const s = C().objets.filter(o => d.sel?.includes(o.id)); if (s.length) C().sel = s; ouvrirShop(); }
+      else if (!d.on && SH.actif) fermerShop();
+      else if (d.on) {
+        I().scene.background = new THREE.Color(SH.fond);
+        const f = $('#at-shop');
+        if (f) { f.querySelectorAll('[data-m]').forEach(x => x.classList.toggle('on', x.dataset.m === SH.mode)); f.querySelector('[data-n]').value = SH.n; f.querySelector('[data-vn]').textContent = SH.n; }
+        poserVersions();
+      }
+    } finally { shopDistant = false; }
+  },
+};
 async function poserVersions() {
   const num = ++SH.num, sel = C().sel.length ? C().sel : C().objets;
   if (!sel.length) return;
@@ -546,22 +567,22 @@ function ouvrirShop() {
   d.addEventListener('click', e => {
     if (e.target.closest('[data-f]')) return fermerShop();
     const m = e.target.closest('[data-m]');
-    if (m) { SH.mode = m.dataset.m; d.querySelectorAll('[data-m]').forEach(x => x.classList.toggle('on', x === m)); poserVersions(); }
+    if (m) { SH.mode = m.dataset.m; d.querySelectorAll('[data-m]').forEach(x => x.classList.toggle('on', x === m)); poserVersions(); annonceShop(); }
     const f = e.target.closest('[data-fond]');
-    if (f) { SH.fond = f.dataset.fond; sc.background = new THREE.Color(SH.fond); }
+    if (f) { SH.fond = f.dataset.fond; sc.background = new THREE.Color(SH.fond); annonceShop(); }
     if (e.target.closest('[data-photo]')) photoShop();
   });
   d.addEventListener('input', e => {
-    if (e.target.dataset.n !== undefined) { SH.n = +e.target.value; d.querySelector('[data-vn]').textContent = SH.n; poserVersions(); }
+    if (e.target.dataset.n !== undefined) { SH.n = +e.target.value; d.querySelector('[data-vn]').textContent = SH.n; poserVersions(); annonceShop(); }
     if (e.target.dataset.t !== undefined) I().orb.autoRotate = e.target.checked;
   });
-  poserVersions();
+  poserVersions(); annonceShop();
 }
 function fermerShop() {
   SH.actif = false; SH.num++; const sc = I().scene;
   if (SH.groupe) sc.remove(SH.groupe); sc.remove(SH.sol); SH.groupe = null;
   SH.caches.forEach(x => { x.visible = true; }); sc.background = SH.fond0; I().orb.autoRotate = false;
-  $('#at-shop')?.remove(); I().selectionner(C().sel);
+  $('#at-shop')?.remove(); I().selectionner(C().sel); annonceShop();
 }
 function photoShop() {
   const { ren, scene, cam } = I(); ren.render(scene, cam);

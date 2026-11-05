@@ -54,8 +54,9 @@
     const mv = moduleVue();
     const vue = mv?.cam ? [mv.cam.position.toArray().map(x => +x.toFixed(1)), mv.orb.target.toArray().map(x => +x.toFixed(1))] : null;
     const sel = moi.onglet === 'c3d' ? (window.__C3D?.sel || []).map(o => o.id) : null;
-    const m = { ...moi, souris, vue, sel, ...extra, ts: Date.now() };
-    client.publish(sujet, await chiffrer(m), { qos: 0 });
+    const m = { ...moi, souris, vue, sel, v: rev, h: empreinte(), ...extra, ts: Date.now() };
+    if (window.__eqPerdre && m.t === 'etat') return;   // test : simule un message perdu par le relais
+    client.publish(sujet, await chiffrer(m), { qos: m.t === 'etat' ? 1 : 0 });
   }
 
   // ------------------------------------------------------------ reception
@@ -70,7 +71,9 @@
     if (avec === m.id) recevoirAvec(m, p);
     if (m.t === 'rtc' && m.cible === moi.id) signalRTC(m);
     if (!liens.has(m.id) && moi.id < m.id) ouvrirLien(m.id);   // le plus petit identifiant appelle
+    if (m.t === 'shop' && avec === m.id) window.__SHOP?.appliquer(m.shop);
     if (m.t === 'etat') recevoirEtat(m);
+    verifierAccord(m);
     if (m.t === 'demande' && m.pid === cleCourante) envoyerEtat(true);
     if (m.t === 'suivi' && m.cible === moi.id) envoyerEtat(true);
     if (m.onglet === 'c3d' && moi.onglet === 'c3d' && m.sel) window.__C3D?.surlignerPair?.(m.id, m.sel, m.couleur);
@@ -178,6 +181,7 @@
       neufs.forEach(i => envoyes.add(i));
       await fetch0('/api/equipe/partager', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: neufs }) });
     }
+    dernierEnvoiEtat = performance.now();
     envoyer({ t: 'etat', pid: cleCourante, rev, force, donnees: dernierEtat }, true);
   }
   function recevoirEtat(m) {
@@ -185,15 +189,37 @@
     const pourMoi = m.pid === cleCourante || (meneur && m.force) || (avec === m.id && m.onglet === moi.onglet);
     if (!pourMoi) return;
     if (!m.force && (m.rev < rev || (m.rev === rev && m.id < moi.id))) return;
-    if (m.force && !meneur && m.rev <= rev) return;     // une reponse a "demande" n'ecrase que si elle est plus recente
+    if (m.force && !meneur && (m.rev < rev || (m.rev === rev && m.id < moi.id))) return;     // une reponse a "demande" n'ecrase que si elle est plus recente
     rev = Math.max(rev, m.rev); attente = m; if (!applique) appliquerAttente();
   }
+  // ANTI-DIVERGENCE : le relais peut perdre un message. Chaque poste annonce l'empreinte de son etat ; si elles different
+  // alors qu'on travaille sur la meme chose, le poste en retard redemande l'etat. Les ecrans finissent toujours identiques.
+  let _hE = null, _hV = 0, ecart = 0, dernierAppel = 0;
+  function empreinte() {
+    if (dernierEtat == null) return 0;
+    if (_hE === dernierEtat) return _hV;
+    _hE = dernierEtat; const t = dernierEtat.replace(/(\.\d{2})\d+/g, '$1');
+    let h = 5381; for (let i = 0; i < t.length; i++) h = (h * 33 + t.charCodeAt(i)) | 0;
+    return (_hV = h);
+  }
+  function verifierAccord(m) {
+    if (!m.h || !cleCourante || applique || m.cle !== cleCourante || m.onglet !== moi.onglet) return;
+    if (m.h === empreinte()) { ecart = 0; return; }
+    if (performance.now() - dernierEnvoiEtat < 1500) return;   // une modification est en train de partir
+    if (++ecart < 3) return;
+    const enRetard = m.v > rev || (m.v === rev && m.id > moi.id);
+    if (enRetard && performance.now() - dernierAppel > 4000) { dernierAppel = performance.now(); envoyer({ t: 'demande', pid: cleCourante }, true); }
+    else if (!enRetard && performance.now() - dernierAppel > 4000) { dernierAppel = performance.now(); envoyerEtat(true); }
+  }
+  let dernierEnvoiEtat = 0;
   async function appliquerAttente() {
     applique = true;
     while (suivre.ouvre) await new Promise(r => setTimeout(r, 100));   // d'abord finir d'ouvrir le projet, sinon objets en double
     while (attente) {
       const m = attente; attente = null;
       try {
+        for (let i = 0; i < 30 && m.onglet !== moi.onglet; i++) await new Promise(r => setTimeout(r, 100));   // pas d'etat sur le mauvais module
+        if (m.onglet !== moi.onglet) continue;
         const ids = idsFichiers(m.donnees);
         const man = (await (await fetch0('/api/equipe/dispo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids }) })).json()).manquants;
         for (const i of man) await demanderDirect(m.id, i).catch(() => { });   // d'abord par le lien direct, sinon par la sauvegarde
@@ -284,6 +310,7 @@
     if (!m.on) { if (avec === m.id) { avec = null; rejoint = false; notifier(hasard(CLARKSON.parti, m.nom), m.couleur); } }
     else {
       suivi = null; avec = m.id; rejoint = false; camLiee = true; envoyerEtat(true);
+      if (window.__SHOP?.etat().on) envoyer({ t: 'shop', shop: window.__SHOP.etat() }, true);
       notifier(hasard(CLARKSON.rejoint, m.nom), m.couleur);
       const n = nonEnregistre();
       if (n) demander(`${m.nom} veut bosser avec toi.`, `Ton plan n'est pas enregistre, et ${m.nom} le voit maintenant. Il peut le modifier. Avec ses mains. Tu enregistres, par prudence ?`,
@@ -495,6 +522,7 @@
     const lab = el.closest('label')?.textContent || el.labels?.[0]?.textContent || el.previousElementSibling?.textContent || el.name || el.id || 'un reglage';
     action(`regle « ${lab.replace(/\s+/g, ' ').trim().slice(0, 30)} »`);
   }, true);
+  window.addEventListener('shw:shop', e => { if (avec) envoyer({ t: 'shop', shop: e.detail }, true); });
   window.addEventListener('shw:projet', e => {
     moi.projet = e.detail; monEcriture = performance.now() + 4000;
     if (avec) envoyer({ t: 'nav' }, true);

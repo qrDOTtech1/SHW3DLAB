@@ -1292,12 +1292,14 @@ function ouvrirMenu(x, y, hit, pt) {
     L.push('-', it('Poser sur le plateau', poser, 'D'), it('Centrer sur le plateau', centrer), it('Orienter pour l\'impression', OUTILS.orienter),
       it('Miroir X', () => miroir('x')), it('Miroir Y', () => miroir('y')));
     L.push('-', it('Arrondir / chanfreiner une arete...', modeArete, 'A'), it('Couper...', OUTILS.couper, '', sel !== 1), it('Arrondir toutes les aretes...', OUTILS.arrondir), it('Creuser...', OUTILS.coque), it('Reseau de copies...', reseau, '', sel !== 1));
+    L.push('-', it('<span style="color:#ff6410">Scene shop...</span>', () => window.__SHOP?.ouvrir(), 'V'));
     L.push('-', it('Cadrer la selection', () => vue('iso'), 'F'), it('Exporter en STL', () => $('#c3-export').click()), it('Supprimer', supprimer, 'Suppr'));
   } else {
     L.push({ titre: 'Plateau' }, it('<span style="color:#ff6410">Logo SHWork...</span>', () => ouvrirLogo()), it('Dessin 2D -> 3D...', ouvrirDessin), it('Vase...', () => ouvrirGen('vase')));
     if (C.presse?.length) L.push(it(`Coller ici (${C.presse.length})`, () => coller(pt), 'Ctrl+V'));
     for (const [f, lab] of [['boite', 'Boite'], ['cylindre', 'Cylindre'], ['sphere', 'Sphere'], ['texte', 'Texte']])
       L.push(it(`Ajouter ici : ${lab}`, () => ajouterForme(f, f === 'texte' ? texteParams() : {}, { x: pt?.x || 0, y: pt?.y || 0, surDessus: true })));
+    L.push('-', it('<span style="color:#ff6410">Scene shop...</span>', () => window.__SHOP?.ouvrir(), 'V', !C.objets.length));
     L.push('-', it('Tout selectionner', () => selectionner([...C.objets]), 'Ctrl+A'), it('Annuler', annuler, 'Ctrl+Z', C.hist.length < 2), it('Refaire', refaire, 'Ctrl+Y', !C.futur.length));
   }
   L.push('-', { titre: 'Vue' }, it('Dessus', () => vue('dessus'), '7'), it('Face', () => vue('face'), '1'), it('Cote', () => vue('cote'), '3'), it('Perspective', () => vue('iso'), '0'),
