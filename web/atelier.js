@@ -598,7 +598,7 @@ const bulle = (txt) => {
   d.textContent = txt; document.body.appendChild(d);
   setTimeout(() => { d.style.opacity = 0; setTimeout(() => d.remove(), 500); }, 4500);
 };
-let _vanneT = 0;
+let _vanneT = -1e9;
 function vanne(liste, proba = 0.4) {
   const t = performance.now();
   if (t - _vanneT < 40000 || Math.random() > proba) return;     // au plus une toutes les 40 s
