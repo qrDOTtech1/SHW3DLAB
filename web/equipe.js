@@ -69,6 +69,8 @@
     pairs.set(m.id, p);
     if (m.t === 'ww' && m.cible === moi.id) return recevoirWW(m);
     if (avec === m.id) recevoirAvec(m, p);
+    if (avec === m.id && m.t === 'fen') { recevoirFen(m); return; }
+    if (avec === m.id && m.t === 'fenact') { recevoirFenAct(m); return; }
     if (m.t === 'rtc' && m.cible === moi.id) signalRTC(m);
     if (!liens.has(m.id) && moi.id < m.id) ouvrirLien(m.id);   // le plus petit identifiant appelle
     if (m.t === 'shop' && avec === m.id) window.__SHOP?.appliquer(m.shop);
@@ -352,6 +354,86 @@
     if (distant || !avec || moi.onglet !== 'creer' || !e.target.id || e.target.closest('#eq-fen')) return;
     envoyer({ t: 'champ', champ: e.target.id, val: e.target.type === 'checkbox' ? e.target.checked : e.target.value }, true);
   }, true);
+
+  // ------------------------------------------------------------ FENETRES PARTAGEES (travail commun)
+  // Chaque fenetre tourne chez celui qui l'a ouverte : l'autre en voit une copie exacte, et ses gestes (clic, valeur,
+  // deplacement, fermeture) sont executes par la vraie fenetre. Deux postes, une seule execution : aucun doublon.
+  const SEL_FEN = '.at-flot:not([data-miroir]):not(#at-shop),.c3d-pan:not([data-miroir])';
+  const envoyees = new Map(), miroirs = new Map();
+  let numFen = 0;
+  const cleFen = f => (f.dataset.fen ||= moi.id + '-' + (++numFen));
+  function photoFen(f) {
+    const c = f.cloneNode(true), a_ = f.querySelectorAll('input,select,textarea'), b_ = c.querySelectorAll('input,select,textarea');
+    a_.forEach((x, i) => {
+      if (x.type === 'file') return;
+      if (x.type === 'checkbox' || x.type === 'radio') { if (x.checked) b_[i].setAttribute('checked', ''); else b_[i].removeAttribute('checked'); }
+      else if (x.tagName === 'SELECT') b_[i].querySelectorAll('option').forEach((o, k) => { if (k === x.selectedIndex) o.setAttribute('selected', ''); else o.removeAttribute('selected'); });
+      else if (x.tagName === 'TEXTAREA') b_[i].textContent = x.value;
+      else b_[i].setAttribute('value', x.value);
+    });
+    c.querySelectorAll('img').forEach(i => { if ((i.getAttribute('src') || '').startsWith('data:')) i.removeAttribute('src'); });
+    return c.innerHTML;
+  }
+  setInterval(() => {
+    if (!avec) { if (envoyees.size) envoyees.clear(); if (miroirs.size) { miroirs.forEach(m => m.remove()); miroirs.clear(); } return; }
+    const vues = new Set();
+    document.querySelectorAll(SEL_FEN).forEach(f => {
+      const k = cleFen(f), r = f.getBoundingClientRect(); vues.add(k);
+      const html = photoFen(f), pos = [Math.round(r.left), Math.round(r.top), Math.round(r.width)].join();
+      const av = envoyees.get(k);
+      if (av?.html === html && av?.pos === pos) return;
+      if (html.length > 150000) return;
+      const m = { t: 'fen', k, x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), cls: f.className };
+      if (av?.html !== html) m.html = html;
+      envoyees.set(k, { html, pos });
+      envoyer(m, true);
+    });
+    for (const k of [...envoyees.keys()]) if (!vues.has(k)) { envoyees.delete(k); envoyer({ t: 'fen', k, ferme: 1 }, true); }
+  }, 120);
+  function recevoirFen(m) {
+    let d = miroirs.get(m.k);
+    if (m.ferme) { d?.remove(); miroirs.delete(m.k); return; }
+    if (!d) {
+      d = document.createElement('div'); d.dataset.miroir = m.k; d.className = m.cls;
+      d.addEventListener('click', ev => {
+        ev.preventDefault(); ev.stopPropagation();
+        const c = ev.target.closest('button,a,[data-mod],[data-m],[data-i],[data-o],[data-pose],[data-sup],input[type=checkbox],input[type=radio],summary,label') || ev.target;
+        if (c.matches('input[type=number],input[type=text],input[type=range],select,textarea,input:not([type])')) return;
+        envoyer({ t: 'fenact', k: m.k, q: 'click', i: [...d.querySelectorAll('*')].indexOf(c) }, true);
+      }, true);
+      const champ = ev => { if (ev.target.type === 'file') return; envoyer({ t: 'fenact', k: m.k, q: 'val', i: [...d.querySelectorAll('*')].indexOf(ev.target), v: ev.target.type === 'checkbox' ? ev.target.checked : ev.target.value, fin: ev.type === 'change' }, true); };
+      d.addEventListener('input', champ); d.addEventListener('change', champ);
+      d.addEventListener('keydown', ev => {
+        ev.stopPropagation();
+        if (ev.key === 'Enter') { champ(ev); envoyer({ t: 'fenact', k: m.k, q: 'entree', i: [...d.querySelectorAll('*')].indexOf(ev.target) }, true); }
+      });
+      let bouge = false;
+      d.addEventListener('pointerdown', () => { bouge = true; });
+      addEventListener('pointermove', () => {
+        if (!bouge || !d.isConnected || d.dataset.g) return;
+        d.dataset.g = 1; setTimeout(() => { delete d.dataset.g; const r = d.getBoundingClientRect(); envoyer({ t: 'fenact', k: m.k, q: 'pos', x: Math.round(r.left), y: Math.round(r.top) }, true); }, 60);
+      });
+      addEventListener('pointerup', () => { bouge = false; });
+      Object.assign(d.style, { position: 'fixed', zIndex: 9390, margin: 0, right: 'auto', bottom: 'auto', transform: 'none', outline: `2px solid ${pairs.get(avec)?.couleur || '#ff6410'}` });
+      miroirs.set(m.k, d); document.body.appendChild(d); d._b = () => bouge;
+    }
+    if (!d._b()) { d.style.left = Math.min(m.x, innerWidth - 60) + 'px'; d.style.top = Math.min(m.y, innerHeight - 30) + 'px'; }
+    d.style.width = m.w + 'px';
+    if (m.html != null) {
+      const act = document.activeElement, idx = d.contains(act) ? [...d.querySelectorAll('*')].indexOf(act) : -1, val = act?.value, sel = act?.selectionStart;
+      d.innerHTML = m.html;
+      if (idx >= 0) { const n = d.querySelectorAll('*')[idx]; if (n) { n.focus(); if (val !== undefined) n.value = val; try { n.setSelectionRange(sel, sel); } catch { } } }
+    }
+  }
+  function recevoirFenAct(m) {
+    const f = [...document.querySelectorAll(SEL_FEN)].find(x => x.dataset.fen === m.k); if (!f) return;
+    if (m.q === 'pos') { Object.assign(f.style, { position: 'fixed', left: m.x + 'px', top: m.y + 'px', right: 'auto', bottom: 'auto', transform: 'none', margin: 0 }); return; }
+    const c = f.querySelectorAll('*')[m.i]; if (!c) return;
+    if (m.q === 'click') return c.click();
+    if (m.q === 'entree') return c.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    if (c.type === 'checkbox') c.checked = m.v; else c.value = m.v;
+    c.dispatchEvent(new Event(m.fin ? 'change' : 'input', { bubbles: true }));
+  }
 
   // ------------------------------------------------------------ modification sur le disque (session Claude, synchro GitHub)
   let mtimeProjet = null, idMtime = null, monEcriture = 0;
