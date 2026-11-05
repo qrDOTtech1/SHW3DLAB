@@ -18,11 +18,11 @@ import numpy as np
 import trimesh
 
 ICI = Path(__file__).resolve().parents[2]
-PACK = ICI / "data" / "bases" / "davinbot_base_2a7112407d.zip"
-FIXE = {"dsdm_axes": "aucun", "j2_spring": False}
+PACK = ICI / "data" / "bases" / "davinbot_base_fdef4f94a0.zip"
+FIXE = {"dsdm_axes": "aucun", "j2_spring": False, "tube_segments": True, "j2_ratio_min": 85, "j2_ratio_max": 95, "j3_ratio_min": 55, "j3_ratio_max": 65}
 BASE = ["BASE", "J1", "TOURELLE", "J2", "BRAS", "J3", "COUDE"]
 POIGNET = ["J4", "AVANT_BRAS", "J5", "POIGNET", "J6", "TETE"]
-GROUPES_REGLABLES = ("Fabrication", "Moteurs", "Reducteurs", "Bras")
+GROUPES_REGLABLES = ("Fabrication", "Moteurs", "Reducteurs", "Bras", "Tubes")
 OPTIONS = ("avec_capots", "avec_poignet", "avec_accessoires")
 NOWIN = 0x08000000 if os.name == "nt" else 0
 
@@ -35,7 +35,7 @@ def champs() -> list:
     """Les parametres de l'ancien logiciel, repris tels quels."""
     from atelier.projets.davinbot.config import PARAMS
     out = [{"k": "avec_capots", "label": "Capots de fermeture", "val": 0, "type": "bool", "groupe": "Pièces", "aide": ""},
-           {"k": "avec_poignet", "label": "Avant-bras et poignet (sans moteur)", "val": 0, "type": "bool", "groupe": "Pièces", "aide": ""}]
+           {"k": "avec_poignet", "label": "Avant-bras et poignet (6 moteurs)", "val": 1, "type": "bool", "groupe": "Pièces", "aide": ""}]
     out.append({"k": "avec_accessoires", "label": "Supports GoPro et 3 capteurs à ultrasons", "val": 1, "type": "bool", "groupe": "Pièces", "aide": ""})
     for groupe, k, label, val, mini, maxi, pas, unite, typ in PARAMS:
         if groupe not in GROUPES_REGLABLES or k in FIXE or typ.startswith("choice") or typ == "bool":

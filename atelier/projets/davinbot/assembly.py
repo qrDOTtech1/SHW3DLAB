@@ -167,6 +167,7 @@ def build_assembly(cfg: dict, progress=lambda msg, f=None: None) -> Assembly:
     arm.mounts = [Mount(TJ2, A["J2"], "flange"), Mount(TJ3, A["J3"], "rear")]
     if cfg.get("tube_segments"):
         arm.tube_zone = (z2 + A["J2"].out_d / 2 + w3 + 3, z3 - a3_dn - w3 - 3)
+        arm.cable_haut = (-x_c, y_o2 + T3 - (w3 + cfg["tube_d"] / 2 + 1) - 3.35)
 
     # ------------------------------------------------------------ bloc coude + J4
     wb = wall_of["J3"]
@@ -402,6 +403,12 @@ def build_assembly(cfg: dict, progress=lambda msg, f=None: None) -> Assembly:
         (-xc, y_c3, z4o + w4 + 20), (-xc, y_c3, z5), (0, y_c3, z5), (0, y_f1 - 12, z5),
         (0, y_o5 + 12, z5), (0, y_c5, z5),
         (0, y_c5, z6o + g.lug_bot - cfg["pogo_depth"] - 2.4 - 7.0)]   # entree des fentes du porte-pogo
+    if cfg.get("tube_segments") and arm.tube_zone:      # les cables passent dans le triangle de tubes
+        yh = y_o2 + T3 - (w3 + cfg["tube_d"] / 2 + 1)
+        ycab = yh - (cfg["tube_d"] + 8) / 2 - cfg["cable_bore"] / 2 - 0.5
+        i = asm.cable_path.index((-xc, y_o2 + T3 / 2, z2 + 20))
+        asm.cable_path[i - 1:i + 3] = [(0, ycab, z2 + 8), (0, ycab, arm.tube_zone[1] - cfg["tube_prise"] - 10), (*arm.cable_haut, arm.tube_zone[1] - cfg["tube_prise"] - 8),
+                                        (*arm.cable_haut, z3), (-xc, y_o2 + T3 / 2, z3), (0, y_o2 + T3 / 2, z3)]   # sort du triangle a cote du moteur J3
     asm.cable_path = [tuple(float(v) for v in p) for p in asm.cable_path]
 
     asm.info = {

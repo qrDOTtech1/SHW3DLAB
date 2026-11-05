@@ -48,6 +48,7 @@ class LinkSpec:
     split_zs: list = field(default_factory=list)
     notes: str = ""
     locked: set = field(default_factory=set)
+    cable_haut: tuple | None = None                     # sortie des cables du noeud haut, a cote du moteur
     tube_zone: tuple | None = None                      # (z bas, z haut) remplaces par 2 tubes alu
 
 
@@ -91,7 +92,7 @@ def _noeuds_tubes(s: LinkSpec, cfg: dict, cut: list) -> list[Part]:
     xc, dx = (s.x0 + s.x1) / 2, max((s.x1 - s.x0) / 2 - m, d / 2 + 3)
     yb, yh = s.y0 + m, s.y1 - m
     pos = [(xc - dx, yb), (xc + dx, yb), (xc, yh)]
-    yc = (2 * yb + yh) / 3                              # centre du triangle : passage des cables
+    yc = yh - (d + 8) / 2 - cfg["cable_bore"] / 2 - 0.5     # passage des cables dans le triangle, juste sous le bossage du tube haut
     outer = box(s.x0, s.x1, s.y0, s.y1, s.z0, s.z1)
     inner = box(s.x0 + w, s.x1 + 1, s.y0 + w, s.y1 - w, s.z0 + w, s.z1 - w)
     shell = outer.cut(inner)
@@ -105,7 +106,7 @@ def _noeuds_tubes(s: LinkSpec, cfg: dict, cut: list) -> list[Part]:
     vis1 = lambda x, y, z: box(x - bossage, x + bossage, y - R, y + R, z - R, z + R)
     vis = lambda x, y, z: vis1(x, y, z - prise / 6).union(vis1(x, y, z + prise / 6))
     tb = [cyl(d + jeu, prise + 1, za, x, y) for x, y in pos] + [vis(x, y, za + prise / 2) for x, y in pos] + [cyl(cable, w + 2, za - w - 1, xc, yc)]
-    th = [cyl(d + jeu, prise + 1, zb - prise - 1 + 1, x, y) for x, y in pos] + [vis(x, y, zb - prise / 2) for x, y in pos] + [cyl(cable, w + 2, zb - 1, xc, yc)]
+    th = [cyl(d + jeu, prise + 1, zb - prise - 1 + 1, x, y) for x, y in pos] + [vis(x, y, zb - prise / 2) for x, y in pos] + [cyl(cable, w + 2, zb - 1, *(s.cable_haut or (xc, yc)))]
     bas, haut = cut_all(bas, cut + tb), cut_all(haut, cut + th)
     parts = [Part(id=f"{s.key}_noeud_bas", name=f"{s.label} - noeud bas", group=s.key, body=s.body, shape=bas, category="structure", print_up=(1, 0, 0), notes="Tient la bride et les 3 tubes."),
              Part(id=f"{s.key}_noeud_haut", name=f"{s.label} - noeud haut", group=s.key, body=s.body, shape=haut, category="structure", print_up=(1, 0, 0), notes="Tient le moteur suivant et les 3 tubes.")]
