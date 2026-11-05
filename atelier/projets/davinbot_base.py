@@ -18,8 +18,8 @@ import numpy as np
 import trimesh
 
 ICI = Path(__file__).resolve().parents[2]
-PACK = ICI / "data" / "bases" / "davinbot_base_fdef4f94a0.zip"
-FIXE = {"dsdm_axes": "aucun", "j2_spring": False, "tube_segments": True, "j2_ratio_min": 85, "j2_ratio_max": 95, "j3_ratio_min": 55, "j3_ratio_max": 65}
+PACK = ICI / "data" / "bases" / "davinbot_base_af1acd2837.zip"
+FIXE = {"dsdm_axes": "aucun", "j2_spring": False, "tube_segments": True, "j2_ratio_min": 70, "j2_ratio_max": 80, "j3_ratio_min": 66, "j3_ratio_max": 74, "as5600_renvoi": True, "j2_double": True, "j6_servo": True, "pilote_deporte": True, "mks_len": 12, "mks_d": 44, "motor_torque": 0.385, "motor_torque_leger": 0.40, "payload": 1.0, "tube_prise": 40}
 BASE = ["BASE", "J1", "TOURELLE", "J2", "BRAS", "J3", "COUDE"]
 POIGNET = ["J4", "AVANT_BRAS", "J5", "POIGNET", "J6", "TETE"]
 GROUPES_REGLABLES = ("Fabrication", "Moteurs", "Reducteurs", "Bras", "Tubes")
@@ -36,7 +36,7 @@ def champs() -> list:
     from atelier.projets.davinbot.config import PARAMS
     out = [{"k": "avec_capots", "label": "Capots de fermeture", "val": 0, "type": "bool", "groupe": "Pièces", "aide": ""},
            {"k": "avec_poignet", "label": "Avant-bras et poignet (6 moteurs)", "val": 1, "type": "bool", "groupe": "Pièces", "aide": ""}]
-    out.append({"k": "avec_accessoires", "label": "Supports GoPro et 3 capteurs à ultrasons", "val": 1, "type": "bool", "groupe": "Pièces", "aide": ""})
+    out.append({"k": "avec_accessoires", "label": "Anciens supports GoPro et ultrasons", "val": 0, "type": "bool", "groupe": "Pièces", "aide": ""})
     for groupe, k, label, val, mini, maxi, pas, unite, typ in PARAMS:
         if groupe not in GROUPES_REGLABLES or k in FIXE or typ.startswith("choice") or typ == "bool":
             continue
@@ -145,7 +145,7 @@ def generer(p: dict):
             d = -mesh.bounds[0]; mesh.apply_translation(d); A[:3, 3] = -d
         nom = q["id"] if q["kind"] == "print" else f"ACHAT {q['id']}"     # moteurs, roulements, tole : ne s'impriment pas
         out.append(mesh); noms.append(nom); poses.append(A.tolist()); coul[nom] = q["color"]
-    if p.get("avec_accessoires", 1):
+    if p.get("avec_accessoires", 0):
         from atelier.noyau.c3d import vers_trimesh
         for nom, sol, P in accessoires(bool(p.get("avec_capots"))):
             mesh = vers_trimesh(sol); dz = -mesh.bounds[0]; mesh.apply_translation(dz)
