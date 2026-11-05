@@ -1175,6 +1175,21 @@ CATALOGUE["davinbot_complet"] = dict(CATALOGUE["davinbot"], nom="DaVinBot V2 (co
     description="Version complète : J1, double moteur sur J2 et J3, poignet motorisé.")
 
 
+# ================================================================== DaVinBot Base : le bras a faire evoluer
+def _davinbot_base(p: dict):
+    from atelier.projets import davinbot_base as _b
+    return _b.generer(p)
+
+
+def _champs_davinbot_base():
+    from atelier.projets import davinbot_base as _b
+    return _b.champs()
+
+
+CATALOGUE["davinbot_base"] = {"nom": "DaVinBot Base", "cat": "Projets", "lourd": True, "fn": _davinbot_base, "champs": _champs_davinbot_base(), "couleurs": {},
+    "description": "Le bras à faire évoluer : J1, J2 et J3 à un NEMA chacun, réducteurs simples, sans ressort ni carénage. 1,85 kg de PLA. Changer un réglage relance le calcul complet (10 à 25 min) : les réglages déjà calculés reviennent aussitôt."}
+
+
 # ================================================================== PRENOMS dans la bibliotheque de l'atelier
 def _prenom_cle(p: dict):
     from atelier.noyau.objets import _mesh
@@ -1243,7 +1258,7 @@ CATALOGUE["figurine"] = {"nom": "Figurine photo", "cat": "Projets", "fn": _figur
 _FAMILLES = {
     "servbuddy": ("ServBuddy", "2.7", False, "&#9711;"), "servbuddy_v26": ("ServBuddy", "2.6", True, "&#9711;"), "servbuddy_v25": ("ServBuddy", "2.5", True, "&#9711;"), "servbuddy_v24": ("ServBuddy", "2.4", True, "&#9711;"), "servbuddy_v23": ("ServBuddy", "2.3", True, "&#9711;"), "servbuddy_v16": ("ServBuddy", "2.2", True, "&#9711;"),
     "servbuddy_v1": ("ServBuddy", "1", True, "&#9711;"), "swork190": ("SHWork 190 SE", "1", False, "&#9951;"),
-    "compresseur": ("Compresseur Wankel", "2", False, "&#10042;"), "vibedeck": ("Vibe Deck", "1", False, "&#9635;"), "figurine": ("Figurines", "1", False, "&#9786;"), "davinbot": ("DaVinBot", "2 - 3 NEMA", False, "&#9881;"), "davinbot_complet": ("DaVinBot", "2 - complet 8 NEMA", False, "&#9881;"),
+    "compresseur": ("Compresseur Wankel", "2", False, "&#10042;"), "vibedeck": ("Vibe Deck", "1", False, "&#9635;"), "figurine": ("Figurines", "1", False, "&#9786;"), "davinbot_base": ("DaVinBot", "Base", False, "&#9881;"), "davinbot": ("DaVinBot", "2 - 3 NEMA", True, "&#9881;"), "davinbot_complet": ("DaVinBot", "2 - complet 8 NEMA", True, "&#9881;"),
 }
 for _k, (_f, _v, _a, _i) in _FAMILLES.items():
     if _k in CATALOGUE:

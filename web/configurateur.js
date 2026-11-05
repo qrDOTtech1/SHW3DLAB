@@ -63,6 +63,7 @@ function construireInterface() {
     }).join('')}</details>`).join('');
   $$('#cfg-reglages input[data-k]').forEach(i => i.addEventListener('input', () => {
     F.params[i.dataset.k] = i.type === 'checkbox' ? (i.checked ? 1 : 0) : +i.value;
+    if (i.type === 'checkbox' && F.modeles[F.modele]?.lourd) { generer(); return; }   // afficher ou masquer des pieces : immediat
     const b = $(`#cfg-reglages [data-v="${i.dataset.k}"]`); if (b) b.textContent = i.value;
     F.version = null; majVersions(); regenerer();
   }));
@@ -84,7 +85,19 @@ const LIBELLES = { placo: 'Vis placo', imprimee: 'Imprimée', m3: 'Vis M3', lego
 
 // ------------------------------------------------------------------ generation + affichage
 let _t = null, _n = 0;
-function regenerer() { clearTimeout(_t); _t = setTimeout(generer, 220); }
+function regenerer() {
+  if (F.modeles[F.modele]?.lourd && !F._distant) {     // calcul de plusieurs minutes : jamais sur un simple geste de curseur
+    let b = $('#cfg-recalc');
+    if (!b) {
+      b = document.createElement('button'); b.id = 'cfg-recalc'; b.className = 'primary big';
+      b.textContent = 'Recalculer (10 à 25 min)'; b.style.cssText = 'position:sticky;top:0;z-index:3;width:100%;margin-bottom:8px';
+      b.onclick = () => { b.remove(); generer(); };
+      $('#cfg-reglages').prepend(b);
+    }
+    return;
+  }
+  clearTimeout(_t); _t = setTimeout(generer, 220);
+}
 async function generer() {
   const n = ++_n; $('#cfg-etat').textContent = 'Calcul...';
   const ch = F._distant ? null : window.SHWCharge?.debut(`Calcul du projet ${F.modeles[F.modele]?.nom || F.modele}`, { cle: 'gen-' + F.modele });
@@ -277,7 +290,7 @@ F.appliquer = async d => {                          // mode equipe : meme etat, 
       if (b) b.textContent = v;
       seg?.querySelectorAll('button').forEach(x => x.classList.toggle('on', x.dataset.v == v));
     }
-    F._distant = true; regenerer();                  // sans fenetre de chargement : l'autre poste continue de travailler
+    F._distant = !F.modeles[F.modele]?.lourd; if (F._distant) regenerer(); else regenerer();                  // sans fenetre de chargement : l'autre poste continue de travailler
   }
   groupe.traverse(o => { if (o.isMesh && o.userData.nom) o.visible = !F.masques.has(o.userData.nom); });
   majCouleurs();

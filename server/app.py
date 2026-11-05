@@ -1211,7 +1211,7 @@ def modeles():
     from atelier.meca import CATALOGUE
     return {k: {"nom": c["nom"], "description": c.get("description", ""), "couleurs": c.get("couleurs", {}), "champs": c["champs"],
                 "simulation": c.get("simulation"), "famille": c.get("famille", c["nom"]), "version": c.get("version", ""),
-                "archive": bool(c.get("archive")), "icone": c.get("icone", "")}
+                "archive": bool(c.get("archive")), "icone": c.get("icone", ""), "lourd": bool(c.get("lourd"))}
             for k, c in CATALOGUE.items() if c["cat"] == "Projets"}
 
 
