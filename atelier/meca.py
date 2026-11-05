@@ -1191,11 +1191,16 @@ def _prenom_jeton(p: dict):
     return [_mesh(v) for v in pcs.values()], {"noms": list(pcs)}
 
 
+def _polices():
+    from atelier.produits.porte_cles import POLICES
+    return sorted(POLICES)
+
+
 CATALOGUE["prenom_cle"] = {"nom": "Porte-cle prenom", "cat": "Prenoms", "fn": _prenom_cle, "champs": [
-    _c("texte", "Prenom", "Steven", type_="texte"), _c("police", "Police", "arial_black", type_="texte"),
+    _c("texte", "Prenom", "Steven", type_="texte"), _c("police", "Police", "arial_black", type_="choix", options=_polices()),
     _c("hauteur", "Hauteur des lettres", 16, 6, 60, 1), _c("contour", "Contour", 3.2, 1, 8, 0.2)]}
 CATALOGUE["prenom_jeton"] = {"nom": "Porte-cle prenom + jeton", "cat": "Prenoms", "fn": _prenom_jeton, "champs": [
-    _c("texte", "Prenom", "Steven", type_="texte"), _c("police", "Police", "arial_black", type_="texte"), _c("jeton_d", "Diametre du jeton", 23.25, 15, 30, 0.05)]}
+    _c("texte", "Prenom", "Steven", type_="texte"), _c("police", "Police", "arial_black", type_="choix", options=_polices()), _c("jeton_d", "Diametre du jeton", 23.25, 15, 30, 0.05)]}
 
 
 def _touche_clavier(p: dict):

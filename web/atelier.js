@@ -89,6 +89,7 @@ function index() {
   out.push({ t: 'Image vers 3D niveau 2 (IA locale)', famille: 'IA', run: ouvrirIA });
   out.push({ t: 'Mes pieces : enregistrer et reutiliser (P)', famille: 'Outil', run: ouvrirPieces });
   for (const [t, f] of OUTILS_DESIGN) out.push({ t, famille: 'Design', run: f });
+  out.push({ t: 'Scene shop : photos d annonce, plusieurs versions (V)', famille: 'Outil', run: ouvrirShop });
   out.push({ t: 'Vue en coupe (C)', famille: 'Outil', run: ouvrirCoupe });
   for (const [k, m] of Object.entries(window.__CFG?.modeles || {})) if (!m.archive) out.push({ t: m.nom + ' : ajouter a la scene', famille: 'Bibliotheque', run: () => ouvrirBiblio(k) });
   out.push({ t: 'Guide de l atelier', famille: 'Aide', run: () => lancerTuto() });
@@ -363,12 +364,14 @@ async function ouvrirBiblio(cle) {
   const fiche = k => {
     const m = M[k];
     corps.innerHTML = `<a data-ret style="cursor:pointer;color:#8b919c">&larr; Retour</a><p style="font-weight:600;margin:6px 0 2px">${m.nom}</p><small style="color:#8b919c">${m.description || ''}</small>
-      ${(m.champs || []).map(c => champHTML(c)).join('')}<div class="act"><button class="ok" data-aj="${k}">Ajouter a la scene</button></div>`;
+      ${(m.champs || []).map(c => champHTML(c)).join('')}<div class="act"><button class="ok" data-aj="${k}">Ajouter a la scene</button><button data-ajshop="${k}">Scene shop</button></div>`;
   };
   d.addEventListener('click', async e => {
     if (e.target.closest('[data-f]')) d.remove();
     if (e.target.closest('[data-ret]')) liste();
     const m = e.target.closest('[data-mod]'); if (m) fiche(m.dataset.mod);
+    const sh = e.target.closest('[data-ajshop]');
+    if (sh) { try { const o = await poserModele(sh.dataset.ajshop, lireChamps(corps), lotId()); I().selectionner(o); I().memo(); ouvrirShop(); } catch (er) { toast(er.message); } }
     const a = e.target.closest('[data-aj]');
     if (a) {
       a.disabled = true; a.textContent = 'Calcul...';
@@ -395,11 +398,12 @@ setInterval(async () => {
   if (_lotVu === b.lot && ouvert) return;
   ouvert?.remove(); _lotVu = b.lot;
   const M = (await catalogue())[b.modele]; if (!M) return;
-  const d = el(`<div class="at-flot" id="at-regl" style="width:290px;max-height:70vh;overflow:auto"><h3>${M.nom} <button data-f>&#10005;</button></h3>${(M.champs || []).map(c => champHTML(c, b.params?.[c.k])).join('')}<div class="act"><button class="ok" data-maj>Mettre a jour</button></div></div>`);
+  const d = el(`<div class="at-flot" id="at-regl" style="width:290px;max-height:70vh;overflow:auto"><h3>${M.nom} <button data-f>&#10005;</button></h3>${(M.champs || []).map(c => champHTML(c, b.params?.[c.k])).join('')}<div class="act"><button data-shop>Scene shop</button><button class="ok" data-maj>Mettre a jour</button></div></div>`);
   document.body.appendChild(d);
   d.addEventListener('keydown', e => e.stopPropagation());
   d.addEventListener('click', async e => {
     if (e.target.closest('[data-f]')) d.remove();
+    if (e.target.closest('[data-shop]')) return ouvrirShop();
     if (!e.target.closest('[data-maj]')) return;
     const lot = window.__C3D.objets.filter(o => o.params?.biblio?.lot === b.lot), bb = I().boite(lot);
     const bt = e.target.closest('[data-maj]'); bt.textContent = 'Calcul...';
@@ -479,6 +483,111 @@ function ouvrirDesign() {
   d.addEventListener('click', e => { if (e.target.closest('[data-f]')) d.remove(); const b = e.target.closest('[data-o]'); if (b) OUTILS_DESIGN[+b.dataset.o][1](); });
 }
 
+// ------------------------------------------------------------------ SCENE SHOP : photos d'annonce, plusieurs versions
+const PALETTE = ['#ff6410', '#e9ebef', '#2d3340', '#3f8efc', '#3ddc97', '#f5c542', '#c77dff', '#d94f4f'];
+const FONDS = [['Blanc', '#f6f6f4'], ['Sable', '#e8dfd0'], ['Gris', '#c9ced6'], ['Nuit', '#16181d'], ['Orange', '#ff6410']];
+const SH = { actif: false, groupe: null, sol: null, caches: [], fond0: null, tourne: false, mode: 'couleurs', n: 3, fond: '#f6f6f4', num: 0 };
+async function geosVersion(o, k, total) {
+  // k = numero de version ; une seule source par objet : le generateur s'il existe, sinon le maillage
+  const fact = total > 1 ? 0.75 + 0.5 * k / (total - 1) : 1;
+  const varier = p => { const q = { ...p }; let n = 0; for (const c of Object.keys(q)) if (typeof q[c] === 'number' && q[c] > 0 && n < 3 && !/rand|seed|graine/i.test(c)) { q[c] = +(q[c] * (n % 2 ? 2 - fact : fact)).toFixed(2); n++; } return q; };
+  if (SH.mode === 'formes') {
+    try {
+      if (o.type?.startsWith('gen_')) { const r = await api('/api/c3d/generer', { nom: o.type.slice(4), params: varier(o.params || {}) }); return I().geometrie(r.objets[0].fichier); }
+      if (o.params?.biblio) { const r = await api('/api/meca/piece', { nom: o.params.biblio.modele, params: varier(o.params.biblio.params || {}) }); return I().geometrie(r.objets[0].fichier); }
+    } catch { }
+  }
+  return o.mesh.geometry;
+}
+async function poserVersions() {
+  const num = ++SH.num, sel = C().sel.length ? C().sel : C().objets;
+  if (!sel.length) return;
+  const g = new THREE.Group(); const b0 = I().boite(sel), t0 = b0.getSize(new THREE.Vector3());
+  const ecart = Math.max(t0.x, t0.y) * 1.35, cx = (b0.min.x + b0.max.x) / 2, cy = (b0.min.y + b0.max.y) / 2;
+  for (let k = 0; k < SH.n; k++) {
+    const dx = (k - (SH.n - 1) / 2) * ecart, ech = SH.mode === 'tailles' ? 0.6 + 0.8 * k / Math.max(1, SH.n - 1) : 1;
+    const dy = Math.abs(k - (SH.n - 1) / 2) * ecart * 0.28;
+    let i = 0;
+    for (const o of sel) {
+      const geo = await geosVersion(o, k, SH.n); if (num !== SH.num) return;
+      const coul = SH.mode === 'couleurs' ? PALETTE[(k + i) % PALETTE.length] : PALETTE[i % PALETTE.length];
+      const m = new THREE.Mesh(geo, new THREE.MeshPhysicalMaterial({ color: coul, roughness: 0.42, clearcoat: 0.3, clearcoatRoughness: 0.5 }));
+      o.mesh.updateMatrixWorld(); m.applyMatrix4(o.mesh.matrixWorld);
+      m.position.x -= cx; m.position.y -= cy; m.position.z -= b0.min.z;
+      m.position.multiplyScalar(ech); m.scale.multiplyScalar(ech); m.position.x += dx; m.position.y += dy;
+      m.castShadow = m.receiveShadow = true; g.add(m); i++;
+    }
+  }
+  if (SH.groupe) I().scene.remove(SH.groupe);
+  SH.groupe = g; I().scene.add(g);
+  const b = new THREE.Box3().setFromObject(g), c = b.getCenter(new THREE.Vector3()), r = b.getSize(new THREE.Vector3()).length();
+  const lum = I().scene.children.find(x => x.isDirectionalLight);
+  if (lum) { const s = r * 1.3; Object.assign(lum.shadow.camera, { left: -s, right: s, top: s, bottom: -s, far: r * 8 }); lum.shadow.camera.updateProjectionMatrix(); lum.position.set(c.x - r * 0.6, c.y - r * 0.9, r * 1.6); lum.target.position.copy(c); lum.target.updateMatrixWorld(); }
+  I().orb.target.copy(c); I().cam.position.set(c.x - r * 0.25, c.y - r * 1.05, c.z + r * 0.5); I().orb.update();
+}
+function ouvrirShop() {
+  aller('c3d');
+  if (SH.actif) return;
+  if (!C().objets.length) return toast('Rien a mettre en vitrine. Une vitrine vide, c est juste une fenetre.');
+  SH.actif = true;
+  const sc = I().scene;
+  I().tc.detach();
+  SH.caches = sc.children.filter(x => !x.isLight && x.visible); SH.caches.forEach(x => { x.visible = false; });
+  SH.fond0 = sc.background; sc.background = new THREE.Color(SH.fond);
+  SH.sol = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), new THREE.ShadowMaterial({ opacity: 0.25 })); SH.sol.receiveShadow = true; sc.add(SH.sol);
+  const d = el(`<div class="at-flot" id="at-shop"><h3>Scene shop <button data-f>&#10005;</button></h3>
+    <div class="at-seg">${[['couleurs', 'Couleurs'], ['tailles', 'Tailles'], ['formes', 'Formes']].map(([m, n]) => `<button data-m="${m}" class="${SH.mode === m ? 'on' : ''}">${n}</button>`).join('')}</div>
+    <label style="grid-template-columns:62px 1fr 26px"><span>Versions</span><input type="range" min="1" max="7" value="${SH.n}" data-n><b data-vn>${SH.n}</b></label>
+    <div class="at-seg">${FONDS.map(([n, c]) => `<button data-fond="${c}" title="${n}" style="background:${c};color:${c === '#16181d' ? '#fff' : '#14171d'}">${n}</button>`).join('')}</div>
+    <label style="grid-template-columns:18px 1fr"><input type="checkbox" data-t><span>Plateau tournant</span></label>
+    <div class="act"><button class="ok" data-photo>Photo pour l annonce</button></div>
+    <small style="color:#8b919c">Les versions n existent que dans cette vue : ton projet ne change pas. Formes : pour les modeles issus d un generateur.</small></div>`);
+  document.body.appendChild(d);
+  d.addEventListener('click', e => {
+    if (e.target.closest('[data-f]')) return fermerShop();
+    const m = e.target.closest('[data-m]');
+    if (m) { SH.mode = m.dataset.m; d.querySelectorAll('[data-m]').forEach(x => x.classList.toggle('on', x === m)); poserVersions(); }
+    const f = e.target.closest('[data-fond]');
+    if (f) { SH.fond = f.dataset.fond; sc.background = new THREE.Color(SH.fond); }
+    if (e.target.closest('[data-photo]')) photoShop();
+  });
+  d.addEventListener('input', e => {
+    if (e.target.dataset.n !== undefined) { SH.n = +e.target.value; d.querySelector('[data-vn]').textContent = SH.n; poserVersions(); }
+    if (e.target.dataset.t !== undefined) I().orb.autoRotate = e.target.checked;
+  });
+  poserVersions();
+}
+function fermerShop() {
+  SH.actif = false; SH.num++; const sc = I().scene;
+  if (SH.groupe) sc.remove(SH.groupe); sc.remove(SH.sol); SH.groupe = null;
+  SH.caches.forEach(x => { x.visible = true; }); sc.background = SH.fond0; I().orb.autoRotate = false;
+  $('#at-shop')?.remove(); I().selectionner(C().sel);
+}
+function photoShop() {
+  const { ren, scene, cam } = I(); ren.render(scene, cam);
+  const a = document.createElement('a'); a.download = `shop_${Date.now()}.png`; a.href = ren.domElement.toDataURL('image/png'); a.click();
+  toast('Photo enregistree. Vendue d avance. Probablement.');
+}
+const btnShop = el(`<button id="at-shop-btn" style="position:fixed;z-index:60;right:calc(50% - 60px);top:76px;background:#ff6410;color:#14171d;border:0;border-radius:18px;padding:6px 14px;font:600 12px 'Segoe UI',sans-serif;cursor:pointer;display:none">&#128722; Scene shop</button>`);
+document.body.appendChild(btnShop); btnShop.onclick = ouvrirShop;
+setInterval(() => { btnShop.style.display = $('#tab-c3d').classList.contains('on') && !SH.actif && window.__C3D?.sel?.length ? 'block' : 'none'; }, 300);
+
+// ------------------------------------------------------------------ TOUTES les petites fenetres se deplacent
+document.head.appendChild(Object.assign(document.createElement('style'), { textContent: '.at-flot h3,.c3d-pan>h2,.c3d-pan>h3,.c3d-pan>b:first-child{cursor:move;user-select:none}' }));
+document.addEventListener('pointerdown', e => {
+  const f = e.target.closest?.('.at-flot,.c3d-pan'); if (!f) return;
+  if (e.target.closest('input,select,textarea,button,a,label')) return;
+  const titre = e.target.closest('h2,h3') || (e.clientY - f.getBoundingClientRect().top < 34);
+  if (!titre) return;
+  const r = f.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top;
+  Object.assign(f.style, { position: 'fixed', left: r.left + 'px', top: r.top + 'px', right: 'auto', bottom: 'auto', transform: 'none', margin: 0 });
+  const bouge = ev => { f.style.left = Math.max(0, Math.min(innerWidth - 60, ev.clientX - dx)) + 'px'; f.style.top = Math.max(0, Math.min(innerHeight - 30, ev.clientY - dy)) + 'px'; };
+  const fin = () => { removeEventListener('pointermove', bouge); removeEventListener('pointerup', fin); try { if (f.id) localStorage.setItem('at-pos-' + f.id, JSON.stringify([f.style.left, f.style.top])); } catch { } };
+  addEventListener('pointermove', bouge); addEventListener('pointerup', fin); e.preventDefault();
+}, true);
+new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) if (n.id && n.classList?.contains('at-flot')) { try { const p = JSON.parse(localStorage.getItem('at-pos-' + n.id)); if (p) Object.assign(n.style, { left: p[0], top: p[1], right: 'auto' }); } catch { } } }).observe(document.body, { childList: true });
+document.addEventListener('click', e => { const b = e.target.closest?.('[data-biblio]'); if (b) ouvrirBiblio(b.dataset.biblio); });
+
 // ------------------------------------------------------------------ VUE EN COUPE
 const COUPE = { plan: new THREE.Plane(new THREE.Vector3(0, 0, -1), 0) };
 function ouvrirCoupe() {
@@ -538,6 +647,7 @@ document.addEventListener('keydown', e => {
   const ctrl = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
   if (ctrl && k === 'k') { e.preventDefault(); e.stopPropagation(); return ouvrirRecherche(); }
   if (dansSaisie() || !$('#tab-c3d').classList.contains('on')) return;
+  if (k === 'v' && !ctrl) { e.preventDefault(); ouvrirShop(); }
   if (k === 'p' && !ctrl) { e.preventDefault(); ouvrirPieces(); }
   if (k === 'g' && !ctrl) { e.preventDefault(); ouvrirDesign(); }
   if (k === 'l' && !ctrl) { e.preventDefault(); ouvrirBiblio(); }
