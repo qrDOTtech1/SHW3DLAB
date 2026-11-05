@@ -89,6 +89,7 @@ function index() {
   out.push({ t: 'Image vers 3D niveau 2 (IA locale)', famille: 'IA', run: ouvrirIA });
   out.push({ t: 'Mes pieces : enregistrer et reutiliser (P)', famille: 'Outil', run: ouvrirPieces });
   for (const [t, f] of OUTILS_DESIGN) out.push({ t, famille: 'Design', run: f });
+  for (const [t, m] of [['puissance', 'POUVOIR ! Beaucoup plus de pouvoir. Pour quoi faire ? Aucune idee.'], ['clarkson', 'Certains disent qu il est dans le logiciel. Tout ce qu on sait, c est que le logiciel a mauvais caractere.'], ['aide', 'De l aide. Toi. Ici. Vraiment ? Bon. Le bouton i, en bas de la barre.'], ['stupide', 'Excellente idee. Lance-la tout de suite.'], ['cafe', 'Ca, je ne sais pas l imprimer. Pas encore. Enfin, si, la tasse.'], ['bug', 'Il n y a pas de bug. Il y a des fonctionnalites timides.']]) out.push({ t, famille: 'Tiens donc', run: () => toast(m), secret: 1 });
   out.push({ t: 'Scene shop : photos d annonce, plusieurs versions (V)', famille: 'Outil', run: ouvrirShop });
   out.push({ t: 'Vue en coupe (C)', famille: 'Outil', run: ouvrirCoupe });
   for (const [k, m] of Object.entries(window.__CFG?.modeles || {})) if (!m.archive) out.push({ t: m.nom + ' : ajouter a la scene', famille: 'Bibliotheque', run: () => ouvrirBiblio(k) });
@@ -106,9 +107,9 @@ function ouvrirRecherche() {
   const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
   const rendre = () => {
     const q = norm($('#at-q').value).split(/\s+/).filter(Boolean);
-    vus = liste.filter(x => q.every(m => norm(x.t + ' ' + x.famille).includes(m))).slice(0, 40);
+    vus = liste.filter(x => (x.secret ? q.length && norm(x.t) === q.join(' ') : q.every(m => norm(x.t + ' ' + x.famille).includes(m)))).slice(0, 40);
     sel = Math.min(sel, Math.max(0, vus.length - 1));
-    $('#at-res').innerHTML = vus.map((x, i) => `<div class="${i === sel ? 'on' : ''}" data-i="${i}"><span>${x.t}</span><small>${x.famille}</small></div>`).join('');
+    $('#at-res').innerHTML = !vus.length ? '<div><small>Rien. Absolument rien. J ai cherche partout, avec beaucoup d assurance.</small></div>' : vus.map((x, i) => `<div class="${i === sel ? 'on' : ''}" data-i="${i}"><span>${x.t}</span><small>${x.famille}</small></div>`).join('');
     $('#at-res .on')?.scrollIntoView({ block: 'nearest' });
   };
   const lancer = i => { fermer(); vus[i]?.run(); };
@@ -590,6 +591,45 @@ function photoShop() {
   toast('Photo enregistree. Vendue d avance. Probablement.');
 }
 
+// ------------------------------------------------------------------ PETITES VANNES : discretes, rares, jamais sur le chemin
+const bulle = (txt) => {
+  const d = document.createElement('div');
+  d.style.cssText = "position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9300;pointer-events:none;max-width:520px;background:#14171dee;color:#ffb48a;padding:7px 14px;border-radius:9px;font:italic 12.5px Georgia,serif;transition:opacity .5s";
+  d.textContent = txt; document.body.appendChild(d);
+  setTimeout(() => { d.style.opacity = 0; setTimeout(() => d.remove(), 500); }, 4500);
+};
+let _vanneT = 0;
+function vanne(liste, proba = 0.4) {
+  const t = performance.now();
+  if (t - _vanneT < 40000 || Math.random() > proba) return;     // au plus une toutes les 40 s
+  _vanneT = t; bulle(liste[Math.floor(Math.random() * liste.length)]);
+}
+window.SHWVanne = vanne;
+let _annul = 0, _annulT = 0;
+document.addEventListener('keydown', e => {
+  if (dansSaisie() || !$('#tab-c3d').classList.contains('on')) return;
+  const k = e.key.toLowerCase(), ctrl = e.ctrlKey || e.metaKey;
+  if (ctrl && k === 'z') {
+    const t = performance.now(); _annul = t - _annulT < 4000 ? _annul + 1 : 1; _annulT = t;
+    if (_annul >= 5) { _annul = 0; vanne(['Cinq annulations. Ce n est plus une correction, c est un regret.', 'Tu remontes le temps. Avec un succes tres relatif.'], 1); }
+  }
+  if (ctrl && k === 'd') vanne(['Un second, identique. Parce que le premier etait deja parfait, evidemment.', 'Dupliquer : la solution a tout, depuis toujours.']);
+  if (ctrl && k === 'g') vanne(['Grouper. Faire semblant que tout ca etait prevu.']);
+  if (k === 'delete') vanne(['Supprime. Il n avait rien demande.', 'Adieu. Tu ne manqueras a personne. Sauf peut-etre a Ctrl+Z.']);
+  if (k === 'h' && !ctrl) vanne(['Un trou. La seule partie de la piece qui ne coute pas de filament.']);
+}, true);
+let _nbObj = -1;
+setInterval(() => {
+  const n = window.__C3D?.objets?.length; if (n == null) return;
+  if (_nbObj >= 0 && n !== _nbObj) {
+    if (n >= 25 && _nbObj < 25) vanne(['Vingt-cinq objets. Ce n est plus une scene, c est un probleme de stockage.'], 1);
+    else if (n === 0 && _nbObj > 0) vanne(['Plus rien. Le minimalisme, pousse jusqu au bout.'], 0.7);
+    else if (n === 1 && _nbObj === 0) vanne(['Un objet. Tout commence par la. Et souvent, tout s arrete la.']);
+  }
+  _nbObj = n;
+}, 1000);
+if (new Date().getHours() < 5) setTimeout(() => vanne(['Il est tard. Tres tard. Ce qui explique sans doute cette piece.', 'A cette heure-ci, les gens raisonnables dorment. Tant mieux, il y a de la place.'], 1), 8000);
+
 // ------------------------------------------------------------------ EASTER EGG : cinq clics sur le logo
 const CERTAINS = ['Certains disent qu il a tranche un STL a la main. Et qu il ne connait que deux facons de cliquer. Tout ce qu on sait, c est qu on l appelle : Steven.',
   'Certains disent que Hugo n a jamais lu une notice. Et que les notices ont peur de lui.',
@@ -646,16 +686,20 @@ function ouvrirCoupe() {
 
 // ------------------------------------------------------------------ TUTO
 const ETAPES = [
-  ['[data-a="biblio"]', 'La bibliotheque', 'Touche L : tous les modeles parametriques. Ils arrivent dans cette scene et se re-reglent quand tu les selectionnes.'],
-  ['[data-a="pieces"]', 'Mes pieces', 'Touche P : range une piece reussie. Hugo la retrouve chez lui, et elle se pose en un clic.'],
-  ['#at-rail', 'Tous les modules ici', 'Atelier, prenoms, keycaps, pieces mecaniques et IA 3D. Tout ce que tu crees peut rejoindre la meme scene.'],
-  ['#tab-c3d .c3d-lib', 'Formes et generateurs', 'Clique ou glisse une forme sur le plan. Les generateurs creent des objets complets : vase, keycap, texte, image...'],
-  ['#c3d-view', 'La scene', 'Clic : selectionner. Clic droit : menu de l objet. W, E, R : deplacer, tourner, etirer.'],
-  ['[data-a="cotes"]', 'Cotes au clavier', 'Touche N : tape X, Y, Z, les dimensions ou la rotation, puis Entree. La piece s adapte.'],
-  ['[data-a="pinceau"]', 'Modeler', 'Touche B : tire, pousse, lisse ou aplatis la surface, avec la taille de pinceau que tu veux.'],
-  ['[data-a="ia"]', 'IA 3D', 'Depose des photos : l IA de ton PC reconstruit l objet en 3D, puis il arrive dans la scene.'],
-  ['[data-a="cherche"]', 'Tout chercher', 'Ctrl+K : tape ce que tu veux, outil, forme ou projet, et Entree.'],
-  ['#eq-fen', 'Travailler a deux', 'Travailler avec : meme page, memes objets, meme vue, en direct.'],
+  ['#at-rail', 'Bienvenue dans l atelier', 'Tout ce qui sert a creer est sur cette barre. Oui, tout. J ai verifie. Enfin, quelqu un a verifie.'],
+  ['#tab-c3d .c3d-lib', 'Formes et generateurs', 'Clique ou glisse une forme sur le plan. Une boite. Le debut de toutes les grandes choses, et de beaucoup de boites.'],
+  ['#c3d-view', 'La scene', 'Clic : selectionner. Clic droit : le menu ou tout se passe. W, E, R : deplacer, tourner, etirer. Ctrl+Z : nier ce qui vient d arriver.'],
+  ['[data-a="biblio"]', 'La bibliotheque', 'Touche L : tous les modeles parametriques, dans cette scene. Selectionne-en un plus tard pour le re-regler. Sans rien recommencer. Inoui.'],
+  ['[data-a="pieces"]', 'Mes pieces', 'Touche P : range une piece reussie, ton coequipier la retrouve chez lui. Une piece reussie. Note bien la date.'],
+  ['[data-a="design"]', 'Design', 'Touche G : centrer, empiler, repartir, isoler. Pour faire croire que c etait aligne depuis le debut.'],
+  ['[data-a="cotes"]', 'Cotes au clavier', 'Touche N : tape X, Y, Z, les dimensions, Entree. La precision au centieme, pour une piece imprimee au dixieme. Magnifique.'],
+  ['[data-a="pinceau"]', 'Modeler', 'Touche B : tirer, pousser, lisser, aplatir. Comme de l argile, sans les ongles sales. Alt inverse le geste.'],
+  ['[data-a="coupe"]', 'Vue en coupe', 'Touche C : regarde a l interieur. Ce qu on y trouve n engage que toi.'],
+  ['[data-a="ia"]', 'IA 3D', 'Depose des photos : ton PC reconstruit l objet en quelques minutes. Il va chauffer. C est le prix de la gloire.'],
+  ['#c3d-view', 'Scene shop', 'Clic droit, Scene shop, ou touche V : la grille disparait, plusieurs versions, une photo d annonce. Et ca, c est vendu. Probablement.'],
+  ['[data-a="cherche"]', 'Tout chercher', 'Ctrl+K : tape ce que tu veux, Entree. Certains disent qu on peut y taper des betises. Certains ont raison.'],
+  ['#eq-fen', 'Travailler a deux', 'Travailler avec : meme page, memes objets, memes fenetres, en direct. Le ping est sous la pastille. Que pourrait-il arriver de mal ?'],
+  ['.brand', 'Et voila', 'C est tout. Ambitieux, un peu ridicule, et ca marche. Ce logo cache peut-etre quelque chose. Ou pas. Essaie de cliquer. Beaucoup.'],
 ];
 function lancerTuto(i = 0) {
   aller('c3d');

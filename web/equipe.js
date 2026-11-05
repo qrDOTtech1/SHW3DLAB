@@ -76,6 +76,12 @@
     const nouvelleAction = m.action && m.action !== p.action;
     Object.assign(p, m, { vu: Date.now() });
     if (nouvelleAction) p.actionTs = Date.now();
+    if (nouvelleAction && m.action) {                  // le coequipier fait des siennes : une remarque, de temps en temps
+      if (/corbeille|Supprimer/i.test(m.action)) window.SHWVanne?.([`${m.nom} supprime des choses. Avec une assurance qui fait peur.`, `${m.nom} vient de faire le menage. Vous avez une sauvegarde, n est-ce pas ?`]);
+      else if (/Annuler/i.test(m.action)) window.SHWVanne?.([`${m.nom} revient en arriere. Sage decision. Un peu tard.`]);
+      else if (/enregistre/i.test(m.action)) window.SHWVanne?.([`${m.nom} enregistre. Un geste rare. Prends-en de la graine.`]);
+      else if (/generation IA|IA/.test(m.action)) window.SHWVanne?.([`${m.nom} reveille la carte graphique. Elle n etait pas d accord.`]);
+    }
     pairs.set(m.id, p);
     if (m.t === 'ww' && m.cible === moi.id) return recevoirWW(m);
     if (['cam', 'etat', 'shop'].includes(m.t)) window.__C3D?.reveil?.();

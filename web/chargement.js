@@ -20,7 +20,12 @@ const CSS = `
 #shw-charge .logo{position:absolute;left:16px;top:12px;height:20px;opacity:0;transition:opacity .5s}
 `;
 // etapes classiques des chargements de projet, avec une pointe d'humour de temps a autre
-const ETAPES = ['Ajout de puissance. Encore. On ne sait jamais.', 'Le processeur transpire. C\'est bon signe. Enfin, je crois.', 'Consultation d\'un expert. Il desapprouve. On continue.', 'A quel point est-ce que ca peut etre difficile ?', 'Certains disent que ce calcul n\'a jamais dormi. Tout ce qu\'on sait, c\'est qu\'il fait ventiler le PC.', 'Cette idee est stupide. Lancons-la immediatement.',
+const ETAPES = ['Verification des calculs. Ils ont l air surs d eux. C est mauvais signe.', 'On rajoute des triangles. Personne n a demande. Mais on en rajoute.',
+  'Certains disent que ce maillage n a pas de fin. Tout ce qu on sait, c est qu il a commence.', 'Je ne dis pas que c est long. Je dis que des civilisations ont eu le temps de tomber.',
+  'Dans un monde ideal, ce serait deja fini. Ce monde n est pas ideal.', 'Ajustement au centieme. Pour une imprimante au dixieme. La classe.',
+  'La physique a ete consultee. Elle a soupire.', 'Ce n est pas bloque. Ca reflechit. Tres fort. En silence.',
+  'Quelqu un a dit que c etait impossible. On ne l a plus jamais revu.', 'Alignement des neurones du processeur. Il n en a pas. Ca aide.',
+  'Ajout de puissance. Encore. On ne sait jamais.', 'Le processeur transpire. C\'est bon signe. Enfin, je crois.', 'Consultation d\'un expert. Il desapprouve. On continue.', 'A quel point est-ce que ca peut etre difficile ?', 'Certains disent que ce calcul n\'a jamais dormi. Tout ce qu\'on sait, c\'est qu\'il fait ventiler le PC.', 'Cette idee est stupide. Lancons-la immediatement.',
   'Calcul de la geometrie. C\'est lent. Mais c\'est un lent magnifique.', 'Lecture du projet', 'Génération de la géométrie', 'Vérification des collisions',
   'Rien ne touche la peau ? Vérifié.', 'Assemblage des pièces', 'Ajout de puissance. Pas trop. Juste ce qu\'il faut.',
   'Calcul de la course d\'ouverture', 'Mise en cache pour la prochaine fois', 'Préparation de l\'affichage 3D',
