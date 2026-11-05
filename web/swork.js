@@ -81,7 +81,7 @@ async function ajouter(type, params = {}, opts = {}) {
   const p = { id: 'p' + (W.idn++), type, nom: c.nom, params: Object.fromEntries(c.champs.map(f => [f.k, f.val])), couleur: PALETTE[W.idn % PALETTE.length] };
   Object.assign(p.params, params);
   try {
-    $('#sw-info').textContent = `Generation : ${c.nom}...`;
+    $('#sw-info').textContent = `Génération : ${c.nom}...`;
     await construire(p);
     const b = new THREE.Box3(); W.pieces.forEach(x => b.union(new THREE.Box3().setFromObject(x.groupe)));
     const bp = new THREE.Box3().setFromObject(p.groupe);
@@ -112,7 +112,7 @@ function supprimer() { if (!W.sel) return; scene.remove(W.sel.groupe); W.pieces 
 let _t = null;
 function formulaire() {
   const z = $('#sw-params');
-  if (!W.sel) { z.innerHTML = '<p class="mute">Choisis une piece dans la bibliotheque, ou clique une piece de l\'assemblage.</p>'; return; }
+  if (!W.sel) { z.innerHTML = '<p class="mute">Choisis une pièce dans la bibliothèque, ou clique une pièce de l\'assemblage.</p>'; return; }
   const c = W.cat[W.sel.type], p = W.sel.params;
   z.innerHTML = `<label>Nom<input id="sw-nom" value="${W.sel.nom.replace(/"/g, '')}"></label>` + c.champs.map(f => {
     const v = p[f.k];
@@ -126,7 +126,7 @@ function formulaire() {
   zv.innerHTML = `<h2>Versions</h2><div class="grid2"><select id="sw-v-liste"><option value="">(version courante)</option>${Object.keys(vs).map(n => `<option ${n === W.sel.version ? 'selected' : ''}>${n}</option>`).join('')}</select>
     <button id="sw-v-suppr">Supprimer</button></div><div class="grid2" style="margin-top:5px"><input id="sw-v-nom" placeholder="nom de la version"><button id="sw-v-save">Enregistrer</button></div>`;
   z.prepend(zv);
-  $('#sw-v-save').onclick = () => { const n = $('#sw-v-nom').value.trim() || `v${Object.keys(vs).length + 1}`; vs[n] = JSON.parse(JSON.stringify(W.sel.params)); W.sel.version = n; formulaire(); toast(`Version "${n}" enregistree`); };
+  $('#sw-v-save').onclick = () => { const n = $('#sw-v-nom').value.trim() || `v${Object.keys(vs).length + 1}`; vs[n] = JSON.parse(JSON.stringify(W.sel.params)); W.sel.version = n; formulaire(); toast(`Version "${n}" enregistrée`); };
   $('#sw-v-liste').onchange = async e => { const n = e.target.value; if (!n) return; W.sel.params = JSON.parse(JSON.stringify(vs[n])); W.sel.version = n;
     const pos = W.sel.groupe.position.clone(); await construire(W.sel); W.sel.groupe.position.copy(pos); formulaire(); majNomenclature(); };
   $('#sw-v-suppr').onclick = () => { const n = $('#sw-v-liste').value; if (n) { delete vs[n]; W.sel.version = null; formulaire(); } };
@@ -138,7 +138,7 @@ function formulaire() {
       const sel = document.getElementById('kc-rangee'); document.getElementById('kc-clavier').value = W.sel.nom;
       $('[data-tab="kc"]').click(); await new Promise(r => setTimeout(r, 300));
       sel.value = 'macro'; sel.dispatchEvent(new Event('change'));
-      toast(`Touches M1..M9 ajoutees : ajuste a ${n} touches dans le lot`);
+      toast(`Touches M1..M9 ajoutées : ajuste a ${n} touches dans le lot`);
     };
     z.appendChild(b);
   }
@@ -153,15 +153,15 @@ function infos() {
   const i = W.sel?.info; if (!i) return;
   const lignes = [];
   if (i.entraxe_mm) lignes.push(`Entraxe <b>${i.entraxe_mm} mm</b> &middot; rapport <b>${i.rapport}</b>`);
-  if (i.r_primitif) lignes.push(`Diametre primitif ${r2(2 * i.r_primitif)} mm &middot; tete ${r2(2 * i.r_tete)} mm`);
+  if (i.r_primitif) lignes.push(`Diamètre primitif ${r2(2 * i.r_primitif)} mm &middot; tête ${r2(2 * i.r_tete)} mm`);
   if (i.torsion_deg) lignes.push(`Torsion de l'helice ${i.torsion_deg} deg`);
   if (i.billes) lignes.push(`${i.billes} billes de ${i.d_bille} mm`);
-  if (i.diametre_primitif) lignes.push(`Diametre primitif ${i.diametre_primitif} mm`);
+  if (i.diametre_primitif) lignes.push(`Diamètre primitif ${i.diametre_primitif} mm`);
   if (i.pas_mm) lignes.push(`Pas ${i.pas_mm} mm, ${i.dents} dents`);
-  if (i.force_sortie_6bar_N) lignes.push(`Force a 6 bar : sortie <b>${i.force_sortie_6bar_N} N</b> (~${r2(i.force_sortie_6bar_N / 9.81)} kg), rentree ${i.force_rentree_6bar_N} N`);
+  if (i.force_sortie_6bar_N) lignes.push(`Force a 6 bar : sortie <b>${i.force_sortie_6bar_N} N</b> (~${r2(i.force_sortie_6bar_N / 9.81)} kg), rentrée ${i.force_rentree_6bar_N} N`);
   if (i.joint) lignes.push(`Joint : <b>${i.joint}</b> &middot; gorge ${i.profondeur} mm de profondeur x ${i.largeur} mm, fond d${i.fond}`);
   if (i.ecran_a_mesurer) lignes.push(`<span class="badge warn">${i.ecran_a_mesurer}</span>`);
-  if (i.dimensions_boitier_mm) lignes.push(`Boitier ${i.dimensions_boitier_mm.join(' x ')} mm &middot; ${i.touches} touches`);
+  if (i.dimensions_boitier_mm) lignes.push(`Boîtier ${i.dimensions_boitier_mm.join(' x ')} mm &middot; ${i.touches} touches`);
   if (i.conseil) lignes.push(i.conseil);
   if (i.quincaillerie) lignes.push('A acheter : ' + i.quincaillerie.join(', '));
   $('#sw-infos').innerHTML = lignes.join('<br>');
@@ -183,7 +183,7 @@ function majNomenclature() {
     return `<tr data-p="${p.id}"><td>${p.nom}</td><td>${n}</td><td>${r2(poids)} g</td></tr>`;
   });
   const tot = W.pieces.reduce((a, p) => a + (p.objets || []).reduce((b, o) => b + (o.analyse?.poids_g || 0), 0), 0);
-  $('#sw-nomenclature').innerHTML = `<table class="tbl"><tr><th>Piece</th><th>Qte</th><th>Poids</th></tr>${lignes.join('')}
+  $('#sw-nomenclature').innerHTML = `<table class="tbl"><tr><th>Pièce</th><th>Qte</th><th>Poids</th></tr>${lignes.join('')}
     <tr><td><b>Total imprime</b></td><td></td><td><b>${r2(tot)} g</b></td></tr></table>
     ${Object.keys(q).length ? `<p><b>Quincaillerie</b><br>${Object.entries(q).map(([k, n]) => `${n} x ${k}`).join('<br>')}</p>` : ''}`;
   $$('#sw-nomenclature [data-p]').forEach(tr => tr.onclick = () => selectionner(W.pieces.find(p => p.id === tr.dataset.p)));
@@ -227,14 +227,14 @@ async function versServeur() {
 $('#sw-vers-c3d').onclick = async () => {
   const C = window.__C3D; if (!C?._ajout) return;
   for (const p of W.pieces) for (const o of p.objets) await C._ajout({ ...o, nom: p.nom }, $('#sw-bobine').value);
-  toast(`${W.pieces.length} piece(s) envoyee(s) dans Creation 3D`); $('[data-tab="c3d"]').click();
+  toast(`${W.pieces.length} piece(s) envoyee(s) dans Création 3D`); $('[data-tab="c3d"]').click();
 };
 $('#sw-imprimer').onclick = async () => {
   if (!W.pieces.length) return toast('Assemblage vide');
   try {
-    const objets = (await versServeur()).map(o => ({ ...o, matrice: null }));    // chaque piece posee a plat a l'impression
+    const objets = (await versServeur()).map(o => ({ ...o, matrice: null }));    // chaque piece posee à plat a l'impression
     const { job } = await api('/api/c3d/imprimer', { outil: 'imprimer', objets });
-    await A().suivre(job, '#sw-prog', res => { const S = A().S; S.gen = res; S.tranches = {}; A().renderPlateauxImp(); toast(`${res.plateaux.length} plateau(x) prets`); $('[data-tab="imprimer"]').click(); });
+    await A().suivre(job, '#sw-prog', res => { const S = A().S; S.gen = res; S.tranches = {}; A().renderPlateauxImp(); toast(`${res.plateaux.length} plateau(x) prêts`); $('[data-tab="imprimer"]').click(); });
   } catch (e) { toast(e.message); }
 };
 

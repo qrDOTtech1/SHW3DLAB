@@ -19,15 +19,15 @@
 <header>
   <div class="brand"><img src="logo_shw.png" alt="SHWork" style="height:22px;vertical-align:-4px;margin-right:6px"><b style="letter-spacing:.5px">3DLAB</b></div>
   <nav id="tabs">
-    <button data-tab="creer" class="on">Creer</button>
-    <button data-tab="c3d">Creation 3D</button>
+    <button data-tab="creer" class="on">Créer</button>
+    <button data-tab="c3d">Création 3D</button>
     <button data-tab="kc">Keycaps</button>
     <button data-tab="sw">SHWork</button>
     <button data-tab="pj">Projets</button>
     <button data-tab="cfg" id="nav-cfg" hidden>Projet</button>
     <button data-tab="imprimer">Imprimer</button>
     <button data-tab="filaments">Filaments</button>
-    <button data-tab="couts">Couts &amp; prix</button>
+    <button data-tab="couts">Coûts &amp; prix</button>
     <button data-tab="imprimante">Imprimante</button>
   </nav>
   <div class="kpis" id="kpis"></div>
@@ -39,83 +39,83 @@
   <section id="tab-creer" class="tab on">
     <aside class="panel">
       <div class="chips produits">
-        <button data-prod="porte_cle" class="on">Porte-cle prenom</button>
-        <button data-prod="porte_cle_jeton">Porte-cle prenom + jeton</button>
-        <button data-prod="porte_jeton">Porte-jeton a ejecteur (pro)</button>
+        <button data-prod="porte_cle" class="on">Porte-clé prénom</button>
+        <button data-prod="porte_cle_jeton">Porte-clé prénom + jeton</button>
+        <button data-prod="porte_jeton">Porte-jeton à éjecteur (pro)</button>
         <button data-prod="porte_serviette">Porte-serviette mural</button>
       </div>
       <div id="opt-jeton" hidden>
-        <p class="mute">Jeton de caddie / piece de 1 EUR (d 23.25). Clipsage a 2 niveaux + poussoir : le jeton sort
+        <p class="mute">Jeton de caddie / pièce de 1 EUR (d 23.25). Clipsage a 2 niveaux + poussoir : le jeton sort
           d'environ 6 mm et reste tenu. Corps couleur 1, coulisseau + bouton couleur 2.</p>
         <label>Taille du jeton
           <select id="jeton-d">
-            <option value="23.25">23.25 mm - jeton de caddie standard / piece de 1 EUR</option>
-            <option value="24.25">24.25 mm - format piece de 50 centimes</option>
-            <option value="25.75">25.75 mm - format piece de 2 EUR</option>
+            <option value="23.25">23.25 mm - jeton de caddie standard / pièce de 1 EUR</option>
+            <option value="24.25">24.25 mm - format pièce de 50 centimes</option>
+            <option value="25.75">25.75 mm - format pièce de 2 EUR</option>
           </select></label>
-        <h2>Jeton imprime personnalise</h2>
+        <h2>Jeton imprime personnalisé</h2>
         <div class="grid2">
           <label>Motif du jeton
             <select id="jm-motif"><option value="aucun">Pas de jeton imprime</option>
-              <option value="initiale">Initiale du prenom (en grand)</option>
+              <option value="initiale">Initiale du prénom (en grand)</option>
               <option value="qr">QR code</option><option value="logo">Logo / image</option></select></label>
           <label>Fabrication
-            <select id="jm-mode"><option value="incruste">Incruste, affleurant (2 impressions)</option>
+            <select id="jm-mode"><option value="incruste">Incrusté, affleurant (2 impressions)</option>
               <option value="pause">1 impression + pause changement de filament</option></select></label>
         </div>
-        <label id="jm-texte-l" hidden>Contenu <input id="jm-texte" placeholder="lettre (vide = 1re lettre du prenom) / URL du QR"></label>
+        <label id="jm-texte-l" hidden>Contenu <input id="jm-texte" placeholder="lettre (vide = 1re lettre du prénom) / URL du QR"></label>
         <div id="jm-logo" hidden>
-          <label>Image (PNG transparent ideal, JPG ok) <input type="file" id="jm-fichier" accept="image/*"></label>
+          <label>Image (PNG transparent idéal, JPG ok) <input type="file" id="jm-fichier" accept="image/*"></label>
           <label>Seuil <b id="v-jm-seuil">auto</b><input type="range" id="jm-seuil" min="0" max="255" value="0"></label>
           <label class="chk"><input type="checkbox" id="jm-inv"> Inverser (motif clair sur fond sombre)</label>
         </div>
         <div class="jm-apercu" id="jm-apercu-box" hidden><img id="jm-apercu" alt="apercu du jeton"><p class="mute" id="jm-info"></p></div>
-        <div id="opt-jeton-pro"><p class="mute">Un porte-jeton par prenom ci-dessous (chacun dans sa police). Sans prenom : porte-jetons simples.</p>
-        <label>Quantite (si aucun prenom) <input type="number" id="qte-jeton" value="4" min="1" max="12"></label></div>
-        <p class="mute" id="opt-pcj" hidden>Le prenom forme le porte-cle, le jeton est loge dans le medaillon au bout :
-          on pousse le bouton, il sort d'environ 6 mm. Un porte-cle par prenom, chacun dans sa police.</p>
+        <div id="opt-jeton-pro"><p class="mute">Un porte-jeton par prénom ci-dessous (chacun dans sa police). Sans prénom : porte-jetons simples.</p>
+        <label>Quantité (si aucun prénom) <input type="number" id="qte-jeton" value="4" min="1" max="12"></label></div>
+        <p class="mute" id="opt-pcj" hidden>Le prénom forme le porte-clé, le jeton est loge dans le médaillon au bout :
+          on pousse le bouton, il sort d'environ 6 mm. Un porte-clé par prénom, chacun dans sa police.</p>
       </div>
       <div id="opt-ps" hidden>
-        <p class="mute">Plaque au prenom + crochets imprimes a plat (solides). Fixation INVISIBLE : 2 trous de serrure
-          au dos, comme un cadre. Une plaque par prenom, chacun dans sa police.</p>
+        <p class="mute">Plaque au prénom + crochets imprimés à plat (solides). Fixation INVISIBLE : 2 trous de serrure
+          au dos, comme un cadre. Une plaque par prénom, chacun dans sa police.</p>
         <label>Crochets par plaque <b id="v-croch">3</b><input type="range" id="crochets" min="1" max="4" step="1" value="3"></label>
       </div>
       <div id="opt-cle">
-      <h2>Porte-cle prenom</h2>
-      <p class="mute">Le prenom EST le porte-cle (style tendance Etsy). Base couleur 1 + prenom couleur 2, emboites.</p>
-      <label>Prenoms <span class="mute">(un par ligne)</span>
+      <h2>Porte-clé prénom</h2>
+      <p class="mute">Le prénom EST le porte-clé (style tendance Etsy). Base couleur 1 + prénom couleur 2, emboites.</p>
+      <label>Prénoms <span class="mute">(un par ligne)</span>
         <textarea id="noms" rows="6">Steven
 Lea
 Mathilde
 Noah</textarea></label>
-      <label>Police par defaut <span class="mute">(puis change-la ligne par ligne ci-dessous)</span></label>
+      <label>Police par défaut <span class="mute">(puis change-la ligne par ligne ci-dessous)</span></label>
       <div id="polices" class="chips"></div>
-      <label>Police de chaque prenom</label>
+      <label>Police de chaque prénom</label>
       <div id="lignes" class="lignes"></div>
       <div class="grid2">
         <label>Hauteur <b id="v-hauteur">16</b> mm<input type="range" id="hauteur" min="10" max="26" step="1" value="16"></label>
         <label>Contour <b id="v-contour">3.2</b> mm<input type="range" id="contour" min="2" max="5" step="0.2" value="3.2"></label>
-        <label>Jeu d'emboitement <b id="v-jeu">0.12</b> mm<input type="range" id="jeu" min="0.06" max="0.24" step="0.02" value="0.12"></label>
+        <label>Jeu d'emboîtement <b id="v-jeu">0.12</b> mm<input type="range" id="jeu" min="0.06" max="0.24" step="0.02" value="0.12"></label>
         <label>Fabrication
           <select id="mode"><option value="2impressions">2 impressions (sans CFS)</option>
             <option value="changement">1 impression + changement de filament</option></select></label>
       </div>
       </div>
-      <label>Couleur (bobine) de chaque element <span class="mute">- un plateau par couleur</span></label>
+      <label>Couleur (bobine) de chaque élément <span class="mute">- un plateau par couleur</span></label>
       <div id="couleurs" class="lignes"></div>
-      <button class="primary big" id="btn-generer">Generer les porte-cles</button>
+      <button class="primary big" id="btn-generer">Générer les porte-clés</button>
       <div class="progress" id="gen-prog" hidden><div></div><span></span></div>
     </aside>
     <div class="stage">
       <div id="viewer"></div>
       <div class="stage-tools">
-        <button data-vue="assemble" class="on">Assemble</button>
-        <button data-vue="eclate">Eclate</button>
+        <button data-vue="assemble" class="on">Assemblé</button>
+        <button data-vue="eclate">Éclaté</button>
         <button data-vue="plateaux">Plateaux d'impression</button>
       </div>
-      <div class="stage-empty" id="stage-empty">Tape des prenoms, choisis une police, et clique <b>Generer</b>.</div>
+      <div class="stage-empty" id="stage-empty">Tape des prénoms, choisis une police, et clique <b>Générer</b>.</div>
     </div>
-    <aside class="panel right" id="resultats"><h2>Controles</h2><p class="mute">Les resultats apparaissent ici.</p></aside>
+    <aside class="panel right" id="resultats"><h2>Contrôles</h2><p class="mute">Les résultats apparaissent ici.</p></aside>
   </section>
 
   <!-- ============================================================ IMPRIMER -->
@@ -124,37 +124,37 @@ Noah</textarea></label>
     <aside class="panel c3d-lib">
       <h2>Formes</h2>
       <div class="c3d-grille">
-          <button class="fz" draggable="true" data-forme="boite" title="Boite (clic ou glisser sur le plan)"><i>&#9632;</i><span>Boite</span></button>
+          <button class="fz" draggable="true" data-forme="boite" title="Boîte (clic ou glisser sur le plan)"><i>&#9632;</i><span>Boîte</span></button>
           <button class="fz" draggable="true" data-forme="cylindre" title="Cylindre (clic ou glisser sur le plan)"><i>&#9711;</i><span>Cylindre</span></button>
-          <button class="fz" draggable="true" data-forme="sphere" title="Sphere (clic ou glisser sur le plan)"><i>&#9679;</i><span>Sphere</span></button>
+          <button class="fz" draggable="true" data-forme="sphere" title="Sphère (clic ou glisser sur le plan)"><i>&#9679;</i><span>Sphère</span></button>
           <button class="fz" draggable="true" data-forme="demi_sphere" title="Demi-sphere (clic ou glisser sur le plan)"><i>&#9697;</i><span>Demi-sphere</span></button>
-          <button class="fz" draggable="true" data-forme="cone" title="Cone (clic ou glisser sur le plan)"><i>&#9650;</i><span>Cone</span></button>
+          <button class="fz" draggable="true" data-forme="cone" title="Cône (clic ou glisser sur le plan)"><i>&#9650;</i><span>Cône</span></button>
           <button class="fz" draggable="true" data-forme="pyramide" title="Pyramide (clic ou glisser sur le plan)"><i>&#9651;</i><span>Pyramide</span></button>
           <button class="fz" draggable="true" data-forme="prisme" title="Prisme (clic ou glisser sur le plan)"><i>&#11043;</i><span>Prisme</span></button>
           <button class="fz" draggable="true" data-forme="tube" title="Tube (clic ou glisser sur le plan)"><i>&#9678;</i><span>Tube</span></button>
           <button class="fz" draggable="true" data-forme="tore" title="Tore (clic ou glisser sur le plan)"><i>&#9673;</i><span>Tore</span></button>
-          <button class="fz" draggable="true" data-forme="etoile" title="Etoile (clic ou glisser sur le plan)"><i>&#9733;</i><span>Etoile</span></button>
+          <button class="fz" draggable="true" data-forme="etoile" title="Étoile (clic ou glisser sur le plan)"><i>&#9733;</i><span>Étoile</span></button>
           <button class="fz" draggable="true" data-forme="coeur" title="Coeur (clic ou glisser sur le plan)"><i>&#9829;</i><span>Coeur</span></button>
           <button class="fz" draggable="true" data-forme="texte" title="Texte (clic ou glisser sur le plan)"><i>Aa</i><span>Texte</span></button>
-          <button class="fz" draggable="true" data-forme="vis" title="Vis filetee (clic ou glisser sur le plan)"><i>&#10070;</i><span>Vis filetee</span></button>
-          <button class="fz" draggable="true" data-forme="ecrou" title="Ecrou (clic ou glisser sur le plan)"><i>&#11042;</i><span>Ecrou</span></button>
-          <button class="fz" draggable="true" data-forme="boite_couvercle" title="Boite + couvercle (clic ou glisser sur le plan)"><i>&#9635;</i><span>Boite + couvercle</span></button>
+          <button class="fz" draggable="true" data-forme="vis" title="Vis filetée (clic ou glisser sur le plan)"><i>&#10070;</i><span>Vis filetée</span></button>
+          <button class="fz" draggable="true" data-forme="ecrou" title="Écrou (clic ou glisser sur le plan)"><i>&#11042;</i><span>Écrou</span></button>
+          <button class="fz" draggable="true" data-forme="boite_couvercle" title="Boîte + couvercle (clic ou glisser sur le plan)"><i>&#9635;</i><span>Boîte + couvercle</span></button>
           <button class="fz" draggable="true" data-forme="anneau_cle" title="Anneau (clic ou glisser sur le plan)"><i>&#9675;</i><span>Anneau</span></button>
       </div>
-      <label class="chk"><input type="checkbox" id="c3-mode-trou"> Ajouter comme <b>PERCAGE</b> (H)</label>
-      <h2>Generateurs</h2>
+      <label class="chk"><input type="checkbox" id="c3-mode-trou"> Ajouter comme <b>Perçage</b> (H)</label>
+      <h2>Générateurs</h2>
       <div class="c3d-gens">
-        <button data-gen="logo" title="Logo SHWork en relief : pose-le ensuite sur une surface avec Integrer" style="color:#ff6410;font-weight:500">SHW Logo</button>
-        <button data-biblio="prenom_cle" title="Porte-cle au prenom, directement dans la scene">&#128273; Porte-cle</button>
-        <button data-biblio="prenom_jeton" title="Porte-cle au prenom avec jeton de caddie">&#129689; Porte-cle jeton</button>
-        <button data-biblio="touche_clavier" title="Touche de clavier avec legende">&#9000; Touche</button>
-        <button data-gen="dessin" title="Dessine un contour ou un profil, puis extrusion ou revolution">&#9998; Dessin 2D</button>
-        <button data-gen="vase" title="Vase parametrique : profil, cotes, torsion, ondulations">&#9905; Vase</button>
+        <button data-gen="logo" title="Logo SHWork en relief : pose-le ensuite sur une surface avec Intégrer" style="color:#ff6410;font-weight:500">SHW Logo</button>
+        <button data-biblio="prenom_cle" title="Porte-clé au prénom, directement dans la scène">&#128273; Porte-clé</button>
+        <button data-biblio="prenom_jeton" title="Porte-clé au prénom avec jeton de caddie">&#129689; Porte-clé jeton</button>
+        <button data-biblio="touche_clavier" title="Touche de clavier avec légende">&#9000; Touche</button>
+        <button data-gen="dessin" title="Dessine un contour ou un profil, puis extrusion ou révolution">&#9998; Dessin 2D</button>
+        <button data-gen="vase" title="Vase paramétrique : profil, cotes, torsion, ondulations">&#9905; Vase</button>
         <button data-gen="pot" title="Pot de fleur avec trou de drainage + soucoupe">&#10047; Pot + soucoupe</button>
         <button data-gen="keycap" title="Touche de clavier Cherry MX (1u a 6.25u)">&#9000; Keycap MX</button>
         <button data-gen="bouton" title="Bouton de couture 2 ou 4 trous">&#9673; Bouton</button>
-        <button data-gen="support_tel" title="Support de telephone / tablette">&#128241; Support tel.</button>
-        <button data-gen="shadowbox" title="Tableau en couches a partir d'une image">&#9638; Shadowbox</button>
+        <button data-gen="support_tel" title="Support de téléphone / tablette">&#128241; Support tel.</button>
+        <button data-gen="shadowbox" title="Tableau en couches à partir d'une image">&#9638; Shadowbox</button>
       </div>
       <h2>Texte 3D</h2>
       <input id="c3-texte" value="Steven">
@@ -165,9 +165,9 @@ Noah</textarea></label>
       <input type="file" id="c3-img" accept="image/*">
       <select id="c3-img-mode">
         <option value="relief">Logo en relief sur socle</option>
-        <option value="emporte_piece">Emporte-piece (patisserie)</option>
-        <option value="tampon">Tampon encreur (miroir + poignee)</option>
-        <option value="lithophanie">Lithophanie (photo dans la lumiere)</option>
+        <option value="emporte_piece">Emporte-piece (pâtisserie)</option>
+        <option value="tampon">Tampon encreur (miroir + poignée)</option>
+        <option value="lithophanie">Lithophanie (photo dans la lumière)</option>
         <option value="relief_photo">Relief photo (bas-relief)</option>
       </select>
       <div class="grid2"><label>Largeur mm<input type="number" id="c3-img-l" value="50"></label>
@@ -185,31 +185,31 @@ Noah</textarea></label>
       <div class="c3d-barre">
         <button data-c3="annuler" title="Annuler (Ctrl+Z)">&#8630;</button><button data-c3="refaire" title="Refaire (Ctrl+Y)">&#8631;</button>
         <span class="sep"></span>
-        <button data-mode="translate" class="on" title="Deplacer (W)">&#10021;</button>
+        <button data-mode="translate" class="on" title="Déplacer (W)">&#10021;</button>
         <button data-mode="rotate" title="Tourner (E)">&#10227;</button>
-        <button data-mode="scale" title="Etirer (R)">&#10530;</button>
+        <button data-mode="scale" title="Étirer (R)">&#10530;</button>
         <span class="sep"></span>
         <button data-c3="dupliquer" title="Dupliquer (Ctrl+D)">Dupliquer</button>
-        <button data-c3="grouper" title="Grouper : solides - percages (Ctrl+G)">Grouper</button>
-        <button data-c3="degrouper" title="Degrouper (Ctrl+Shift+G)">Degrouper</button>
-        <button data-c3="trou" title="Solide / percage (H)">Solide/Percage</button>
+        <button data-c3="grouper" title="Grouper : solides - perçages (Ctrl+G)">Grouper</button>
+        <button data-c3="degrouper" title="Dégrouper (Ctrl+Shift+G)">Dégrouper</button>
+        <button data-c3="trou" title="Solide / perçage (H)">Solide/Percage</button>
         <button data-c3="poser" title="Poser sur le plateau (D)">Poser</button>
         <button data-c3="centrer" title="Centrer sur le plateau">Centrer</button>
         <button data-c3="supprimer" title="Supprimer (Suppr)">&#10005;</button>
         <span class="sep"></span>
         <label class="mini">Pas <select id="c3-snap"><option value="0">libre</option><option value="0.1">0.1</option>
           <option value="0.5">0.5</option><option value="1" selected>1</option><option value="5">5</option><option value="10">10</option></select></label>
-        <button data-c3="arete" title="Arrondir / chanfreiner l'arete cliquee (A)">&#9696; Arete</button>
-        <button data-c3="integrer" title="Integrer l'objet selectionne sur la surface d'un autre (I)">&#10148; Integrer</button>
-        <button data-c3="mesure" title="Regle : clique 2 points (M)">Regle</button>
+        <button data-c3="arete" title="Arrondir / chanfreiner l'arête cliquee (A)">&#9696; Arête</button>
+        <button data-c3="integrer" title="Intégrer l'objet sélectionne sur la surface d'un autre (I)">&#10148; Intégrer</button>
+        <button data-c3="mesure" title="Règle : clique 2 points (M)">Règle</button>
         <button data-c3="surplombs" title="Voir les zones qui demandent des supports">Surplombs</button>
       </div>
-      <div class="c3d-info" id="c3-info">Clique une forme a gauche (ou glisse-la sur le plan). Clic = selection, Maj+clic = multi-selection.</div>
+      <div class="c3d-info" id="c3-info">Clique une forme à gauche (ou glisse-la sur le plan). Clic = sélection, Maj+clic = multi-selection.</div>
       <div class="c3d-mesure" id="c3-mesure" hidden></div>
     </div>
     <aside class="panel right c3d-insp">
-      <h2>Selection</h2>
-      <div id="c3-insp"><p class="mute">Rien de selectionne.</p></div>
+      <h2>Sélection</h2>
+      <div id="c3-insp"><p class="mute">Rien de sélectionné.</p></div>
       <h2>Outils</h2>
       <div class="c3d-outils">
         <button data-o="aligner_x" title="Aligner les centres en X">Aligner X</button>
@@ -217,18 +217,18 @@ Noah</textarea></label>
         <button data-o="aligner_z" title="Aligner les bases en Z">Aligner Z</button>
         <button data-o="miroir_x">Miroir X</button><button data-o="miroir_y">Miroir Y</button><button data-o="miroir_z">Miroir Z</button>
         <button data-o="intersection" title="Garde seulement le volume commun">Intersection</button>
-        <button data-o="reseau" title="Copies en ligne ou en cercle">Reseau...</button>
+        <button data-o="reseau" title="Copies en ligne ou en cercle">Réseau...</button>
         <button data-o="couper" title="Coupe au plan + tenons d'alignement">Couper...</button>
-        <button data-o="decouper_plateau" title="Coupe automatiquement ce qui depasse du plateau">Decouper plateau</button>
+        <button data-o="decouper_plateau" title="Coupe automatiquement ce qui depasse du plateau">Découper plateau</button>
         <button data-o="orienter" title="Orientation avec le moins de supports">Orienter auto</button>
-        <button data-o="arrondir" title="Arrondit toutes les aretes d'un coup">Arrondir...</button>
-        <button data-o="coque" title="Creuser a paroi constante">Creuser...</button>
-        <button data-o="epaissir">Epaissir...</button>
+        <button data-o="arrondir" title="Arrondit toutes les arêtes d'un coup">Arrondir...</button>
+        <button data-o="coque" title="Creuser à paroi constante">Creuser...</button>
+        <button data-o="epaissir">Épaissir...</button>
         <button data-o="effet" title="Textures en relief : moletage, nid d'abeille, pierre...">Effet surface...</button>
         <button data-o="ajourer" title="Motif TRAVERSANT : lampes, diffuseurs RGB, grilles">Ajourer...</button>
         <button data-o="lisser" title="Surfaces organiques">Lisser</button>
         <button data-o="simplifier">Simplifier</button>
-        <button data-o="reparer">Reparer</button>
+        <button data-o="reparer">Réparer</button>
       </div>
       <h2>Analyse</h2>
       <div id="c3-analyse" class="mute">-</div>
@@ -247,52 +247,52 @@ Noah</textarea></label>
     <aside class="panel kc-gauche">
       <h2>Profil</h2>
       <label>Profil<select id="kc-profil"></select></label>
-      <div class="grid2"><label>Rangee<select id="kc-rang"><option value="1">R1 (chiffres)</option><option value="2">R2 (AZERTY)</option>
+      <div class="grid2"><label>Rangée<select id="kc-rang"><option value="1">R1 (chiffres)</option><option value="2">R2 (AZERTY)</option>
         <option value="3" selected>R3 (QSDF)</option><option value="4">R4 (WXCV / espace)</option></select></label>
-        <label>Creux du dessus<select id="kc-dish"><option value="">(du profil)</option><option value="cylindre">Cylindrique</option><option value="sphere">Spherique</option><option value="plat">Plat</option></select></label></div>
+        <label>Creux du dessus<select id="kc-dish"><option value="">(du profil)</option><option value="cylindre">Cylindrique</option><option value="sphere">Sphérique</option><option value="plat">Plat</option></select></label></div>
       <h2>Taille</h2>
-      <label class="chk"><input type="checkbox" id="kc-libre"> Dimensions libres en mm (autres claviers, touches speciales)</label>
+      <label class="chk"><input type="checkbox" id="kc-libre"> Dimensions libres en mm (autres claviers, touches spéciales)</label>
       <div id="kc-u-zone" class="grid2"><label>Largeur (u)<select id="kc-ux">
         <option>1</option><option>1.25</option><option>1.5</option><option>1.75</option><option>2</option><option>2.25</option><option>2.75</option><option>3</option><option>6.25</option><option>7</option></select></label>
         <label>Profondeur (u)<select id="kc-uy"><option>1</option><option>1.5</option><option>2</option></select></label></div>
       <div id="kc-libre-zone" class="grid2" hidden><label>Largeur mm<input id="kc-l" type="number" step="0.1" value="15.2"></label>
         <label>Profondeur mm<input id="kc-w" type="number" step="0.1" value="14.6"></label></div>
       <div class="grid2"><label>Pas du clavier mm<input id="kc-pas" type="number" step="0.05" placeholder="19.05"></label>
-        <label>Ecart entre touches<input id="kc-ecart" type="number" step="0.05" placeholder="1.05"></label></div>
+        <label>Écart entre touches<input id="kc-ecart" type="number" step="0.05" placeholder="1.05"></label></div>
       <h2>Forme</h2>
-      <div class="grid2"><label>Hauteur avant<input id="kc-hav" type="number" step="0.1"></label><label>Hauteur arriere<input id="kc-har" type="number" step="0.1"></label>
+      <div class="grid2"><label>Hauteur avant<input id="kc-hav" type="number" step="0.1"></label><label>Hauteur arrière<input id="kc-har" type="number" step="0.1"></label>
         <label>Dessus largeur<input id="kc-hl" type="number" step="0.1"></label><label>Dessus profondeur<input id="kc-hw" type="number" step="0.1"></label>
         <label>Recul du dessus<input id="kc-dech" type="number" step="0.1" placeholder="0"></label><label>Profondeur creux<input id="kc-creux" type="number" step="0.05"></label>
         <label>Rayon bas<input id="kc-rb" type="number" step="0.1" placeholder="1.2"></label><label>Rayon dessus<input id="kc-rh" type="number" step="0.1" placeholder="2"></label>
-        <label>Paroi<input id="kc-paroi" type="number" step="0.1" placeholder="1.3"></label><label>Repere doigt<select id="kc-repere"><option value="aucun">Aucun</option><option value="barre">Barre (F/J)</option><option value="point">Point</option></select></label></div>
+        <label>Paroi<input id="kc-paroi" type="number" step="0.1" placeholder="1.3"></label><label>Repère doigt<select id="kc-repere"><option value="aucun">Aucun</option><option value="barre">Barre (F/J)</option><option value="point">Point</option></select></label></div>
       <h2>Tige</h2>
       <label>Type<select id="kc-tige"></select></label>
       <div class="grid2"><label>Jeu de la tige<input id="kc-jeu" type="number" step="0.01" placeholder="0.05"></label>
         <label class="chk" style="margin-top:22px"><input type="checkbox" id="kc-nerv" checked> Nervures</label></div>
-      <p class="mute">Clavier non standard (tige proprietaire) : choisis "Axe rond" ou "Aucune" et mesure la touche d'origine au pied a coulisse.</p>
+      <p class="mute">Clavier non standard (tige propriétaire) : choisis "Axe rond" ou "Aucune" et mesure la touche d'origine au pied à coulisse.</p>
     </aside>
     <div class="stage kc-stage">
       <div id="kc-view" style="position:absolute;inset:0"></div>
       <div class="c3d-barre"><button class="kc-vue" data-v="iso">Perspective</button><button class="kc-vue" data-v="dessus">Dessus</button><button class="kc-vue" data-v="face">Face</button>
-        <label class="mini"><input type="checkbox" id="kc-eclate"> Eclate</label><button id="kc-stl">Exporter STL</button></div>
+        <label class="mini"><input type="checkbox" id="kc-eclate"> Éclaté</label><button id="kc-stl">Exporter STL</button></div>
       <div class="c3d-info" id="kc-etat">Chargement...</div>
     </div>
     <aside class="panel right kc-droite">
       <h2>Projet</h2>
       <div class="pj-barre"><span class="mute" data-pj-titre="keycaps">Projet non enregistre</span>
         <button data-pj-save="keycaps">Enregistrer</button><button data-pj-save="keycaps" data-sous="1">Enregistrer sous</button><button data-pj-new="keycaps">Nouveau projet</button></div>
-      <h2>Legende</h2>
+      <h2>Légende</h2>
       <label>Type<select id="kc-leg"><option value="aucune">Aucune (touche vierge)</option><option value="texte" selected>Texte</option><option value="logo">Logo / image</option></select></label>
       <div id="kc-leg-texte"><label>Texte<input id="kc-texte" value="A"></label><label>Police<select id="kc-police"></select></label></div>
       <div id="kc-leg-logo" hidden><label>Image<input type="file" id="kc-logo" accept="image/*"></label>
         <div class="grid2"><label>Seuil<input type="range" id="kc-seuil" min="0" max="255" value="0"></label><label class="chk" style="margin-top:22px"><input type="checkbox" id="kc-inv"> Inverser</label></div></div>
       <div id="kc-leg-opts">
-        <label>Rendu<select id="kc-mode"><option value="graver">Grave (en creux)</option><option value="relief">Relief</option><option value="incruster">Incruste 2 couleurs (facon double-shot)</option>
-          <option value="percer">Percee RGB (la lumiere passe)</option><option value="translucide">Translucide RGB (insert a imprimer en translucide)</option></select></label>
-        <label>Emplacement<select id="kc-face"><option value="dessus">Dessus (epouse le creux)</option><option value="avant">Face avant (side-print)</option></select></label>
+        <label>Rendu<select id="kc-mode"><option value="graver">Gravé (en creux)</option><option value="relief">Relief</option><option value="incruster">Incrusté 2 couleurs (façon double-shot)</option>
+          <option value="percer">Percée RGB (la lumière passe)</option><option value="translucide">Translucide RGB (insert à imprimer en translucide)</option></select></label>
+        <label>Emplacement<select id="kc-face"><option value="dessus">Dessus (épouse le creux)</option><option value="avant">Face avant (side-print)</option></select></label>
         <label>Taille <b class="kc-v" data-for="tl"></b><input type="range" id="kc-tl" min="0.15" max="0.95" step="0.01" value="0.55"></label>
         <label>Rotation <b class="kc-v" data-for="rot"></b><input type="range" id="kc-rot" min="-180" max="180" step="5" value="0"></label>
-        <div class="grid2"><label>Decalage X<input id="kc-dx" type="number" step="0.2" value="0"></label><label>Decalage Y<input id="kc-dy" type="number" step="0.2" value="0"></label>
+        <div class="grid2"><label>Décalage X<input id="kc-dx" type="number" step="0.2" value="0"></label><label>Décalage Y<input id="kc-dy" type="number" step="0.2" value="0"></label>
           <label>Profondeur<input id="kc-prof" type="number" step="0.1" value="0.6"></label><label>Jeu incrustation<input id="kc-jeul" type="number" step="0.01" value="0.08"></label></div>
       </div>
       <h2>Surface du dessus</h2>
@@ -301,17 +301,17 @@ Noah</textarea></label>
         <label>Relief texture<input id="kc-texture_prof" type="number" step="0.05" value="0.35"></label><label>Taille texture<input id="kc-texture_taille" type="number" step="0.1" value="2.5"></label>
         <label>Taille ajourage<input id="kc-ajour_taille" type="number" step="0.1" value="3"></label><label>Parois ajourage<input id="kc-ajour_trait" type="number" step="0.01" value="0.15"></label></div>
       <h2>Couleurs</h2>
-      <div class="grid2"><label>Touche<select id="kc-bob-touche"></select></label><label>Legende<select id="kc-bob-leg"></select></label></div>
-      <button id="kc-vers-c3d">Envoyer cette touche dans Creation 3D</button>
+      <div class="grid2"><label>Touche<select id="kc-bob-touche"></select></label><label>Légende<select id="kc-bob-leg"></select></label></div>
+      <button id="kc-vers-c3d">Envoyer cette touche dans Création 3D</button>
       <div id="kc-jeu-zone">
         <h2>Lot a fabriquer</h2>
         <div class="grid2"><label>Clavier<input id="kc-clavier" list="kc-claviers" value="Mon clavier"></label>
-          <label>Quantite<input id="kc-qte" type="number" min="1" max="50" value="1"></label></div>
+          <label>Quantité<input id="kc-qte" type="number" min="1" max="50" value="1"></label></div>
         <datalist id="kc-claviers"></datalist>
-        <div class="grid2"><button class="primary" id="kc-ajouter">+ Ajouter au lot</button><button id="kc-maj" disabled>Mettre a jour</button></div>
-        <label>Ajouter une rangee avec ces reglages<select id="kc-rangee"><option value="">-- choisir --</option>
+        <div class="grid2"><button class="primary" id="kc-ajouter">+ Ajouter au lot</button><button id="kc-maj" disabled>Mettre à jour</button></div>
+        <label>Ajouter une rangée avec ces réglages<select id="kc-rangee"><option value="">-- choisir --</option>
           <option value="azerty_lettres">Lettres AZERTY</option><option value="chiffres">Chiffres</option><option value="modificateurs">Modificateurs</option>
-          <option value="fleches">Fleches</option><option value="pave">Pave numerique</option><option value="f">F1 - F12</option><option value="macro">Macro M1 - M9 (Vibe Deck)</option></select></label>
+          <option value="fleches">Flèches</option><option value="pave">Pavé numérique</option><option value="f">F1 - F12</option><option value="macro">Macro M1 - M9 (Vibe Deck)</option></select></label>
         <div id="kc-lot"></div>
         <p class="mute" id="kc-nb"></p>
         <div class="grid2"><button id="kc-export-lot">Exporter le lot (STL)</button><button id="kc-vider-lot">Vider le lot</button></div>
@@ -325,7 +325,7 @@ Noah</textarea></label>
   <section id="tab-sw" class="tab">
     <aside class="panel">
       <h2>SHWork</h2>
-      <p class="mute">Conception mecanique : pieces parametriques, assemblage, animation. Fondations pour bras robotises, RC, mecanismes.</p>
+      <p class="mute">Conception mécanique : pièces paramétriques, assemblage, animation. Fondations pour bras robotises, RC, mécanismes.</p>
       <div id="sw-lib"></div>
     </aside>
     <div class="stage">
@@ -333,20 +333,20 @@ Noah</textarea></label>
       <div class="c3d-barre">
         <button id="sw-animer">Animer</button>
         <label class="mini">Vitesse <input type="range" id="sw-vitesse" min="1" max="120" value="20" style="width:90px"> tr/min</label>
-        <button id="sw-eclate" title="Pieces cote a cote, dans leur orientation d'impression">Eclate</button><button id="sw-cadrer">Cadrer</button><button id="sw-dupliquer">Dupliquer</button><button id="sw-suppr">&#10005;</button>
+        <button id="sw-eclate" title="Pièces côté à côté, dans leur orientation d'impression">Éclaté</button><button id="sw-cadrer">Cadrer</button><button id="sw-dupliquer">Dupliquer</button><button id="sw-suppr">&#10005;</button>
       </div>
-      <div class="c3d-info" id="sw-info">Clic = selectionner, fleches de la gizmo = deplacer (W) / tourner (E).</div>
+      <div class="c3d-info" id="sw-info">Clic = sélectionner, flèches de la gizmo = déplacer (W) / tourner (E).</div>
     </div>
     <aside class="panel right">
       <h2>Projet</h2>
       <div class="pj-barre"><span class="mute" data-pj-titre="swork">Projet non enregistre</span>
         <button data-pj-save="swork">Enregistrer</button><button data-pj-save="swork" data-sous="1">Enregistrer sous</button><button data-pj-new="swork">Nouveau projet</button></div>
-      <h2>Piece selectionnee</h2>
+      <h2>Pièce sélectionnée</h2>
       <div id="sw-params"></div>
       <h2>Nomenclature</h2>
       <div id="sw-nomenclature"></div>
       <label>Bobine<select id="sw-bobine"></select></label>
-      <div class="grid2"><button id="sw-vers-c3d">Vers Creation 3D</button><button class="primary" id="sw-imprimer">Imprimer</button></div>
+      <div class="grid2"><button id="sw-vers-c3d">Vers Création 3D</button><button class="primary" id="sw-imprimer">Imprimer</button></div>
       <div class="progress" id="sw-prog" hidden><div></div><span></span></div>
     </aside>
   </section>
@@ -356,10 +356,10 @@ Noah</textarea></label>
     <div class="pj-tete">
       <h2>Mes projets</h2>
       <input id="pj-cherche" type="search" placeholder="Rechercher un projet, une famille, une version..." autocomplete="off">
-      <select id="pj-tri" title="Tri dans chaque famille"><option value="recent">Plus recents</option><option value="nom">Nom</option><option value="version">Version</option></select>
-      <label class="chk" title="Afficher les versions archivees (anciennes versions)"><input type="checkbox" id="pj-archives" checked> Anciennes versions</label>
+      <select id="pj-tri" title="Tri dans chaque famille"><option value="recent">Plus récents</option><option value="nom">Nom</option><option value="version">Version</option></select>
+      <label class="chk" title="Afficher les versions archivées (anciennes versions)"><input type="checkbox" id="pj-archives" checked> Anciennes versions</label>
       <span style="flex:1"></span>
-      <button id="pj-synchro" title="Partager mes projets et recuperer ceux des autres postes (GitHub). Automatique toutes les 2 min et a chaque enregistrement.">&#10227; Synchroniser</button>
+      <button id="pj-synchro" title="Partager mes projets et récupérer ceux des autres postes (GitHub). Automatique toutes les 2 min et à chaque enregistrement.">&#10227; Synchroniser</button>
       <span id="pj-synchro-etat" style="font-size:11px;color:#8b919c"></span>
       <div class="pj-nouveau"><button class="primary" id="pj-nouveau">+ Nouveau projet &#9662;</button><div id="pj-menu" hidden></div></div>
     </div>
@@ -374,7 +374,7 @@ Noah</textarea></label>
     </aside>
     <div class="stage cfg-stage">
       <div id="cfg-view" style="position:absolute;inset:0"></div>
-      <div class="cfg-outils"><button id="cfg-eclate">Eclate</button><button id="cfg-cadrer">Recentrer</button></div>
+      <div class="cfg-outils"><button id="cfg-eclate">Éclaté</button><button id="cfg-cadrer">Recentrer</button></div>
       <div class="cfg-etat" id="cfg-etat"></div>
     </div>
     <aside class="panel right cfg-droite">
@@ -382,11 +382,11 @@ Noah</textarea></label>
       <div class="pj-barre"><span class="mute" data-pj-titre="__cfg">Projet non enregistre</span>
         <button class="primary" id="cfg-enregistrer">Enregistrer</button><button id="cfg-enregistrer-sous">Enregistrer sous</button><button id="cfg-nouveau">Nouveau projet</button></div>
       <div id="cfg-perf" hidden>
-        <h2>Performances (cycle reel simule)</h2>
+        <h2>Performances (cycle réel simule)</h2>
         <canvas id="cfg-perf-graph" width="560" height="220" style="width:100%;border-radius:10px"></canvas>
         <div id="cfg-perf-stats" class="cfg-sim-stats"></div>
-        <div class="grid2"><label class="cfg-ligne"><span>Regime (tr/min)</span><input type="number" id="perf-rpm" value="1200" step="100" min="100" max="4000"></label>
-          <button id="perf-optimiser" style="margin-top:18px">Optimiser les lumieres</button></div>
+        <div class="grid2"><label class="cfg-ligne"><span>Régime (tr/min)</span><input type="number" id="perf-rpm" value="1200" step="100" min="100" max="4000"></label>
+          <button id="perf-optimiser" style="margin-top:18px">Optimiser les lumières</button></div>
         <p class="mute" id="perf-msg"></p>
       </div>
       <div id="cfg-sim" hidden>
@@ -398,23 +398,23 @@ Noah</textarea></label>
           <label class="cfg-ligne"><span>Vitesse max (perceuse / moteur)<b data-sv="n_max">1500</b></span><input type="range" data-s="n_max" min="200" max="4000" step="50" value="1500"></label>
           <label class="cfg-ligne"><span>Consigne (bar)<b data-sv="consigne">2</b></span><input type="range" data-s="consigne" min="0.2" max="6" step="0.1" value="2"></label>
           <label class="cfg-ligne"><span>Hysteresis (bar)<b data-sv="hyst">0.4</b></span><input type="range" data-s="hyst" min="0.05" max="2" step="0.05" value="0.4"></label>
-          <label class="cfg-ligne"><span>Soupape de securite (bar)<b data-sv="soupape">3</b></span><input type="range" data-s="soupape" min="0.5" max="8" step="0.1" value="3"></label>
-          <label class="cfg-ligne"><span>Reservoir (L)<b data-sv="v_res_L">0.3</b></span><input type="range" data-s="v_res_L" min="0.05" max="5" step="0.05" value="0.3"></label>
+          <label class="cfg-ligne"><span>Soupape de sécurité (bar)<b data-sv="soupape">3</b></span><input type="range" data-s="soupape" min="0.5" max="8" step="0.1" value="3"></label>
+          <label class="cfg-ligne"><span>Réservoir (L)<b data-sv="v_res_L">0.3</b></span><input type="range" data-s="v_res_L" min="0.05" max="5" step="0.05" value="0.3"></label>
           <label class="cfg-ligne"><span>Fuites (L/min a 1 bar)<b data-sv="fuite_Lmin_1bar">1</b></span><input type="range" data-s="fuite_Lmin_1bar" min="0" max="10" step="0.1" value="1"></label>
-          <label class="cfg-ligne"><span>Etancheite max des joints imprimes (bar)<b data-sv="etanche_bar">4</b></span><input type="range" data-s="etanche_bar" min="0.5" max="10" step="0.1" value="4"></label>
-          <label class="cfg-ligne"><span>Verin : alesage / course / cycles par min<b data-sv="verin_cpm">10</b></span>
+          <label class="cfg-ligne"><span>Étanchéité max des joints imprimés (bar)<b data-sv="etanche_bar">4</b></span><input type="range" data-s="etanche_bar" min="0.5" max="10" step="0.1" value="4"></label>
+          <label class="cfg-ligne"><span>Vérin : alésage / course / cycles par min<b data-sv="verin_cpm">10</b></span>
             <div class="grid2"><input type="number" data-s="verin_d" value="20" step="1"><input type="number" data-s="verin_course" value="40" step="5"></div>
             <input type="range" data-s="verin_cpm" min="0" max="60" step="1" value="10"></label>
           <label class="cfg-ligne"><span>PID : Kp / Ki</span><div class="grid2"><input type="number" data-s="kp" value="0.8" step="0.1"><input type="number" data-s="ki" value="0.3" step="0.05"></div></label>
-          <label class="cfg-ligne"><span>Duree simulee (s)<b data-sv="duree">60</b></span><input type="range" data-s="duree" min="10" max="600" step="10" value="60"></label>
+          <label class="cfg-ligne"><span>Durée simulée (s)<b data-sv="duree">60</b></span><input type="range" data-s="duree" min="10" max="600" step="10" value="60"></label>
         </div>
-        <p class="mute">Controle reel : ESP32 + capteur de pression (ex. XGZP6847, 0-10 bar) + MOSFET / pont H sur le moteur : la meme regulation (tout ou rien ou PID) tourne dans le firmware.</p>
+        <p class="mute">Contrôle réel : ESP32 + capteur de pression (ex. XGZP6847, 0-10 bar) + MOSFET / pont H sur le moteur : la même regulation (tout ou rien ou PID) tourne dans le firmware.</p>
       </div>
       <h2>Versions</h2>
       <div id="cfg-versions" class="cfg-versions"></div>
       <div class="grid2" style="margin-top:6px"><input id="cfg-version-nom" placeholder="Nom de la version"><button id="cfg-version-save">Enregistrer la version</button></div>
       <div id="cfg-verif"></div>
-      <h2>Pieces a imprimer</h2>
+      <h2>Pièces à imprimer</h2>
       <div id="cfg-pieces"></div>
       <h2>Couleurs</h2>
       <div id="cfg-couleurs"></div>
@@ -428,14 +428,14 @@ Noah</textarea></label>
 
   <section id="tab-imprimer" class="tab">
     <div class="col">
-      <h2>1. Qualite</h2>
+      <h2>1. Qualité</h2>
       <div id="qualites" class="cards3"></div>
       <h2>2. Plateaux</h2>
-      <div id="plateaux-imp" class="plateaux"><p class="mute">Genere d'abord des porte-cles dans l'onglet Creer.</p></div>
+      <div id="plateaux-imp" class="plateaux"><p class="mute">Généré d'abord des porte-clés dans l'onglet Créer.</p></div>
       <h2>3. Envoi</h2>
       <div class="panel inline">
-        <p><b>Envoi a l'imprimante : desactive.</b> L'atelier ne communique pas avec la K2 SE tant que tu ne l'actives pas
-          (onglet Imprimante). Pour l'instant : telecharge le G-code et lance-le depuis Creality Print ou une cle USB.</p>
+        <p><b>Envoi à l'imprimante : désactivé.</b> L'atelier ne communique pas avec la K2 SE tant que tu ne l'actives pas
+          (onglet Imprimante). Pour l'instant : télécharge le G-code et lance-le depuis Creality Print ou une cle USB.</p>
       </div>
     </div>
   </section>
@@ -455,15 +455,15 @@ Noah</textarea></label>
     <div class="col two">
       <div class="panel">
         <h2>Calcul du prix</h2>
-        <label>Cout d'impression par piece (EUR) <input type="number" id="p-cout" step="0.01" value="0.25"></label>
-        <p class="mute" id="p-cout-src">Valeur par defaut. Tranche un plateau : le cout reel par piece est repris ici.</p>
+        <label>Coût d'impression par pièce (EUR) <input type="number" id="p-cout" step="0.01" value="0.25"></label>
+        <p class="mute" id="p-cout-src">Valeur par défaut. Tranche un plateau : le coût réel par pièce est repris ici.</p>
         <label>Prix de vente (EUR) <span class="mute">(vide = prix conseille)</span><input type="number" id="p-prix" step="0.1"></label>
-        <label>Quantite <input type="number" id="p-qte" value="10" min="1"></label>
+        <label>Quantité <input type="number" id="p-qte" value="10" min="1"></label>
         <button class="primary" id="btn-prix">Calculer</button>
         <div id="prix-res"></div>
       </div>
       <div class="panel">
-        <h2>Parametres de cout</h2>
+        <h2>Paramètres de coût</h2>
         <div id="couts-form" class="grid2"></div>
         <button id="btn-couts">Enregistrer</button>
       </div>
@@ -475,10 +475,10 @@ Noah</textarea></label>
     <div class="col">
       <div class="panel">
         <h2>Creality K2 SE</h2>
-        <p>Adresse vue sur le reseau : <code id="imp-ip"></code></p>
-        <p><b>Connexion : desactivee.</b> Choix volontaire : aucune requete n'est envoyee a l'imprimante depuis l'atelier.
-          Quand on l'activera, le lancement d'une impression sera toujours un bouton avec confirmation, bloque si
-          l'imprimante est occupee.</p>
+        <p>Adresse vue sur le réseau : <code id="imp-ip"></code></p>
+        <p><b>Connexion : désactivée.</b> Choix volontaire : aucune requete n'est envoyée à l'imprimante depuis l'atelier.
+          Quand on l'activera, le lancement d'une impression sera toujours un bouton avec confirmation, bloqué si
+          l'imprimante est occupée.</p>
       </div>
     </div>
   </section>

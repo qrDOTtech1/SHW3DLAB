@@ -6,7 +6,7 @@ toute seule et un projet peut sauver / re-generer ses pieces.
 
 Transmission : engrenage droit / helicoidal (developpante de cercle vraie), cremaillere, paire engrenee
   (entraxe calcule), poulie GT2.
-Guidage : logement de roulement standard (608, 625, 688, 6001, 6202...), roulement a billes IMPRIME en place,
+Guidage : logement de roulement standard (608, 625, 688, 6001, 6202...), roulement à billes IMPRIME en place,
   arbre (rond, meplat D, rainure de clavette), entretoise, accouplement d'arbres.
 Articulation : charniere imprimee en place (axe captif).
 """
@@ -210,7 +210,7 @@ def logement_roulement(p: dict):
 
 
 def roulement_imprime(p: dict):
-    """Roulement a billes imprime EN PLACE (bagues + billes captives, une seule impression, aucun montage)."""
+    """Roulement à billes imprime EN PLACE (bagues + billes captives, une seule impression, aucun montage)."""
     g = lambda k, d: float(p.get(k, d))
     di, de, b = g("d_int", 8), g("d_ext", 30), g("largeur", 10)
     jeu = g("jeu", 0.35)
@@ -225,7 +225,7 @@ def roulement_imprime(p: dict):
         a = 2 * math.pi * k / n
         s = s + mf.Manifold.sphere(db / 2, 32).translate((rm * math.cos(a), rm * math.sin(a), b / 2))
     return vers_trimesh(s), {"billes": n, "d_bille": round(db, 2), "jeu": jeu,
-                             "conseil": "Imprimer a plat, sans support, couche <= 0.2 ; casser les billes a la main apres impression"}
+                             "conseil": "Imprimer à plat, sans support, couche <= 0.2 ; casser les billes a la main apres impression"}
 
 
 def arbre(p: dict):
@@ -302,7 +302,7 @@ def charniere(p: dict):
         for y in (L * 0.2, L * 0.8):
             v = mf.Manifold.cylinder(e + 2, 1.75, 1.75, 24).translate((x, y, -1)) + mf.Manifold.cylinder(1.6, 1.75, 3.5, 24).translate((x, y, e - 1.6))
             s_a, s_b = s_a - v, s_b - v
-    return vers_trimesh(s_a + s_b), {"noeuds": n, "jeu": jeu, "conseil": "Imprimer a plat, ailes sur le plateau ; faire jouer a la main apres impression"}
+    return vers_trimesh(s_a + s_b), {"noeuds": n, "jeu": jeu, "conseil": "Imprimer à plat, ailes sur le plateau ; faire jouer a la main apres impression"}
 
 
 # ------------------------------------------------------------------ CATALOGUE (schemas -> interface automatique)
@@ -313,38 +313,38 @@ def _c(k, label, val, mini=None, maxi=None, pas=None, type_="nombre", options=No
 CATALOGUE = {
     "engrenage": {"nom": "Engrenage droit / helicoidal", "cat": "Transmission", "fn": engrenage, "champs": [
         _c("module", "Module", 1.5, 0.5, 5, 0.25, aide="taille des dents (1 = petit, 2 = robuste)"), _c("dents", "Nombre de dents", 20, 6, 200, 1),
-        _c("epaisseur", "Epaisseur", 8, 2, 60, 0.5), _c("helice", "Angle d'helice (0 = droit)", 0, -45, 45, 1),
+        _c("epaisseur", "Épaisseur", 8, 2, 60, 0.5), _c("helice", "Angle d'helice (0 = droit)", 0, -45, 45, 1),
         _c("chevrons", "Chevrons (helices opposees)", 0, type_="bool"), _c("angle_pression", "Angle de pression", 20, 14.5, 25, 0.5),
-        _c("alesage", "Alesage", 5, 0, 60, 0.1), _c("meplat", "Meplat (D)", 0, 0, 3, 0.1),
-        _c("moyeu_d", "Moyeu diametre", 0, 0, 80, 0.5), _c("moyeu_h", "Moyeu hauteur", 0, 0, 40, 0.5),
+        _c("alesage", "Alésage", 5, 0, 60, 0.1), _c("meplat", "Meplat (D)", 0, 0, 3, 0.1),
+        _c("moyeu_d", "Moyeu diamètre", 0, 0, 80, 0.5), _c("moyeu_h", "Moyeu hauteur", 0, 0, 40, 0.5),
         _c("allegements", "Allegements (trous)", 0, 0, 12, 1), _c("jeu", "Jeu par flanc (backlash)", 0.08, 0, 0.3, 0.01)]},
     "paire": {"nom": "Paire d'engrenages (entraxe auto)", "cat": "Transmission", "fn": paire_engrenages, "champs": [
         _c("module", "Module", 1.5, 0.5, 5, 0.25), _c("dents_pignon", "Dents du pignon", 12, 6, 100, 1), _c("dents_roue", "Dents de la roue", 36, 6, 200, 1),
-        _c("epaisseur", "Epaisseur", 8, 2, 60, 0.5), _c("helice", "Helice", 0, -45, 45, 1),
-        _c("alesage_pignon", "Alesage pignon", 5, 0, 30, 0.1), _c("alesage_roue", "Alesage roue", 8, 0, 60, 0.1),
+        _c("epaisseur", "Épaisseur", 8, 2, 60, 0.5), _c("helice", "Helice", 0, -45, 45, 1),
+        _c("alesage_pignon", "Alésage pignon", 5, 0, 30, 0.1), _c("alesage_roue", "Alésage roue", 8, 0, 60, 0.1),
         _c("jeu_entraxe", "Jeu d'entraxe", 0.1, 0, 0.5, 0.01), _c("allegements", "Allegements", 0, 0, 12, 1)]},
     "cremaillere": {"nom": "Cremaillere", "cat": "Transmission", "fn": cremaillere, "champs": [
-        _c("module", "Module", 1.5, 0.5, 5, 0.25), _c("longueur", "Longueur", 80, 10, 210, 1), _c("epaisseur", "Epaisseur", 8, 2, 40, 0.5),
+        _c("module", "Module", 1.5, 0.5, 5, 0.25), _c("longueur", "Longueur", 80, 10, 210, 1), _c("epaisseur", "Épaisseur", 8, 2, 40, 0.5),
         _c("hauteur", "Hauteur sous dents", 8, 2, 40, 0.5), _c("jeu", "Jeu", 0.08, 0, 0.3, 0.01)]},
     "poulie_gt2": {"nom": "Poulie GT2", "cat": "Transmission", "fn": poulie_gt2, "champs": [
-        _c("dents", "Dents", 20, 10, 80, 1), _c("largeur", "Largeur courroie", 7, 6, 12, 0.5), _c("alesage", "Alesage", 5, 2, 12, 0.1),
+        _c("dents", "Dents", 20, 10, 80, 1), _c("largeur", "Largeur courroie", 7, 6, 12, 0.5), _c("alesage", "Alésage", 5, 2, 12, 0.1),
         _c("flasques", "Flasques", 1, type_="bool"), _c("moyeu_h", "Moyeu (vis de pression)", 6, 0, 15, 0.5)]},
     "logement_roulement": {"nom": "Palier / logement de roulement", "cat": "Guidage", "fn": logement_roulement, "champs": [
         _c("reference", "Roulement", "608", type_="choix", options=list(ROULEMENTS)), _c("forme", "Forme", "semelle", type_="choix", options=["semelle", "bride"]),
-        _c("paroi", "Paroi", 4, 2, 10, 0.5), _c("serrage", "Serrage (negatif = serre)", -0.05, -0.2, 0.2, 0.01)]},
-    "roulement_imprime": {"nom": "Roulement a billes imprime", "cat": "Guidage", "fn": roulement_imprime, "champs": [
-        _c("d_int", "Diametre interieur", 8, 3, 60, 0.5), _c("d_ext", "Diametre exterieur", 30, 15, 150, 0.5),
+        _c("paroi", "Paroi", 4, 2, 10, 0.5), _c("serrage", "Serrage (négatif = serre)", -0.05, -0.2, 0.2, 0.01)]},
+    "roulement_imprime": {"nom": "Roulement à billes imprime", "cat": "Guidage", "fn": roulement_imprime, "champs": [
+        _c("d_int", "Diamètre intérieur", 8, 3, 60, 0.5), _c("d_ext", "Diamètre exterieur", 30, 15, 150, 0.5),
         _c("largeur", "Largeur", 10, 6, 30, 0.5), _c("jeu", "Jeu des billes", 0.35, 0.2, 0.6, 0.05)]},
     "arbre": {"nom": "Arbre / axe", "cat": "Guidage", "fn": arbre, "champs": [
-        _c("d", "Diametre", 8, 2, 40, 0.1), _c("longueur", "Longueur", 60, 5, 210, 1), _c("meplat", "Meplat (D)", 0, 0, 3, 0.1),
+        _c("d", "Diamètre", 8, 2, 40, 0.1), _c("longueur", "Longueur", 60, 5, 210, 1), _c("meplat", "Meplat (D)", 0, 0, 3, 0.1),
         _c("clavette", "Rainure de clavette (largeur)", 0, 0, 8, 0.5)]},
     "entretoise": {"nom": "Entretoise", "cat": "Guidage", "fn": entretoise, "champs": [
-        _c("d_int", "Diametre interieur", 8.2, 1, 40, 0.1), _c("d_ext", "Diametre exterieur", 12, 3, 60, 0.5), _c("longueur", "Longueur", 5, 0.5, 100, 0.5)]},
+        _c("d_int", "Diamètre intérieur", 8.2, 1, 40, 0.1), _c("d_ext", "Diamètre exterieur", 12, 3, 60, 0.5), _c("longueur", "Longueur", 5, 0.5, 100, 0.5)]},
     "accouplement": {"nom": "Accouplement d'arbres", "cat": "Guidage", "fn": accouplement, "champs": [
-        _c("d1", "Arbre 1", 5, 2, 20, 0.1), _c("d2", "Arbre 2", 8, 2, 20, 0.1), _c("longueur", "Longueur", 25, 10, 60, 1), _c("d_ext", "Diametre ext.", 20, 10, 40, 0.5)]},
-    "charniere": {"nom": "Charniere imprimee en place", "cat": "Articulation", "fn": charniere, "champs": [
-        _c("longueur", "Longueur", 60, 20, 200, 1), _c("diametre", "Diametre des noeuds", 8, 5, 20, 0.5), _c("noeuds", "Noeuds (impair)", 5, 3, 15, 2),
-        _c("aile", "Largeur des ailes", 25, 8, 80, 1), _c("epaisseur", "Epaisseur des ailes", 3, 1.5, 8, 0.5), _c("jeu", "Jeu", 0.4, 0.2, 0.8, 0.05)]},
+        _c("d1", "Arbre 1", 5, 2, 20, 0.1), _c("d2", "Arbre 2", 8, 2, 20, 0.1), _c("longueur", "Longueur", 25, 10, 60, 1), _c("d_ext", "Diamètre ext.", 20, 10, 40, 0.5)]},
+    "charniere": {"nom": "Charniere imprimée en place", "cat": "Articulation", "fn": charniere, "champs": [
+        _c("longueur", "Longueur", 60, 20, 200, 1), _c("diametre", "Diamètre des noeuds", 8, 5, 20, 0.5), _c("noeuds", "Noeuds (impair)", 5, 3, 15, 2),
+        _c("aile", "Largeur des ailes", 25, 8, 80, 1), _c("epaisseur", "Épaisseur des ailes", 3, 1.5, 8, 0.5), _c("jeu", "Jeu", 0.4, 0.2, 0.8, 0.05)]},
 }
 
 
@@ -515,16 +515,16 @@ def gorge_seule(p: dict):
 
 
 CATALOGUE.update({
-    "verin": {"nom": "Verin pneumatique", "cat": "Pneumatique", "fn": verin, "champs": [
-        _c("alesage", "Alesage (diametre du piston)", 20, 10, 60, 1), _c("course", "Course", 40, 5, 150, 1),
-        _c("tige", "Diametre de tige", 6, 3, 16, 0.5), _c("double_effet", "Double effet (2 orifices)", 1, type_="bool"),
-        _c("paroi", "Paroi", 3, 2, 6, 0.5), _c("tube", "Tube souple (d interieur)", 4, 2, 8, 0.5),
+    "verin": {"nom": "Vérin pneumatique", "cat": "Pneumatique", "fn": verin, "champs": [
+        _c("alesage", "Alésage (diamètre du piston)", 20, 10, 60, 1), _c("course", "Course", 40, 5, 150, 1),
+        _c("tige", "Diamètre de tige", 6, 3, 16, 0.5), _c("double_effet", "Double effet (2 orifices)", 1, type_="bool"),
+        _c("paroi", "Paroi", 3, 2, 6, 0.5), _c("tube", "Tube souple (d’intérieur)", 4, 2, 8, 0.5),
         _c("orifice", "Orifices", "cannele", type_="choix", options=["cannele", "g18", "m5"])]},
-    "raccord": {"nom": "Raccord cannele", "cat": "Pneumatique", "fn": raccord, "champs": [
+    "raccord": {"nom": "Raccord cannelé", "cat": "Pneumatique", "fn": raccord, "champs": [
         _c("forme", "Forme", "T", type_="choix", options=["droit", "coude", "T", "Y", "croix"]),
-        _c("tube", "Tube (d interieur)", 4, 2, 10, 0.5), _c("tube2", "Reduction : 2e tube (droit)", 4, 2, 10, 0.5)]},
+        _c("tube", "Tube (d’intérieur)", 4, 2, 10, 0.5), _c("tube2", "Reduction : 2e tube (droit)", 4, 2, 10, 0.5)]},
     "gorge": {"nom": "Gorge de joint torique (essai)", "cat": "Pneumatique", "fn": gorge_seule, "champs": [
-        _c("diametre", "Diametre (alesage ou tige)", 20, 3, 60, 0.5), _c("cote", "Type", "piston", type_="choix", options=["piston", "tige"]),
+        _c("diametre", "Diamètre (alésage ou tige)", 20, 3, 60, 0.5), _c("cote", "Type", "piston", type_="choix", options=["piston", "tige"]),
         _c("dynamique", "Joint mobile (dynamique)", 1, type_="bool")]},
 })
 
@@ -541,24 +541,24 @@ def _g(groupe, *champs):
 
 
 CATALOGUE["vibedeck"] = {"nom": "Vibe Deck", "cat": "Projets", "fn": _vibe_deck,
-    "description": "Macropad a touches MX + ecran Guition 4.3\" (ou OLED), design epure, pivot a crans ou motorise.",
+    "description": "Macropad à touches MX + écran Guition 4.3\" (ou OLED), design epure, pivot à crans ou motorise.",
     "couleurs": {"socle": "#d9dde3", "plaque": "#2b2d42", "cadre": "#1c1f26", "dos": "#d9dde3"},
     "champs":
-    _g("Touches", _c("colonnes", "Colonnes", 4, 1, 10, 1), _c("rangees", "Rangees", 3, 1, 6, 1),
+    _g("Touches", _c("colonnes", "Colonnes", 4, 1, 10, 1), _c("rangees", "Rangées", 3, 1, 6, 1),
        _c("encodeur", "Molette (encodeur EC11)", 1, type_="bool")) +
-    _g("Ecran", _c("ecran", "Ecran", "guition_43", type_="choix", options=["guition_43", "oled_096", "oled_13", "aucun"]),
-       _c("angle_ecran", "Angle de l'ecran", 72, 45, 100, 1), _c("bordure", "Bordure autour de l'ecran", 3, 1.5, 8, 0.5),
-       _c("rayon_ecran", "Rayon des coins de l'ecran", 7, 2, 15, 0.5)) +
+    _g("Ecran", _c("ecran", "Écran", "guition_43", type_="choix", options=["guition_43", "oled_096", "oled_13", "aucun"]),
+       _c("angle_ecran", "Angle de l'écran", 72, 45, 100, 1), _c("bordure", "Bordure autour de l'écran", 3, 1.5, 8, 0.5),
+       _c("rayon_ecran", "Rayon des coins de l'écran", 7, 2, 15, 0.5)) +
     _g("Pivot", _c("pivot", "Mecanisme", "crans", type_="choix", options=["crans", "servo", "fixe"]),
        _c("servo", "Servo", "sg90", type_="choix", options=["sg90", "mg90s"]), _c("largeur_charniere", "Largeur de la charniere", 34, 24, 80, 1)) +
-    _g("Design", _c("inclinaison", "Inclinaison du dessus", 7, 0, 15, 0.5), _c("hauteur_avant", "Hauteur a l'avant", 16, 12, 30, 0.5),
-       _c("rayon", "Rayon des coins", 10, 3, 20, 0.5), _c("arrondi", "Arrondi des aretes", 2.5, 0.8, 5, 0.1),
+    _g("Design", _c("inclinaison", "Inclinaison du dessus", 7, 0, 15, 0.5), _c("hauteur_avant", "Hauteur à l'avant", 16, 12, 30, 0.5),
+       _c("rayon", "Rayon des coins", 10, 3, 20, 0.5), _c("arrondi", "Arrondi des arêtes", 2.5, 0.8, 5, 0.1),
        _c("bord", "Bordure autour de la plaque", 6, 3, 15, 0.5), _c("joint_ombre", "Joint d'ombre", 0.35, 0.1, 1, 0.05)) +
-    _g("Electronique", _c("usb_x", "Position de l'USB-C", 0, -50, 50, 1), _c("fond", "Epaisseur du fond", 2.2, 1.6, 4, 0.2)) +
+    _g("Electronique", _c("usb_x", "Position de l'USB-C", 0, -50, 50, 1), _c("fond", "Épaisseur du fond", 2.2, 1.6, 4, 0.2)) +
     _g("Carte ecran (a verifier)", _c("ecran_l", "Largeur carte (officiel 120)", 120, 60, 160, 0.1), _c("ecran_h", "Hauteur carte (officiel 70.2)", 70.2, 40, 120, 0.1),
        _c("actif_l", "Zone active L (officiel 95.04)", 95.04, 40, 150, 0.01), _c("actif_h", "Zone active H (officiel 53.86)", 53.86, 20, 110, 0.01),
-       _c("actif_x", "Decalage zone active X", 0, -15, 15, 0.1), _c("actif_y", "Decalage zone active Y", 0, -10, 10, 0.1),
-       _c("ecran_e", "Epaisseur carte + dalle (A MESURER)", 9, 4, 25, 0.1),
+       _c("actif_x", "Décalage zone active X", 0, -15, 15, 0.1), _c("actif_y", "Décalage zone active Y", 0, -10, 10, 0.1),
+       _c("ecran_e", "Épaisseur carte + dalle (A MESURER)", 9, 4, 25, 0.1),
        _c("trou_x", "Trous : axe depuis le bord X (A MESURER)", 3.5, 1.5, 10, 0.1), _c("trou_y", "Trous : axe depuis le bord Y (A MESURER)", 3.5, 1.5, 10, 0.1))}
 
 
@@ -570,7 +570,7 @@ ORIFICES = {"lego": "Embout tube LEGO (4 x 2)", "tube8": "Embout tube d8 interie
 
 
 def orifice(type_, d_tube=4.0, canal=2.5):
-    """-> (bossage, vide) le long de +Z, base a z = 0 (a placer avec transform)."""
+    """-> (bossage, vide) le long de +Z, base a z = 0 (à placer avec transform)."""
     if type_ == "g18":
         boss = mf.Manifold.cylinder(11, 7.0, 7.0, 48)
         vide = mf.Manifold.cylinder(11.5, 4.3, 4.3, 48).translate((0, 0, 0.5)) + mf.Manifold.cylinder(1.2, 4.3, 5.3, 48).translate((0, 0, 10.0)) \
@@ -580,7 +580,7 @@ def orifice(type_, d_tube=4.0, canal=2.5):
         boss = mf.Manifold.cylinder(7, 5.0, 5.0, 48)
         vide = mf.Manifold.cylinder(6.5, 2.1, 2.1, 32).translate((0, 0, 1.0)) + mf.Manifold.cylinder(9, min(canal, 2.0) / 2, min(canal, 2.0) / 2, 24).translate((0, 0, -1))
         return boss, vide
-    if type_ == "lego":                                  # tube LEGO : 4 ext / ~2 int -> embout lisse d2.6 a bourrelet (A AJUSTER)
+    if type_ == "lego":                                  # tube LEGO : 4 ext / ~2 int -> embout lisse d2.6 à bourrelet (A AJUSTER)
         boss = mf.Manifold.cylinder(3, 3.0, 3.0, 32) + mf.Manifold.cylinder(7, 1.3, 1.3, 24).translate((0, 0, 2.9))             + mf.Manifold.cylinder(1.2, 1.3, 1.45, 24).translate((0, 0, 6.0))
         vide = mf.Manifold.cylinder(12, 0.6, 0.6, 16).translate((0, 0, -1))
         return boss, vide
@@ -725,19 +725,19 @@ def silencieux(p: dict):
 
 
 CATALOGUE.update({
-    "reservoir": {"nom": "Reservoir d'air", "cat": "Pneumatique", "fn": reservoir, "champs": [
-        _c("diametre", "Diametre", 60, 30, 150, 1), _c("longueur", "Longueur", 120, 50, 230, 1), _c("paroi", "Paroi", 4, 2.4, 8, 0.2),
-        _c("orifices", "Nombre d'orifices", 3, 2, 4, 1), _c("orifice", "Orifices", "g18", type_="choix", options=list(ORIFICES)), _c("tube", "Tube (cannele)", 4, 2, 8, 0.5)]},
+    "reservoir": {"nom": "Réservoir d'air", "cat": "Pneumatique", "fn": reservoir, "champs": [
+        _c("diametre", "Diamètre", 60, 30, 150, 1), _c("longueur", "Longueur", 120, 50, 230, 1), _c("paroi", "Paroi", 4, 2.4, 8, 0.2),
+        _c("orifices", "Nombre d'orifices", 3, 2, 4, 1), _c("orifice", "Orifices", "g18", type_="choix", options=list(ORIFICES)), _c("tube", "Tube (cannelé)", 4, 2, 8, 0.5)]},
     "collecteur": {"nom": "Bloc collecteur", "cat": "Pneumatique", "fn": collecteur, "champs": [
-        _c("sorties", "Sorties", 4, 1, 10, 1), _c("pas", "Pas", 18, 12, 30, 1), _c("orifice", "Orifices", "g18", type_="choix", options=list(ORIFICES)), _c("tube", "Tube (cannele)", 4, 2, 8, 0.5)]},
+        _c("sorties", "Sorties", 4, 1, 10, 1), _c("pas", "Pas", 18, 12, 30, 1), _c("orifice", "Orifices", "g18", type_="choix", options=list(ORIFICES)), _c("tube", "Tube (cannelé)", 4, 2, 8, 0.5)]},
     "clapet": {"nom": "Clapet anti-retour", "cat": "Pneumatique", "fn": clapet_antiretour, "champs": [
-        _c("orifice", "Orifices", "cannele", type_="choix", options=list(ORIFICES)), _c("tube", "Tube (cannele)", 4, 2, 8, 0.5)]},
-    "soupape": {"nom": "Soupape de securite reglable", "cat": "Pneumatique", "fn": soupape, "champs": [
-        _c("pression_ouverture", "Pression d'ouverture (bar)", 2.5, 0.5, 6, 0.1), _c("orifice", "Orifice", "g18", type_="choix", options=list(ORIFICES)), _c("tube", "Tube (cannele)", 4, 2, 8, 0.5)]},
+        _c("orifice", "Orifices", "cannele", type_="choix", options=list(ORIFICES)), _c("tube", "Tube (cannelé)", 4, 2, 8, 0.5)]},
+    "soupape": {"nom": "Soupape de sécurité reglable", "cat": "Pneumatique", "fn": soupape, "champs": [
+        _c("pression_ouverture", "Pression d'ouverture (bar)", 2.5, 0.5, 6, 0.1), _c("orifice", "Orifice", "g18", type_="choix", options=list(ORIFICES)), _c("tube", "Tube (cannelé)", 4, 2, 8, 0.5)]},
     "vanne": {"nom": "Distributeur 3/2 manuel", "cat": "Pneumatique", "fn": vanne_3_2, "champs": [
-        _c("orifice", "Orifices", "cannele", type_="choix", options=list(ORIFICES)), _c("tube", "Tube (cannele)", 4, 2, 8, 0.5)]},
+        _c("orifice", "Orifices", "cannele", type_="choix", options=list(ORIFICES)), _c("tube", "Tube (cannelé)", 4, 2, 8, 0.5)]},
     "silencieux": {"nom": "Silencieux d'echappement", "cat": "Pneumatique", "fn": silencieux, "champs": [
-        _c("orifice", "Orifice", "m5", type_="choix", options=list(ORIFICES)), _c("tube", "Tube (cannele)", 4, 2, 8, 0.5)]},
+        _c("orifice", "Orifice", "m5", type_="choix", options=list(ORIFICES)), _c("tube", "Tube (cannelé)", 4, 2, 8, 0.5)]},
 })
 
 
@@ -747,30 +747,30 @@ def _compresseur(p):
 
 
 CATALOGUE["compresseur"] = {"nom": "Compresseur Wankel", "cat": "Projets", "fn": _compresseur, "simulation": "pneumatique",
-    "description": "Compresseur a piston rotatif Wankel : entraine a la perceuse (axe d8) ou version compacte moteur + reduction (RC 1:10).",
+    "description": "Compresseur à piston rotatif Wankel : entraine à la perceuse (axe d8) ou version compacte moteur + reduction (RC 1:10).",
     "couleurs": {"stator": "#7fb8a4", "rotor": "#e07a3a", "flasque_avant": "#d9dde3", "flasque_arriere": "#d9dde3", "excentrique": "#2b2d42",
                  "clapet_siege": "#c9a227", "clapet_lamelle": "#555555", "pignon_moteur": "#2b2d42", "roue_reduction": "#2b2d42",
                  "carter_moteur": "#d9dde3", "capot_engrenages": "#d9dde3"},
     "champs": [
         dict(_c("version", "Version", "perceuse", type_="choix", options=["perceuse", "compact"]), groupe="Version"),
         dict(_c("moteur", "Moteur (compact)", "130", type_="choix", options=["130", "180"]), groupe="Version"),
-        dict(_c("rapport_K", "Rapport K = R / e (forme)", 7.0, 6.0, 8.5, 0.1), groupe="Geometrie"),
-        dict(_c("module", "Module de l'engrenage de phase", 1.0, 0.6, 1.5, 0.1), groupe="Geometrie"),
-        dict(_c("dents_rotor", "Dents de la couronne du rotor (multiple de 3)", 30, 18, 45, 3), groupe="Geometrie"),
-        dict(_c("largeur", "Largeur du rotor", 16, 6, 30, 0.5), groupe="Geometrie"),
+        dict(_c("rapport_K", "Rapport K = R / e (forme)", 7.0, 6.0, 8.5, 0.1), groupe="Géométrie"),
+        dict(_c("module", "Module de l'engrenage de phase", 1.0, 0.6, 1.5, 0.1), groupe="Géométrie"),
+        dict(_c("dents_rotor", "Dents de la couronne du rotor (multiple de 3)", 30, 18, 45, 3), groupe="Géométrie"),
+        dict(_c("largeur", "Largeur du rotor", 16, 6, 30, 0.5), groupe="Géométrie"),
         dict(_c("visserie", "Visserie", "placo", type_="choix", options=["placo", "imprimee", "m3"]), groupe="Visserie"),
-        dict(_c("imprimer_visserie", "Imprimer la visserie sur le plateau (tirants imprimes)", 1, type_="bool"), groupe="Visserie"),
+        dict(_c("imprimer_visserie", "Imprimer la visserie sur le plateau (tirants imprimés)", 1, type_="bool"), groupe="Visserie"),
         dict(_c("orifice", "Raccords", "lego", type_="choix", options=["lego", "tube8", "cannele", "g18", "m5"]), groupe="Raccords et joints"),
         dict(_c("cordon", "Tore de tes joints toriques (mm)", 2.0, 1.0, 4.0, 0.1), groupe="Raccords et joints"),
-        dict(_c("tourillon", "Diametre des tourillons (paliers)", 12, 6, 20, 0.5), groupe="Arbre et paliers"),
+        dict(_c("tourillon", "Diamètre des tourillons (paliers)", 12, 6, 20, 0.5), groupe="Arbre et paliers"),
         dict(_c("jeu_palier", "Jeu des paliers lisses", 0.25, 0.1, 0.6, 0.05), groupe="Arbre et paliers"),
         dict(_c("hexagone", "Hexagone pour le mandrin (sur plats)", 10, 6, 13, 0.5), groupe="Arbre et paliers"),
         dict(_c("longueur_hexagone", "Longueur de l'hexagone", 30, 0, 60, 1), groupe="Arbre et paliers"),
         dict(_c("jeu", "Jeu rotor / stator", 0.15, 0.05, 0.4, 0.01), groupe="Ajustements"),
         dict(_c("jeu_flanc", "Jeu lateral (par flasque)", 0.2, 0.05, 0.5, 0.01), groupe="Ajustements"),
         dict(_c("paroi", "Paroi du stator", 6, 4, 12, 0.5), groupe="Ajustements"),
-        dict(_c("angle_admission", "Angle de l'admission (optimise)", 205, 130, 215, 1), groupe="Lumieres"),
-        dict(_c("angle_refoulement", "Angle du refoulement (optimise)", 86, 50, 89, 1), groupe="Lumieres"),
+        dict(_c("angle_admission", "Angle de l'admission (optimise)", 205, 130, 215, 1), groupe="Lumières"),
+        dict(_c("angle_refoulement", "Angle du refoulement (optimise)", 86, 50, 89, 1), groupe="Lumières"),
     ]}
 
 
@@ -804,8 +804,8 @@ def palier_lisse(p: dict):
 
 CATALOGUE.update({
     "palier_lisse": {"nom": "Palier lisse graissable", "cat": "Guidage", "fn": palier_lisse, "champs": [
-        _c("d_arbre", "Diametre de l'arbre", 8, 3, 40, 0.5), _c("longueur", "Longueur", 12, 4, 60, 0.5), _c("paroi", "Paroi", 3, 1.5, 10, 0.5),
-        _c("jeu", "Jeu diametral", 0.25, 0.1, 0.6, 0.05), _c("bride", "Bride", 1, type_="bool"), _c("graisseur", "Entree de graissage", 1, type_="bool")]},
+        _c("d_arbre", "Diamètre de l'arbre", 8, 3, 40, 0.5), _c("longueur", "Longueur", 12, 4, 60, 0.5), _c("paroi", "Paroi", 3, 1.5, 10, 0.5),
+        _c("jeu", "Jeu diametral", 0.25, 0.1, 0.6, 0.05), _c("bride", "Bride", 1, type_="bool"), _c("graisseur", "Entrée de graissage", 1, type_="bool")]},
 })
 
 
@@ -821,7 +821,7 @@ def _roulement_imprime_graisse(p):
 
 
 CATALOGUE["roulement_imprime"]["fn"] = _roulement_imprime_graisse
-CATALOGUE["roulement_imprime"]["champs"].append(_c("graisseur", "Entree de graissage", 1, type_="bool"))
+CATALOGUE["roulement_imprime"]["champs"].append(_c("graisseur", "Entrée de graissage", 1, type_="bool"))
 
 
 # ================================================================== PROJET : RC 1:10 "SHWork 190 SE" (carrosserie depuis le STL de base)
@@ -910,7 +910,7 @@ def _swork190(p: dict):
     for k, m in enumerate(eclisses if voir_caisse else []):
         R, _ = orienter(m)
         ajouter(f"eclisse_{k + 1}", m, R)
-    q = [f"{len(eclisses)} eclisses a coller (cyano ou epoxy) a cheval sur les coupes",
+    q = [f"{len(eclisses)} eclisses à coller (cyano ou epoxy) a cheval sur les coupes",
          "Charnieres imprimees des ouvrants : prochaine etape (clips)"]
     info_ch = None
     if int(g("chassis", 1)):                               # chassis tubulaire custom + suspension active
@@ -943,34 +943,34 @@ CATALOGUE["swork190"] = {"nom": "SHWork 190 SE (RC 1:10)", "cat": "Projets", "fn
                  "porte_avg": "#6c8ebf", "porte_avd": "#6c8ebf", "porte_arg": "#c9a227", "porte_ard": "#c9a227", "aile_avg": "#b5607a", "aile_avd": "#b5607a", "pare_choc_av": "#2b2d42", "pare_choc_ar": "#2b2d42",
                  "calandre": "#9aa0a8", "phare_g": "#eef3f8", "phare_d": "#eef3f8", "feu_g": "#c0392b", "feu_d": "#c0392b", "retro_g": "#2b2d42", "retro_d": "#2b2d42", "plaque_av": "#f4f4f0", "eclisse_1": "#2b2d42", "eclisse_2": "#2b2d42", "eclisse_3": "#2b2d42"},
     "champs": [
-        dict(_c("longueur", "Longueur de la carrosserie (1:10 = 445)", 445, 200, 600, 1), groupe="Echelle"),
+        dict(_c("longueur", "Longueur de la carrosserie (1:10 = 445)", 445, 200, 600, 1), groupe="Échelle"),
         dict(_c("chassis", "Chassis tubulaire + suspension active", 1, type_="bool"), groupe="Chassis"),
         dict(_c("voir_carrosserie", "Afficher la carrosserie", 1, type_="bool"), groupe="Chassis"),
         dict(_c("voie", "Voie (entraxe des roues)", 140, 110, 170, 1), groupe="Chassis"),
         dict(_c("z_plancher", "Hauteur du plancher (garde au sol)", 6, 3, 15, 0.5), groupe="Chassis"),
         dict(_c("r_tube", "Rayon des tubes de cage", 2.6, 1.8, 4, 0.1), groupe="Chassis"),
-        dict(_c("inverser", "Inverser l'avant et l'arriere", 0, type_="bool"), groupe="Echelle"),
-        dict(_c("paroi", "Epaisseur de la coque", 1.8, 1.2, 3.0, 0.1), groupe="Coque"),
+        dict(_c("inverser", "Inverser l'avant et l'arrière", 0, type_="bool"), groupe="Échelle"),
+        dict(_c("paroi", "Épaisseur de la coque", 1.8, 1.2, 3.0, 0.1), groupe="Coque"),
         dict(_c("detacher_capot", "Capot", 1, type_="bool"), groupe="Ouvrants a detacher"),
         dict(_c("detacher_coffre", "Coffre", 1, type_="bool"), groupe="Ouvrants a detacher"),
         dict(_c("detacher_porte_avg", "Porte avant gauche", 1, type_="bool"), groupe="Ouvrants a detacher"),
         dict(_c("detacher_porte_avd", "Porte avant droite", 1, type_="bool"), groupe="Ouvrants a detacher"),
-        dict(_c("detacher_porte_arg", "Porte arriere gauche", 1, type_="bool"), groupe="Ouvrants a detacher"),
-        dict(_c("detacher_porte_ard", "Porte arriere droite", 1, type_="bool"), groupe="Ouvrants a detacher"),
+        dict(_c("detacher_porte_arg", "Porte arrière gauche", 1, type_="bool"), groupe="Ouvrants a detacher"),
+        dict(_c("detacher_porte_ard", "Porte arrière droite", 1, type_="bool"), groupe="Ouvrants a detacher"),
         dict(_c("detacher_aile_avg", "Aile avant gauche", 1, type_="bool"), groupe="Ouvrants a detacher"),
         dict(_c("detacher_aile_avd", "Aile avant droite", 1, type_="bool"), groupe="Ouvrants a detacher"),
         dict(_c("detacher_pare_choc_av", "Pare-chocs avant", 1, type_="bool"), groupe="Ouvrants a detacher"),
-        dict(_c("detacher_pare_choc_ar", "Pare-chocs arriere", 1, type_="bool"), groupe="Ouvrants a detacher"),
+        dict(_c("detacher_pare_choc_ar", "Pare-chocs arrière", 1, type_="bool"), groupe="Ouvrants a detacher"),
         dict(_c("jeu_panneaux", "Jeu autour des ouvrants", 0.35, 0.15, 1.0, 0.05), groupe="Ouvrants a detacher"),
-        dict(_c("detacher_calandre", "Calandre + etoile", 1, type_="bool"), groupe="Petites pieces"),
-        dict(_c("detacher_phare_g", "Phare gauche", 1, type_="bool"), groupe="Petites pieces"),
-        dict(_c("detacher_phare_d", "Phare droit", 1, type_="bool"), groupe="Petites pieces"),
-        dict(_c("detacher_feu_g", "Feu arriere gauche", 1, type_="bool"), groupe="Petites pieces"),
-        dict(_c("detacher_feu_d", "Feu arriere droit", 1, type_="bool"), groupe="Petites pieces"),
-        dict(_c("detacher_retro_g", "Retroviseur gauche", 1, type_="bool"), groupe="Petites pieces"),
-        dict(_c("detacher_retro_d", "Retroviseur droit", 1, type_="bool"), groupe="Petites pieces"),
-        dict(_c("jeu_petites", "Jeu autour des petites pieces", 0.2, 0.1, 0.6, 0.05), groupe="Petites pieces"),
-        dict(_c("troncon_max", "Longueur max d'un troncon", 180, 100, 230, 5), groupe="Impression"),
+        dict(_c("detacher_calandre", "Calandre + étoile", 1, type_="bool"), groupe="Petites pièces"),
+        dict(_c("detacher_phare_g", "Phare gauche", 1, type_="bool"), groupe="Petites pièces"),
+        dict(_c("detacher_phare_d", "Phare droit", 1, type_="bool"), groupe="Petites pièces"),
+        dict(_c("detacher_feu_g", "Feu arrière gauche", 1, type_="bool"), groupe="Petites pièces"),
+        dict(_c("detacher_feu_d", "Feu arrière droit", 1, type_="bool"), groupe="Petites pièces"),
+        dict(_c("detacher_retro_g", "Retroviseur gauche", 1, type_="bool"), groupe="Petites pièces"),
+        dict(_c("detacher_retro_d", "Retroviseur droit", 1, type_="bool"), groupe="Petites pièces"),
+        dict(_c("jeu_petites", "Jeu autour des petites pièces", 0.2, 0.1, 0.6, 0.05), groupe="Petites pièces"),
+        dict(_c("troncon_max", "Longueur max d'un tronçon", 180, 100, 230, 5), groupe="Impression"),
         dict(_c("recouvrement", "Recouvrement des eclisses", 10, 5, 20, 1), groupe="Impression"),
     ]}
 
@@ -993,19 +993,19 @@ def _servbuddy_v1(p: dict):
 
 
 CATALOGUE["servbuddy_v1"] = {"nom": "ServBuddy v1 (archive)", "cat": "Projets", "fn": _servbuddy_v1,
-    "description": "Bracelet porte-assiette ergonomique facon attelle : plateau isole a pistes silicone, reglage rigide par roulette + 2 cremailleres, plaque palmaire a verrou. 100 % PLA.",
+    "description": "Bracelet porte-assiette ergonomique façon attelle : plateau isole à pistes silicone, réglage rigide par roulette + 2 cremailleres, plaque palmaire à verrou. 100 % PLA.",
     "couleurs": {"coque_dorsale": "#2b2d42", "plateau": "#ff6a13", "plaque_palmaire": "#2b2d42", "roulette": "#ff6a13",
                  "verrou": "#ff6a13", "arbre_roulette": "#ff6a13", "pignon_g": "#8d99ae", "pignon_d": "#8d99ae", "rondelle_bout": "#8d99ae"},
     "champs": [
         dict(_c("tour_poignet", "Tour de poignet (mesure)", 165, 130, 220, 1), groupe="Taille"),
         dict(_c("longueur", "Longueur de la gouttiere", 62, 45, 80, 1), groupe="Taille"),
-        dict(_c("epaisseur", "Epaisseur de la coque", 2.6, 2.0, 4.0, 0.1), groupe="Taille"),
+        dict(_c("epaisseur", "Épaisseur de la coque", 2.6, 2.0, 4.0, 0.1), groupe="Taille"),
         dict(_c("plateau_l", "Plateau : longueur", 92, 60, 130, 1), groupe="Plateau"),
         dict(_c("plateau_w", "Plateau : largeur", 68, 50, 68, 1), groupe="Plateau"),
         dict(_c("lame_air", "Lame d'air isolante", 9, 9, 14, 0.5), groupe="Plateau"),
-        dict(_c("film", "Epaisseur du film alcantara", 0.8, 0.4, 1.5, 0.1), groupe="Confort"),
+        dict(_c("film", "Épaisseur du film alcantara", 0.8, 0.4, 1.5, 0.1), groupe="Confort"),
         dict(_c("jeu_hexa", "Jeu des alesages hexagonaux (axe)", 0.10, 0.0, 0.4, 0.02), groupe="Ajustements"),
-        dict(_c("conicite", "Conicite du poignet (% plus fin cote main)", 8, 0, 15, 1), groupe="Taille"),
+        dict(_c("conicite", "Conicite du poignet (% plus fin côté main)", 8, 0, 15, 1), groupe="Taille"),
         dict(_c("aisance", "Aisance (% de place en plus)", 5, 0, 12, 1), groupe="Taille"),
     ]}
 
@@ -1036,7 +1036,7 @@ def _servbuddy(p: dict, version="v2_7"):
 
 
 CATALOGUE["servbuddy"] = {"nom": "ServBuddy (by SHWork)", "cat": "Projets", "fn": _servbuddy,
-    "description": "v2.7 : poignet conique (plus fin cote main), porte pleine longueur (plus rien imprime dans le vide), aisance +5 %. v2.6 : secteur dente guide (nervures en V), axe hexa 5.3 + jeu reglable, module cliquet tenu par l'axe entre deux rondelles. v2.5 : cliquet redessine au calcul (rochet 30 dents a crochet, verrou coulissant, ressort replie a egale contrainte : 0.37 % au clic contre 3.2 %), clip reel dans la nacelle, commandes a fleur, plateau ajoure. Sans visserie, charniere imprimee en place. Monocoque en coquille + carenages facon armure. On ouvre, on pose, on ferme (cliquet), on regle a la molette. Port a modules (plateau, pince). 100 % PLA.",
+    "description": "v2.7 : poignet conique (plus fin côté main), porte pleine longueur (plus rien imprime dans le vide), aisance +5 %. v2.6 : secteur dente guide (nervures en V), axe hexa 5.3 + jeu reglable, module cliquet tenu par l'axe entre deux rondelles. v2.5 : cliquet redessine au calcul (rochet 30 dents à crochet, verrou coulissant, ressort replie a egale contrainte : 0.37 % au clic contre 3.2 %), clip réel dans la nacelle, commandes à fleur, plateau ajoure. Sans visserie, charniere imprimée en place. Monocoque en coquille + carenages façon armure. On ouvre, on pose, on ferme (cliquet), on règle à la molette. Port à modules (plateau, pince). 100 % PLA.",
     "couleurs": {"coquille_charniere": "#3a3f4b", "coque_dorsale": "#3a3f4b", "coque_palmaire": "#3a3f4b", "carenage_dorsal": "#e9ebef", "carenage_palmaire": "#e9ebef",
                  "molette": "#ff6a13", "pignon_rochet": "#c9ced6", "axe": "#ff6a13", "trappe_cliquet": "#3a3f4b", "module_plateau": "#ff6a13", "module_pince": "#ff6a13"},
     "champs": [
@@ -1044,7 +1044,7 @@ CATALOGUE["servbuddy"] = {"nom": "ServBuddy (by SHWork)", "cat": "Projets", "fn"
         dict(_c("longueur", "Longueur", 58, 45, 75, 1), groupe="Taille"),
         dict(_c("plateau_l", "Plateau : longueur", 96, 60, 130, 1), groupe="Module plateau"),
         dict(_c("plateau_w", "Plateau : largeur", 74, 50, 100, 1), groupe="Module plateau"),
-        dict(_c("film", "Epaisseur du film alcantara", 0.8, 0.4, 1.5, 0.1), groupe="Confort"),
+        dict(_c("film", "Épaisseur du film alcantara", 0.8, 0.4, 1.5, 0.1), groupe="Confort"),
     ]}
 
 
@@ -1066,7 +1066,7 @@ def _servbuddy_v25(p: dict):
 
 CATALOGUE["servbuddy_v25"] = dict(CATALOGUE["servbuddy"], nom="ServBuddy v2.5 (archive)", fn=_servbuddy_v25,
     description="Archive v2.5 : cliquet au calcul ; secteur non guide, axe hexa 5.0 (trop libre sur le 1er proto).",
-    champs=CATALOGUE["servbuddy"]["champs"][:-1] + [dict(_c("coque_v24", "Coquille deja imprimee en v2.4 (1 = trappe sans bourrelet)", 0, 0, 1, 1), groupe="Compatibilite")])
+    champs=CATALOGUE["servbuddy"]["champs"][:-1] + [dict(_c("coque_v24", "Coquille déjà imprimée en v2.4 (1 = trappe sans bourrelet)", 0, 0, 1, 1), groupe="Compatibilite")])
 
 
 # ================================================================== ARCHIVE : ServBuddy v2.4
@@ -1075,7 +1075,7 @@ def _servbuddy_v24(p: dict):
 
 
 CATALOGUE["servbuddy_v24"] = dict(CATALOGUE["servbuddy"], nom="ServBuddy v2.4 (archive)", fn=_servbuddy_v24,
-    description="Archive v2.4 : cliquet a lame en V (3.2 % de deformation au clic : trop pour le PLA), plateau ajoure.")
+    description="Archive v2.4 : cliquet à lame en V (3.2 % de deformation au clic : trop pour le PLA), plateau ajoure.")
 
 
 # ================================================================== ARCHIVE : ServBuddy v2.3
@@ -1163,7 +1163,7 @@ def _davinbot(p: dict, complet=False):
 
 
 CATALOGUE["davinbot"] = {"nom": "DaVinBot V2 (3 NEMA)", "cat": "Projets", "fn": _davinbot, "champs": [],
-    "description": "Phase 3 NEMA : J1, J2 et J3 motorises (rapports 30.6, 90 et 90), poignet oriente a la main avec un bloqueur par axe. Evolutif vers la version complete sans changer les autres pieces.",
+    "description": "Phase 3 NEMA : J1, J2 et J3 motorises (rapports 30.6, 90 et 90), poignet oriente à la main avec un bloqueur par axe. Evolutif vers la version complète sans changer les autres pièces.",
     "couleurs": {**{q["id"]: q["color"] for q in _davinbot_manifeste()["parts"]}, "J4_bloqueur": "#ff6410", "J5_bloqueur": "#ff6410", "J6_bloqueur": "#ff6410"}}
 
 
@@ -1172,7 +1172,7 @@ def _davinbot_complet(p: dict):
 
 
 CATALOGUE["davinbot_complet"] = dict(CATALOGUE["davinbot"], nom="DaVinBot V2 (complet, 8 NEMA)", fn=_davinbot_complet,
-    description="Version complete : J1, double moteur sur J2 et J3, poignet motorise.")
+    description="Version complète : J1, double moteur sur J2 et J3, poignet motorisé.")
 
 
 # ================================================================== PRENOMS dans la bibliotheque de l'atelier
@@ -1196,11 +1196,11 @@ def _polices():
     return sorted(POLICES)
 
 
-CATALOGUE["prenom_cle"] = {"nom": "Porte-cle prenom", "cat": "Prenoms", "fn": _prenom_cle, "champs": [
-    _c("texte", "Prenom", "Steven", type_="texte"), _c("police", "Police", "arial_black", type_="choix", options=_polices()),
+CATALOGUE["prenom_cle"] = {"nom": "Porte-clé prénom", "cat": "Prenoms", "fn": _prenom_cle, "champs": [
+    _c("texte", "Prénom", "Steven", type_="texte"), _c("police", "Police", "arial_black", type_="choix", options=_polices()),
     _c("hauteur", "Hauteur des lettres", 16, 6, 60, 1), _c("contour", "Contour", 3.2, 1, 8, 0.2)]}
-CATALOGUE["prenom_jeton"] = {"nom": "Porte-cle prenom + jeton", "cat": "Prenoms", "fn": _prenom_jeton, "champs": [
-    _c("texte", "Prenom", "Steven", type_="texte"), _c("police", "Police", "arial_black", type_="choix", options=_polices()), _c("jeton_d", "Diametre du jeton", 23.25, 15, 30, 0.05)]}
+CATALOGUE["prenom_jeton"] = {"nom": "Porte-clé prénom + jeton", "cat": "Prenoms", "fn": _prenom_jeton, "champs": [
+    _c("texte", "Prénom", "Steven", type_="texte"), _c("police", "Police", "arial_black", type_="choix", options=_polices()), _c("jeton_d", "Diamètre du jeton", 23.25, 15, 30, 0.05)]}
 
 
 def _touche_clavier(p: dict):
@@ -1213,8 +1213,8 @@ def _touche_clavier(p: dict):
 
 
 CATALOGUE["touche_clavier"] = {"nom": "Touche de clavier", "cat": "Keycaps", "fn": _touche_clavier, "champs": [
-    _c("texte", "Legende", "A", type_="texte"), _c("u_x", "Largeur (u)", 1, 1, 6.25, 0.25), _c("u_y", "Profondeur (u)", 1, 1, 2, 0.25),
-    _c("taille_legende", "Taille de la legende", 6, 2, 14, 0.5)]}
+    _c("texte", "Légende", "A", type_="texte"), _c("u_x", "Largeur (u)", 1, 1, 6.25, 0.25), _c("u_y", "Profondeur (u)", 1, 1, 2, 0.25),
+    _c("taille_legende", "Taille de la légende", 6, 2, 14, 0.5)]}
 
 
 # ================================================================== PROJET : figurine a partir d'une photo
@@ -1228,13 +1228,13 @@ def _figurine(p: dict):
 
 
 CATALOGUE["figurine"] = {"nom": "Figurine photo", "cat": "Projets", "fn": _figurine,
-    "description": "Depose une photo de visage : un buste est reconstruit par IA sur la carte graphique (3 min, installation automatique de plusieurs Go la premiere fois), avec le nom grave sur le socle.",
+    "description": "Dépose une photo de visage : un buste est reconstruit par IA sur la carte graphique (3 min, installation automatique de plusieurs Go la premiere fois), avec le nom gravé sur le socle.",
     "couleurs": {"figurine": "#c9ced6"},
     "champs": [
         dict(_c("photo", "Photo du visage", "", type_="image"), groupe="Photo"),
         dict(_c("nom_socle", "Nom sur le socle", "", type_="texte"), groupe="Photo"),
         dict(_c("hauteur", "Hauteur (mm)", 110, 50, 240, 5), groupe="Format"),
-        dict(_c("socle", "Epaisseur du socle (mm)", 6, 3, 12, 0.5), groupe="Format"),
+        dict(_c("socle", "Épaisseur du socle (mm)", 6, 3, 12, 0.5), groupe="Format"),
         dict(_c("variante", "Variante (autre essai de l'IA, 3 min)", 42, 1, 99, 1), groupe="IA"),
     ]}
 

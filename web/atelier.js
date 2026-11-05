@@ -43,11 +43,11 @@ body.at-actif #at-rail{display:flex} body.at-actif main{margin-left:58px}
 ` }));
 
 // ------------------------------------------------------------------ RAIL : tous les modules de creation au meme endroit
-const MODULES = [['c3d', '&#9651;', 'Atelier'], ['creer', '&#9998;', 'Prenoms'], ['kc', '&#9000;', 'Keycaps'], ['sw', '&#9881;', 'Pieces']];
+const MODULES = [['c3d', '&#9651;', 'Atelier'], ['creer', '&#9998;', 'Prénoms'], ['kc', '&#9000;', 'Keycaps'], ['sw', '&#9881;', 'Pièces']];
 const CREATION = new Set(MODULES.map(m => m[0]));
 const rail = el(`<div id="at-rail">${MODULES.map(([t, i, n]) => `<button data-m="${t}" title="${n}"><i>${i}</i>${n}</button>`).join('')}
-  <button data-a="biblio" title="Tous les modeles parametriques, dans la meme scene (L)"><i>&#9638;</i>Biblio</button>
-  <button data-a="pieces" title="Mes pieces : reutilisables et partagees (P)"><i>&#10070;</i>Pieces+</button>
+  <button data-a="biblio" title="Tous les modèles paramétriques, dans la même scène (L)"><i>&#9638;</i>Biblio</button>
+  <button data-a="pieces" title="Mes pièces : réutilisables et partagées (P)"><i>&#10070;</i>Pièces+</button>
   <button data-a="design" title="Outils de placement (G)"><i>&#8982;</i>Design</button>
   <button data-a="coupe" title="Vue en coupe (C)"><i>&#9707;</i>Coupe</button>
   <button data-a="ia" title="Image vers 3D niveau 2 (IA locale)"><i>&#10022;</i>IA 3D</button>
@@ -78,24 +78,24 @@ function index() {
   const texte = b => (b.getAttribute('title') || b.innerText || '').replace(/\s+/g, ' ').trim();
   const zone = (sel, tab, famille) => $$(sel).forEach(b => { const t = texte(b); if (t) out.push({ t, famille, run: () => { aller(tab); setTimeout(() => b.click(), 50); } }); });
   zone('#tab-c3d [data-forme]', 'c3d', 'Forme');
-  zone('#tab-c3d [data-gen]', 'c3d', 'Generateur');
+  zone('#tab-c3d [data-gen]', 'c3d', 'Générateur');
   zone('#tab-c3d [data-c3]', 'c3d', 'Outil');
   zone('#tab-c3d [data-mode]', 'c3d', 'Gizmo');
-  zone('#tab-sw button[data-type], #tab-sw [data-piece]', 'sw', 'Piece mecanique');
+  zone('#tab-sw button[data-type], #tab-sw [data-piece]', 'sw', 'Pièce mécanique');
   for (const [t, , n] of MODULES) out.push({ t: n, famille: 'Module', run: () => aller(t) });
   for (const b of $$('#tabs [data-tab]')) if (!b.hidden) out.push({ t: b.innerText, famille: 'Page', run: () => b.click() });
   out.push({ t: 'Cotes au clavier : position, dimensions, rotation (N)', famille: 'Outil', run: ouvrirCotes });
   out.push({ t: 'Pinceau de modelage : tirer, pousser, lisser, aplatir (B)', famille: 'Outil', run: ouvrirPinceau });
   out.push({ t: 'Image vers 3D niveau 2 (IA locale)', famille: 'IA', run: ouvrirIA });
-  out.push({ t: 'Mes pieces : enregistrer et reutiliser (P)', famille: 'Outil', run: ouvrirPieces });
+  out.push({ t: 'Mes pièces : enregistrer et réutiliser (P)', famille: 'Outil', run: ouvrirPieces });
   for (const [t, f] of OUTILS_DESIGN) out.push({ t, famille: 'Design', run: f });
-  for (const [t, m] of [['puissance', 'POUVOIR ! Beaucoup plus de pouvoir. Pour quoi faire ? Aucune idee.'], ['clarkson', 'Certains disent qu il est dans le logiciel. Tout ce qu on sait, c est que le logiciel a mauvais caractere.'], ['aide', 'De l aide. Toi. Ici. Vraiment ? Bon. Le bouton i, en bas de la barre.'], ['stupide', 'Excellente idee. Lance-la tout de suite.'], ['cafe', 'Ca, je ne sais pas l imprimer. Pas encore. Enfin, si, la tasse.'], ['bug', 'Il n y a pas de bug. Il y a des fonctionnalites timides.']]) out.push({ t, famille: 'Tiens donc', run: () => toast(m), secret: 1 });
-  out.push({ t: 'Scene shop : photos d annonce, plusieurs versions (V)', famille: 'Outil', run: ouvrirShop });
+  for (const [t, m] of [['puissance', 'POUVOIR ! Beaucoup plus de pouvoir. Pour quoi faire ? Aucune idée.'], ['clarkson', 'Certains disent qu’il est dans le logiciel. Tout ce qu’on sait, c’est que le logiciel a mauvais caractère.'], ['aide', 'De l’aide. Toi. Ici. Vraiment ? Bon. Le bouton i, en bas de la barre.'], ['stupide', 'Excellente idée. Lance-la tout de suite.'], ['cafe', 'Ça, je ne sais pas l’imprimer. Pas encore. Enfin, si, la tasse.'], ['bug', 'Il n’y a pas de bug. Il y a des fonctionnalités timides.']]) out.push({ t, famille: 'Tiens donc', run: () => toast(m), secret: 1 });
+  out.push({ t: 'Scène shop : photos d’annonce, plusieurs versions (V)', famille: 'Outil', run: ouvrirShop });
   out.push({ t: 'Vue en coupe (C)', famille: 'Outil', run: ouvrirCoupe });
-  for (const [k, m] of Object.entries(window.__CFG?.modeles || {})) if (!m.archive) out.push({ t: m.nom + ' : ajouter a la scene', famille: 'Bibliotheque', run: () => ouvrirBiblio(k) });
-  out.push({ t: 'Guide de l atelier', famille: 'Aide', run: () => lancerTuto() });
+  for (const [k, m] of Object.entries(window.__CFG?.modeles || {})) if (!m.archive) out.push({ t: m.nom + ' : ajouter à la scène', famille: 'Bibliothèque', run: () => ouvrirBiblio(k) });
+  out.push({ t: 'Guide de l’atelier', famille: 'Aide', run: () => lancerTuto() });
   for (const p of window.__PROJETS?.P?.liste || []) out.push({ t: p.nom, famille: 'Projet', run: () => window.SHWOuvrirProjet(p.id) });
-  for (const [k, m] of Object.entries(window.__CFG?.modeles || {})) if (!m.archive) out.push({ t: m.nom, famille: 'Projet parametrique', run: () => window.__CFG.ouvrirModele(k, {}) });
+  for (const [k, m] of Object.entries(window.__CFG?.modeles || {})) if (!m.archive) out.push({ t: m.nom, famille: 'Projet paramétrique', run: () => window.__CFG.ouvrirModele(k, {}) });
   return out;
 }
 function ouvrirRecherche() {
@@ -109,7 +109,7 @@ function ouvrirRecherche() {
     const q = norm($('#at-q').value).split(/\s+/).filter(Boolean);
     vus = liste.filter(x => (x.secret ? q.length && norm(x.t) === q.join(' ') : q.every(m => norm(x.t + ' ' + x.famille).includes(m)))).slice(0, 40);
     sel = Math.min(sel, Math.max(0, vus.length - 1));
-    $('#at-res').innerHTML = !vus.length ? '<div><small>Rien. Absolument rien. J ai cherche partout, avec beaucoup d assurance.</small></div>' : vus.map((x, i) => `<div class="${i === sel ? 'on' : ''}" data-i="${i}"><span>${x.t}</span><small>${x.famille}</small></div>`).join('');
+    $('#at-res').innerHTML = !vus.length ? '<div><small>Rien. Absolument rien. J’ai cherche partout, avec beaucoup d’assurance.</small></div>' : vus.map((x, i) => `<div class="${i === sel ? 'on' : ''}" data-i="${i}"><span>${x.t}</span><small>${x.famille}</small></div>`).join('');
     $('#at-res .on')?.scrollIntoView({ block: 'nearest' });
   };
   const lancer = i => { fermer(); vus[i]?.run(); };
@@ -128,18 +128,18 @@ function ouvrirRecherche() {
 // ------------------------------------------------------------------ COTES AU CLAVIER
 function ouvrirCotes() {
   aller('c3d');
-  if (!C().sel.length) return toast('Selectionne d abord un objet');
+  if (!C().sel.length) return toast('Sélectionne d’abord un objet');
   $('#at-cotes')?.remove();
   const b = I().boite(C().sel), t = b.getSize(new THREE.Vector3());
   const ligne = (k, ax, fl, v, u = 'mm') => `<label><span class="ax ax-${ax}">${fl}</span><input type="number" step="any" data-k="${k}" value="${(+v).toFixed(2)}"><span>${u}</span></label>`;
   const d = el(`<div class="at-flot" id="at-cotes"><h3>Cotes <button data-f>&#10005;</button></h3>
-    <div class="at-seg"><button data-rel="0" class="on">Absolu</button><button data-rel="1">Decaler de</button></div>
+    <div class="at-seg"><button data-rel="0" class="on">Absolu</button><button data-rel="1">Décaler de</button></div>
     ${ligne('px', 'x', 'X &rarr;', b.min.x)}${ligne('py', 'y', 'Y &nearr;', b.min.y)}${ligne('pz', 'z', 'Z &uarr;', b.min.z)}
     <hr style="border-color:#2a2e37">
     ${ligne('dx', 'x', 'Long. X', t.x)}${ligne('dy', 'y', 'Larg. Y', t.y)}${ligne('dz', 'z', 'Haut. Z', t.z)}
     <hr style="border-color:#2a2e37">
     ${ligne('rx', 'x', 'Rot. X', 0, '&deg;')}${ligne('ry', 'y', 'Rot. Y', 0, '&deg;')}${ligne('rz', 'z', 'Rot. Z', 0, '&deg;')}
-    <div class="act"><button data-f>Fermer</button><button class="ok" data-v>Valider (Entree)</button></div></div>`);
+    <div class="act"><button data-f>Fermer</button><button class="ok" data-v>Valider (Entrée)</button></div></div>`);
   document.body.appendChild(d);
   let rel = false;
   const q = k => +d.querySelector(`[data-k="${k}"]`).value;
@@ -164,7 +164,7 @@ function ouvrirCotes() {
     const dep = rel ? new THREE.Vector3(q('px'), q('py'), q('pz')) : new THREE.Vector3(q('px') - b1.min.x, q('py') - b1.min.y, q('pz') - b1.min.z);
     for (const o of sel) { o.mesh.position.add(dep); o.mesh.updateMatrixWorld(); }
     I().selectionner(sel); I().memo();
-    d.remove(); toast('Cotes appliquees');
+    d.remove(); toast('Cotes appliquées');
   }
   d.querySelector('[data-k="pz"]').select();
 }
@@ -173,7 +173,7 @@ function ouvrirCotes() {
 const PI = { actif: false, mode: 'tirer', r: 8, force: 0.5, sym: false, o: null, geo: null, trait: false, modifie: false };
 function ouvrirPinceau() {
   aller('c3d');
-  const o = C().sel[0]; if (!o) return toast('Selectionne d abord l objet a modeler');
+  const o = C().sel[0]; if (!o) return toast('Sélectionne d’abord l’objet à modeler');
   if ($('#at-pinceau')) return;
   // surface continue et assez fine pour etre modelee : pas de couture aux aretes, sommets ajoutes si besoin
   let g = o.mesh.geometry.clone(); g.deleteAttribute('normal'); g.deleteAttribute('uv');
@@ -190,8 +190,8 @@ function ouvrirPinceau() {
     <div class="at-seg">${[['tirer', 'Tirer'], ['pousser', 'Pousser'], ['lisser', 'Lisser'], ['aplatir', 'Aplatir']].map(([m, n]) => `<button data-mode="${m}" class="${m === PI.mode ? 'on' : ''}">${n}</button>`).join('')}</div>
     <label style="grid-template-columns:62px 1fr 34px"><span>Taille</span><input type="range" min="1" max="60" step="0.5" value="${PI.r}" data-r><b data-vr>${PI.r}</b></label>
     <label style="grid-template-columns:62px 1fr 34px"><span>Force</span><input type="range" min="0.05" max="1" step="0.05" value="${PI.force}" data-fo><b data-vf>${PI.force}</b></label>
-    <label style="grid-template-columns:18px 1fr"><input type="checkbox" data-sym><span>Symetrie gauche / droite</span></label>
-    <small style="color:#8b919c">Glisse sur la surface. [ et ] : taille. Alt : mode inverse. Ctrl+Z apres validation.</small>
+    <label style="grid-template-columns:18px 1fr"><input type="checkbox" data-sym><span>Symétrie gauche / droite</span></label>
+    <small style="color:#8b919c">Glisse sur la surface. [ et ] : taille. Alt : mode inverse. Ctrl+Z après validation.</small>
     <div class="act"><button data-f>Annuler</button><button class="ok" data-v>Valider</button></div></div>`);
   document.body.appendChild(d);
   const fin = async garder => {
@@ -199,7 +199,7 @@ function ouvrirPinceau() {
     if (garder && PI.modifie) {
       const stl = new STLExporter().parse(new THREE.Mesh(PI.geo), { binary: true });
       const blob = new Blob([stl]); const data = await new Promise(ok => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(blob); });
-      const r = await api('/api/c3d/importer', { data, nom: 'modele.stl', garder: true });
+      const r = await api('/api/c3d/importer', { data, nom: 'modèle.stl', garder: true });
       PI.o.fichier = (r.objets?.[0] || r).fichier; PI.o.type = 'import'; PI.o.params = null;
       I().memo(); toast('Modelage enregistre');
     } else if (!garder) { I().recharger(PI.o); }
@@ -276,7 +276,7 @@ async function ouvrirIA() {
   if ($('#at-ia')) return;
   const e = await (await fetch('/api/ia/etat')).json();
   const d = el(`<div class="at-flot" id="at-ia" style="width:310px"><h3>Image vers 3D niveau 2 <button data-f>&#10005;</button></h3>
-    ${e.dispo ? `<small style="color:#8b919c">${e.carte} : ${e.vram_go} Go. ${e.installation === 'pret' ? 'IA prete.' : 'Installation : ' + e.installation}</small>
+    ${e.dispo ? `<small style="color:#8b919c">${e.carte} : ${e.vram_go} Go. ${e.installation === 'pret' ? 'IA prête.' : 'Installation : ' + e.installation}</small>
     <p style="margin:8px 0">Jusqu a 6 photos d un objet, d une piece ou d une personne. Chaque photo donne un essai de 3 a 5 min : garde le meilleur.</p>
     <input type="file" multiple accept="image/*" data-img><div class="at-gal" data-gal></div>
     <label style="grid-template-columns:62px 1fr 22px"><span>Taille</span><input type="number" data-t value="100"><span>mm</span></label>
@@ -288,16 +288,16 @@ async function ouvrirIA() {
   d.addEventListener('click', async ev => {
     if (ev.target.closest('[data-f]')) d.remove();
     if (ev.target.closest('[data-go]')) {
-      if (!IA.images.length) return toast('Ajoute au moins une photo');
+      if (!IA.images.length) return toast('Ajouté au moins une photo');
       const suivi = d.querySelector('[data-suivi]');
       const { job } = await api('/api/ia/generer', { images: IA.images.map(x => x.id), taille: +d.querySelector('[data-t]').value, variante: +d.querySelector('[data-var]').value });
-      window.dispatchEvent(new CustomEvent('shw:ia', { detail: 'lance une generation IA' }));
+      window.dispatchEvent(new CustomEvent('shw:ia', { detail: 'lance une génération IA' }));
       let vus = 0;
       const t = setInterval(async () => {
         const j = await (await fetch('/api/ia/job/' + job)).json();
         suivi.textContent = j.message;
         for (; vus < j.objets.length; vus++) await C()._ajout(j.objets[vus], undefined);
-        if (j.fini) { clearInterval(t); if (j.erreur) toast(j.erreur); else toast('Generation terminee'); }
+        if (j.fini) { clearInterval(t); if (j.erreur) toast(j.erreur); else toast('Génération terminée'); }
       }, 3000);
     }
   });
@@ -319,7 +319,7 @@ setTimeout(async () => {
     const e = await (await fetch('/api/ia/etat')).json();
     if (e.installation === 'attente') return;
     if (e.dispo) return;
-    const a = el(`<div class="at-av"><b>Image vers 3D niveau 2 (IA locale) indisponible sur cette machine.</b><br>${e.raison}. Pour l utiliser, lance SHW 3DLAB sur un PC avec une carte NVIDIA de 8 Go de memoire graphique ou plus. Tout le reste fonctionne normalement.</div>`);
+    const a = el(`<div class="at-av"><b>Image vers 3D niveau 2 (IA locale) indisponible sur cette machine.</b><br>${e.raison}. Pour l’utiliser, lance SHW 3DLAB sur un PC avec une carte NVIDIA de 8 Go de mémoire graphique ou plus. Tout le reste fonctionne normalement.</div>`);
     document.body.appendChild(a); setTimeout(() => a.remove(), 14000);
   } catch { }
 }, 3000);
@@ -353,8 +353,8 @@ async function ouvrirBiblio(cle) {
   aller('c3d');
   $('#at-biblio')?.remove();
   const M = await catalogue();
-  const d = el(`<div class="at-flot" id="at-biblio" style="width:320px;max-height:78vh;overflow:auto"><h3>Bibliotheque <button data-f>&#10005;</button></h3>
-    <input data-cherche placeholder="Chercher un modele..." style="width:100%;box-sizing:border-box;background:#0d0f13;color:#fff;border:1px solid #2a2e37;border-radius:6px;padding:6px"><div data-corps style="margin-top:8px"></div></div>`);
+  const d = el(`<div class="at-flot" id="at-biblio" style="width:320px;max-height:78vh;overflow:auto"><h3>Bibliothèque <button data-f>&#10005;</button></h3>
+    <input data-cherche placeholder="Chercher un modèle..." style="width:100%;box-sizing:border-box;background:#0d0f13;color:#fff;border:1px solid #2a2e37;border-radius:6px;padding:6px"><div data-corps style="margin-top:8px"></div></div>`);
   document.body.appendChild(d);
   const corps = d.querySelector('[data-corps]');
   const liste = () => {
@@ -365,7 +365,7 @@ async function ouvrirBiblio(cle) {
   const fiche = k => {
     const m = M[k];
     corps.innerHTML = `<a data-ret style="cursor:pointer;color:#8b919c">&larr; Retour</a><p style="font-weight:600;margin:6px 0 2px">${m.nom}</p><small style="color:#8b919c">${m.description || ''}</small>
-      ${(m.champs || []).map(c => champHTML(c)).join('')}<div class="act"><button class="ok" data-aj="${k}">Ajouter a la scene</button><button data-ajshop="${k}">Scene shop</button></div>`;
+      ${(m.champs || []).map(c => champHTML(c)).join('')}<div class="act"><button class="ok" data-aj="${k}">Ajouter à la scène</button><button data-ajshop="${k}">Scène shop</button></div>`;
   };
   d.addEventListener('click', async e => {
     if (e.target.closest('[data-f]')) d.remove();
@@ -376,9 +376,9 @@ async function ouvrirBiblio(cle) {
     const a = e.target.closest('[data-aj]');
     if (a) {
       a.disabled = true; a.textContent = 'Calcul...';
-      try { const o = await poserModele(a.dataset.aj, lireChamps(corps), lotId()); I().selectionner(o); I().memo(); toast('Ajoute a la scene'); }
+      try { const o = await poserModele(a.dataset.aj, lireChamps(corps), lotId()); I().selectionner(o); I().memo(); toast('Ajouté à la scène'); }
       catch (er) { toast(er.message); }
-      a.disabled = false; a.textContent = 'Ajouter a la scene';
+      a.disabled = false; a.textContent = 'Ajouter à la scène';
     }
   });
   d.addEventListener('input', e => { if (e.target.dataset.cherche !== undefined) liste(); });
@@ -399,7 +399,7 @@ setInterval(async () => {
   if (_lotVu === b.lot && ouvert) return;
   ouvert?.remove(); _lotVu = b.lot;
   const M = (await catalogue())[b.modele]; if (!M) return;
-  const d = el(`<div class="at-flot" id="at-regl" style="width:290px;max-height:70vh;overflow:auto"><h3>${M.nom} <button data-f>&#10005;</button></h3>${(M.champs || []).map(c => champHTML(c, b.params?.[c.k])).join('')}<div class="act"><button data-shop>Scene shop</button><button class="ok" data-maj>Mettre a jour</button></div></div>`);
+  const d = el(`<div class="at-flot" id="at-regl" style="width:290px;max-height:70vh;overflow:auto"><h3>${M.nom} <button data-f>&#10005;</button></h3>${(M.champs || []).map(c => champHTML(c, b.params?.[c.k])).join('')}<div class="act"><button data-shop>Scène shop</button><button class="ok" data-maj>Mettre à jour</button></div></div>`);
   document.body.appendChild(d);
   d.addEventListener('keydown', e => e.stopPropagation());
   d.addEventListener('click', async e => {
@@ -413,8 +413,8 @@ setInterval(async () => {
       const nb = I().boite(n), dep = new THREE.Vector3(bb.min.x - nb.min.x, bb.min.y - nb.min.y, bb.min.z - nb.min.z);
       for (const o of n) { o.mesh.position.add(dep); o.mesh.updateMatrixWorld(); }
       lot.forEach(o => I().retirer(o));
-      d.remove(); _lotVu = null; I().selectionner(n); I().memo(); toast('Modele mis a jour');
-    } catch (er) { toast(er.message); bt.textContent = 'Mettre a jour'; }
+      d.remove(); _lotVu = null; I().selectionner(n); I().memo(); toast('Modèle mis à jour');
+    } catch (er) { toast(er.message); bt.textContent = 'Mettre à jour'; }
   });
 }, 500);
 
@@ -422,22 +422,22 @@ setInterval(async () => {
 async function ouvrirPieces() {
   aller('c3d');
   $('#at-pieces')?.remove();
-  const d = el(`<div class="at-flot" id="at-pieces" style="width:300px;max-height:75vh;overflow:auto"><h3>Mes pieces <button data-f>&#10005;</button></h3>
-    <div class="act"><button class="ok" data-sauve>Enregistrer la selection</button></div><div data-l style="margin-top:8px"></div></div>`);
+  const d = el(`<div class="at-flot" id="at-pieces" style="width:300px;max-height:75vh;overflow:auto"><h3>Mes pièces <button data-f>&#10005;</button></h3>
+    <div class="act"><button class="ok" data-sauve>Enregistrer la sélection</button></div><div data-l style="margin-top:8px"></div></div>`);
   document.body.appendChild(d);
   const rendre = async () => {
     const l = await (await fetch('/api/pieces')).json();
-    d.querySelector('[data-l]').innerHTML = l.length ? l.map(p => `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0"><a data-pose="${p.id}" style="cursor:pointer">${p.nom}</a><button data-sup="${p.id}" style="background:none;border:0;color:#8b919c;cursor:pointer">&#10005;</button></div>`).join('') : '<small style="color:#8b919c">Vide. Absolument rien. Et j ai vu des deserts plus accueillants.</small>';
+    d.querySelector('[data-l]').innerHTML = l.length ? l.map(p => `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0"><a data-pose="${p.id}" style="cursor:pointer">${p.nom}</a><button data-sup="${p.id}" style="background:none;border:0;color:#8b919c;cursor:pointer">&#10005;</button></div>`).join('') : '<small style="color:#8b919c">Vide. Absolument rien. Et j’ai vu des déserts plus accueillants.</small>';
     d._l = l;
   };
   d.addEventListener('click', async e => {
     if (e.target.closest('[data-f]')) d.remove();
     if (e.target.closest('[data-sauve]')) {
-      const sel = C().sel; if (!sel.length) return toast('Selectionne d abord une piece');
-      const nom = prompt('Nom de la piece :', sel[0].nom || 'piece'); if (!nom) return;
+      const sel = C().sel; if (!sel.length) return toast('Sélectionne d’abord une pièce');
+      const nom = prompt('Nom de la pièce :', sel[0].nom || 'piece'); if (!nom) return;
       const b = I().boite(sel), base = new THREE.Matrix4().makeTranslation(-(b.min.x + b.max.x) / 2, -(b.min.y + b.max.y) / 2, -b.min.z);
       const objets = sel.map(o => { o.mesh.updateMatrixWorld(); return { fichier: o.fichier, nom: o.nom, trou: !!o.trou, bobine: o.bobine, matrice: base.clone().multiply(o.mesh.matrixWorld).toArray() }; });
-      await api('/api/pieces', { nom, objets }); toast('Piece rangee. De l ordre. Ici. Je suis aussi surpris que toi.'); rendre();
+      await api('/api/pieces', { nom, objets }); toast('Pièce rangée. De l’ordre. Ici. Je suis aussi surpris que toi.'); rendre();
     }
     const s = e.target.closest('[data-sup]');
     if (s) { await fetch('/api/pieces/' + s.dataset.sup, { method: 'DELETE' }); rendre(); }
@@ -455,7 +455,7 @@ async function ouvrirPieces() {
 }
 
 // ------------------------------------------------------------------ OUTILS DE PLACEMENT
-function applique(f) { const s = C().sel; if (!s.length) return toast('Selectionne d abord un objet'); f(s); s.forEach(o => o.mesh.updateMatrixWorld()); I().selectionner(s); I().memo(); }
+function applique(f) { const s = C().sel; if (!s.length) return toast('Sélectionne d’abord un objet'); f(s); s.forEach(o => o.mesh.updateMatrixWorld()); I().selectionner(s); I().memo(); }
 const decale = (s, v) => s.forEach(o => { o.mesh.position.add(v); o.mesh.updateMatrixWorld(); });
 function repartir(ax) {
   applique(s => {
@@ -471,9 +471,9 @@ function repartir(ax) {
 const OUTILS_DESIGN = [
   ['Centrer sur le plateau', () => applique(s => { const c = I().boite(s).getCenter(new THREE.Vector3()); decale(s, new THREE.Vector3(-c.x, -c.y, 0)); })],
   ['Poser au sol', () => applique(s => decale(s, new THREE.Vector3(0, 0, -I().boite(s).min.z)))],
-  ['Empiler sur le 1er selectionne', () => applique(s => { let z = I().boite([s[0]]).max.z; const c = I().boite([s[0]]).getCenter(new THREE.Vector3()); for (const o of s.slice(1)) { const b = I().boite([o]), cb = b.getCenter(new THREE.Vector3()); decale([o], new THREE.Vector3(c.x - cb.x, c.y - cb.y, z - b.min.z)); z = I().boite([o]).max.z; } })],
-  ['Repartir sur X', () => repartir('x')], ['Repartir sur Y', () => repartir('y')], ['Repartir sur Z', () => repartir('z')],
-  ['Isoler la selection', () => { const s = C().sel; C().objets.forEach(o => { o.mesh.visible = s.includes(o); }); }],
+  ['Empiler sur le 1er sélectionne', () => applique(s => { let z = I().boite([s[0]]).max.z; const c = I().boite([s[0]]).getCenter(new THREE.Vector3()); for (const o of s.slice(1)) { const b = I().boite([o]), cb = b.getCenter(new THREE.Vector3()); decale([o], new THREE.Vector3(c.x - cb.x, c.y - cb.y, z - b.min.z)); z = I().boite([o]).max.z; } })],
+  ['Répartir sur X', () => repartir('x')], ['Répartir sur Y', () => repartir('y')], ['Répartir sur Z', () => repartir('z')],
+  ['Isoler la sélection', () => { const s = C().sel; C().objets.forEach(o => { o.mesh.visible = s.includes(o); }); }],
   ['Tout afficher', () => C().objets.forEach(o => { o.mesh.visible = true; })],
 ];
 function ouvrirDesign() {
@@ -550,20 +550,20 @@ async function poserVersions() {
 function ouvrirShop() {
   aller('c3d');
   if (SH.actif) return;
-  if (!C().objets.length) return toast('Rien a mettre en vitrine. Une vitrine vide, c est juste une fenetre.');
+  if (!C().objets.length) return toast('Rien à mettre en vitrine. Une vitrine vide, c’est juste une fenêtre.');
   SH.actif = true;
   const sc = I().scene;
   I().tc.detach();
   SH.caches = sc.children.filter(x => !x.isLight && x.visible); SH.caches.forEach(x => { x.visible = false; });
   SH.fond0 = sc.background; sc.background = new THREE.Color(SH.fond);
   SH.sol = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), new THREE.ShadowMaterial({ opacity: 0.25 })); SH.sol.receiveShadow = true; sc.add(SH.sol);
-  const d = el(`<div class="at-flot" id="at-shop"><h3>Scene shop <button data-f>&#10005;</button></h3>
+  const d = el(`<div class="at-flot" id="at-shop"><h3>Scène shop <button data-f>&#10005;</button></h3>
     <div class="at-seg">${[['couleurs', 'Couleurs'], ['tailles', 'Tailles'], ['formes', 'Formes']].map(([m, n]) => `<button data-m="${m}" class="${SH.mode === m ? 'on' : ''}">${n}</button>`).join('')}</div>
     <label style="grid-template-columns:62px 1fr 26px"><span>Versions</span><input type="range" min="1" max="7" value="${SH.n}" data-n><b data-vn>${SH.n}</b></label>
     <div class="at-seg">${FONDS.map(([n, c]) => `<button data-fond="${c}" title="${n}" style="background:${c};color:${c === '#16181d' ? '#fff' : '#14171d'}">${n}</button>`).join('')}</div>
     <label style="grid-template-columns:18px 1fr"><input type="checkbox" data-t><span>Plateau tournant</span></label>
-    <div class="act"><button class="ok" data-photo>Photo pour l annonce</button></div>
-    <small style="color:#8b919c">Les versions n existent que dans cette vue : ton projet ne change pas. Formes : pour les modeles issus d un generateur.</small></div>`);
+    <div class="act"><button class="ok" data-photo>Photo pour l’annonce</button></div>
+    <small style="color:#8b919c">Les versions n’existent que dans cette vue : ton projet ne change pas. Formes : pour les modèles issus d’un générateur.</small></div>`);
   document.body.appendChild(d);
   d.addEventListener('click', e => {
     if (e.target.closest('[data-f]')) return fermerShop();
@@ -588,7 +588,7 @@ function fermerShop() {
 function photoShop() {
   const { ren, scene, cam } = I(); ren.render(scene, cam);
   const a = document.createElement('a'); a.download = `shop_${Date.now()}.png`; a.href = ren.domElement.toDataURL('image/png'); a.click();
-  toast('Photo enregistree. Vendue d avance. Probablement.');
+  toast('Photo enregistrée. Vendue d’avance. Probablement.');
 }
 
 // ------------------------------------------------------------------ PETITES VANNES : discretes, rares, jamais sur le chemin
@@ -611,31 +611,33 @@ document.addEventListener('keydown', e => {
   const k = e.key.toLowerCase(), ctrl = e.ctrlKey || e.metaKey;
   if (ctrl && k === 'z') {
     const t = performance.now(); _annul = t - _annulT < 4000 ? _annul + 1 : 1; _annulT = t;
-    if (_annul >= 5) { _annul = 0; vanne(['Cinq annulations. Ce n est plus une correction, c est un regret.', 'Tu remontes le temps. Avec un succes tres relatif.'], 1); }
+    if (_annul >= 5) { _annul = 0; vanne(['Cinq annulations. Ce n’est plus une correction, c’est un regret.', 'Tu remontes le temps. Avec un succès très relatif.'], 1); }
   }
-  if (ctrl && k === 'd') vanne(['Un second, identique. Parce que le premier etait deja parfait, evidemment.', 'Dupliquer : la solution a tout, depuis toujours.']);
-  if (ctrl && k === 'g') vanne(['Grouper. Faire semblant que tout ca etait prevu.']);
-  if (k === 'delete') vanne(['Supprime. Il n avait rien demande.', 'Adieu. Tu ne manqueras a personne. Sauf peut-etre a Ctrl+Z.']);
-  if (k === 'h' && !ctrl) vanne(['Un trou. La seule partie de la piece qui ne coute pas de filament.']);
+  if (ctrl && k === 'd') vanne(['Un second, identique. Parce que le premier était déjà parfait, évidemment.', 'Dupliquer : la solution à tout, depuis toujours.']);
+  if (ctrl && k === 'g') vanne(['Grouper. Faire semblant que tout ça était prévu.']);
+  if (k === 'delete') vanne(['Supprimé. Il n’avait rien demande.', 'Adieu. Tu ne manqueras à personne. Sauf peut-être à Ctrl+Z.']);
+  if (k === 'f' && !ctrl) vanne(['Tu recadres. Comme si l’angle de vue allait sauver cette pièce.']);
+  if (k === 'm' && !ctrl) vanne(['Tu mesures. Enfin quelqu’un de sérieux ici. C’est inquiétant.']);
+  if (k === 'h' && !ctrl) vanne(['Un trou. La seule partie de la pièce qui ne coûte pas de filament.']);
 }, true);
 let _nbObj = -1;
 setInterval(() => {
   const n = window.__C3D?.objets?.length; if (n == null) return;
   if (_nbObj >= 0 && n !== _nbObj) {
-    if (n >= 25 && _nbObj < 25) vanne(['Vingt-cinq objets. Ce n est plus une scene, c est un probleme de stockage.'], 1);
-    else if (n === 0 && _nbObj > 0) vanne(['Plus rien. Le minimalisme, pousse jusqu au bout.'], 0.7);
-    else if (n === 1 && _nbObj === 0) vanne(['Un objet. Tout commence par la. Et souvent, tout s arrete la.']);
+    if (n >= 25 && _nbObj < 25) vanne(['Vingt-cinq objets. Ce n’est plus une scène, c’est un problème de stockage.'], 1);
+    else if (n === 0 && _nbObj > 0) vanne(['Plus rien. Le minimalisme, pousse jusqu’au bout.'], 0.7);
+    else if (n === 1 && _nbObj === 0) vanne(['Un objet. Tout commence par la. Et souvent, tout s’arrête la.']);
   }
   _nbObj = n;
 }, 1000);
-if (new Date().getHours() < 5) setTimeout(() => vanne(['Il est tard. Tres tard. Ce qui explique sans doute cette piece.', 'A cette heure-ci, les gens raisonnables dorment. Tant mieux, il y a de la place.'], 1), 8000);
+if (new Date().getHours() < 5) setTimeout(() => vanne(['Il est tard. Très tard. Ce qui explique sans doute cette pièce.', 'À cette heure-ci, les gens raisonnables dorment. Tant mieux, il y a de la place.'], 1), 8000);
 
 // ------------------------------------------------------------------ EASTER EGG : cinq clics sur le logo
-const CERTAINS = ['Certains disent qu il a tranche un STL a la main. Et qu il ne connait que deux facons de cliquer. Tout ce qu on sait, c est qu on l appelle : Steven.',
-  'Certains disent que Hugo n a jamais lu une notice. Et que les notices ont peur de lui.',
-  'A quel point est-ce que ca peut etre difficile ?', 'Cette idee etait stupide. Et pourtant, regarde : elle fonctionne.',
-  'Selon mes calculs, tout va exploser. Mes calculs sont faux. En general.', 'Ambitieux, mais nul. Et puis, ca a marche.',
-  'J ai demande conseil a un expert. Puis j ai fait exactement le contraire.', 'POUVOIR ! ... non, rien. C etait juste pour le plaisir.'];
+const CERTAINS = ['Certains disent que ce logo se clique tout seul la nuit. Tout ce qu’on sait, c’est que tu viens de cliquer cinq fois.', 'Tu as cliqué cinq fois sur un logo. Et c’est la meilleure décision de ta journée.', 'Et sur cette note, absolument rien ne se passe.', 'Certains disent qu’il a tranché un STL à la main. Et qu’il ne connaît que deux façons de cliquer. Tout ce qu’on sait, c’est qu’on l’appelle : Steven.',
+  'Certains disent que Hugo n’a jamais lu une notice. Et que les notices ont peur de lui.',
+  'À quel point est-ce que ça peut être difficile ?', 'Cette idée était stupide. Et pourtant, regarde : elle fonctionne.',
+  'Selon mes calculs, tout va exploser. Mes calculs sont faux. En général.', 'Ambitieux, mais nul. Et puis, ça a marche.',
+  'J’ai demande conseil a un expert. Puis j’ai fait exactement le contraire.', 'POUVOIR ! ... non, rien. C’était juste pour le plaisir.'];
 let _clicsLogo = 0, _tLogo = 0;
 document.querySelector('.brand')?.addEventListener('click', () => {
   const t = performance.now(); _clicsLogo = t - _tLogo < 700 ? _clicsLogo + 1 : 1; _tLogo = t;
@@ -667,7 +669,7 @@ function ouvrirCoupe() {
   I().ren.localClippingEnabled = true; I().ren.clippingPlanes = [COUPE.plan];
   const d = el(`<div class="at-flot" id="at-coupe"><h3>Vue en coupe <button data-f>&#10005;</button></h3>
     <div class="at-seg"><button data-ax="x">X</button><button data-ax="y">Y</button><button data-ax="z" class="on">Z</button></div>
-    <input type="range" style="width:100%" data-pos min="${z[0]}" max="${z[1]}" step="0.1" value="${z[1]}"><small style="color:#8b919c">Pour voir l interieur. Ne change pas les pieces.</small></div>`);
+    <input type="range" style="width:100%" data-pos min="${z[0]}" max="${z[1]}" step="0.1" value="${z[1]}"><small style="color:#8b919c">Pour voir l’intérieur. Ne change pas les pièces.</small></div>`);
   document.body.appendChild(d);
   const maj = () => { COUPE.plan.constant = +d.querySelector('[data-pos]').value; };
   maj();
@@ -686,20 +688,20 @@ function ouvrirCoupe() {
 
 // ------------------------------------------------------------------ TUTO
 const ETAPES = [
-  ['#at-rail', 'Bienvenue dans l atelier', 'Tout ce qui sert a creer est sur cette barre. Oui, tout. J ai verifie. Enfin, quelqu un a verifie.'],
-  ['#tab-c3d .c3d-lib', 'Formes et generateurs', 'Clique ou glisse une forme sur le plan. Une boite. Le debut de toutes les grandes choses, et de beaucoup de boites.'],
-  ['#c3d-view', 'La scene', 'Clic : selectionner. Clic droit : le menu ou tout se passe. W, E, R : deplacer, tourner, etirer. Ctrl+Z : nier ce qui vient d arriver.'],
-  ['[data-a="biblio"]', 'La bibliotheque', 'Touche L : tous les modeles parametriques, dans cette scene. Selectionne-en un plus tard pour le re-regler. Sans rien recommencer. Inoui.'],
-  ['[data-a="pieces"]', 'Mes pieces', 'Touche P : range une piece reussie, ton coequipier la retrouve chez lui. Une piece reussie. Note bien la date.'],
-  ['[data-a="design"]', 'Design', 'Touche G : centrer, empiler, repartir, isoler. Pour faire croire que c etait aligne depuis le debut.'],
-  ['[data-a="cotes"]', 'Cotes au clavier', 'Touche N : tape X, Y, Z, les dimensions, Entree. La precision au centieme, pour une piece imprimee au dixieme. Magnifique.'],
-  ['[data-a="pinceau"]', 'Modeler', 'Touche B : tirer, pousser, lisser, aplatir. Comme de l argile, sans les ongles sales. Alt inverse le geste.'],
-  ['[data-a="coupe"]', 'Vue en coupe', 'Touche C : regarde a l interieur. Ce qu on y trouve n engage que toi.'],
-  ['[data-a="ia"]', 'IA 3D', 'Depose des photos : ton PC reconstruit l objet en quelques minutes. Il va chauffer. C est le prix de la gloire.'],
-  ['#c3d-view', 'Scene shop', 'Clic droit, Scene shop, ou touche V : la grille disparait, plusieurs versions, une photo d annonce. Et ca, c est vendu. Probablement.'],
-  ['[data-a="cherche"]', 'Tout chercher', 'Ctrl+K : tape ce que tu veux, Entree. Certains disent qu on peut y taper des betises. Certains ont raison.'],
-  ['#eq-fen', 'Travailler a deux', 'Travailler avec : meme page, memes objets, memes fenetres, en direct. Le ping est sous la pastille. Que pourrait-il arriver de mal ?'],
-  ['.brand', 'Et voila', 'C est tout. Ambitieux, un peu ridicule, et ca marche. Ce logo cache peut-etre quelque chose. Ou pas. Essaie de cliquer. Beaucoup.'],
+  ['#at-rail', 'Bienvenue dans l’atelier', 'Tout ce qui sert à créer est sur cette barre. Oui, tout. J’ai vérifié. Enfin, quelqu’un a vérifié.'],
+  ['#tab-c3d .c3d-lib', 'Formes et générateurs', 'Clique ou glisse une forme sur le plan. Une boîte. Le début de toutes les grandes choses, et de beaucoup de boîtes.'],
+  ['#c3d-view', 'La scène', 'Clic : sélectionner. Clic droit : le menu où tout se passe. W, E, R : déplacer, tourner, étirer. Ctrl+Z : nier ce qui vient d’arriver.'],
+  ['[data-a="biblio"]', 'La bibliothèque', 'Touche L : tous les modèles paramétriques, dans cette scène. Sélectionne-en un plus tard pour le re-regler. Sans rien recommencer. Inouï.'],
+  ['[data-a="pieces"]', 'Mes pièces', 'Touche P : range une pièce réussie, ton coéquipier la retrouve chez lui. Une pièce réussie. Note bien la date.'],
+  ['[data-a="design"]', 'Design', 'Touche G : centrer, empiler, répartir, isoler. Pour faire croire que c’était aligne depuis le début.'],
+  ['[data-a="cotes"]', 'Cotes au clavier', 'Touche N : tape X, Y, Z, les dimensions, Entrée. La précision au centième, pour une pièce imprimée au dixième. Magnifique.'],
+  ['[data-a="pinceau"]', 'Modeler', 'Touche B : tirer, pousser, lisser, aplatir. Comme de l’argile, sans les ongles sales. Alt inverse le geste.'],
+  ['[data-a="coupe"]', 'Vue en coupe', 'Touche C : regarde à l’intérieur. Ce qu’on y trouve n’engage que toi.'],
+  ['[data-a="ia"]', 'IA 3D', 'Dépose des photos : ton PC reconstruit l’objet en quelques minutes. Il va chauffer. C’est le prix de la gloire.'],
+  ['#c3d-view', 'Scène shop', 'Clic droit, Scène shop, ou touche V : la grille disparaît, plusieurs versions, une photo d’annonce. Et ça, c’est vendu. Probablement.'],
+  ['[data-a="cherche"]', 'Tout chercher', 'Ctrl+K : tape ce que tu veux, Entrée. Certains disent qu’on peut y taper des bêtises. Certains ont raison.'],
+  ['#eq-fen', 'Travailler à deux', 'Travailler avec : même page, mêmes objets, mêmes fenêtres, en direct. Le ping est sous la pastille. Que pourrait-il arriver de mal ?'],
+  ['.brand', 'Et voilà', 'C’est tout. Ambitieux, un peu ridicule, et ça marche. Ce logo cache peut-être quelque chose. Ou pas. Essaie de cliquer. Beaucoup.'],
 ];
 function lancerTuto(i = 0) {
   aller('c3d');

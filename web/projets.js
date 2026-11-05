@@ -8,9 +8,9 @@ const api = (u, b, m) => A().api(u, b, m);
 const toast = m => A().toast(m);
 
 export const TYPES = {
-  creation3d: { nom: 'Creation 3D', famille: 'Creations 3D', onglet: 'c3d', icone: '&#9651;', module: () => window.__C3D },
+  creation3d: { nom: 'Création 3D', famille: 'Créations 3D', onglet: 'c3d', icone: '&#9651;', module: () => window.__C3D },
   keycaps: { nom: 'Keycaps', famille: 'Keycaps', onglet: 'kc', icone: '&#9000;', module: () => window.__KC },
-  swork: { nom: 'SHWork (mecanique)', famille: 'Pieces mecaniques', onglet: 'sw', icone: '&#9881;', module: () => window.__SW },
+  swork: { nom: 'SHWork (mécanique)', famille: 'Pièces mécaniques', onglet: 'sw', icone: '&#9881;', module: () => window.__SW },
 };
 let _ferm = [];
 try { _ferm = JSON.parse(localStorage.getItem('pj-fermees') || '[]'); } catch { }
@@ -23,8 +23,8 @@ function dialogueNouveau(t) {
       <label>Nom<input data-n value="nouveau projet"></label>
       <label class="chk"><input type="checkbox" data-stl> Partir d'un fichier STL / OBJ / 3MF (base du projet)</label>
       <input type="file" data-f accept=".stl,.obj,.3mf,.ply" hidden>
-      <p class="mute" data-aide hidden>Le fichier est importe tel quel comme BASE (reference) : on pourra ensuite le decouper, le modifier, construire autour.</p>
-      <div class="pied"><button data-r="0">Annuler</button><button class="primary" data-r="1">Creer</button></div></div>`;
+      <p class="mute" data-aide hidden>Le fichier est importe tel quel comme BASE (référence) : on pourra ensuite le découper, le modifier, construire autour.</p>
+      <div class="pied"><button data-r="0">Annuler</button><button class="primary" data-r="1">Créer</button></div></div>`;
     document.body.appendChild(f);
     const cb = f.querySelector('[data-stl]'), fi = f.querySelector('[data-f]');
     cb.onchange = () => { fi.hidden = !cb.checked; f.querySelector('[data-aide]').hidden = !cb.checked; if (cb.checked) fi.click(); };
@@ -126,8 +126,8 @@ function afficher() {
       const d = await api('/api/projets/' + id); await api('/api/projets', { ...d, nom }); return rafraichir();
     }
     if (a === 'supprimer') {
-      if (!await dialogue(`Mettre "${p.nom}" a la corbeille ?`, { message: 'Recuperable dans data/projets/corbeille.', ok: 'Corbeille' })) return;
-      await api('/api/projets/' + id, undefined, 'DELETE'); toast('Projet mis a la corbeille'); rafraichir();
+      if (!await dialogue(`Mettre "${p.nom}" à la corbeille ?`, { message: 'Récupérable dans data/projets/corbeille.', ok: 'Corbeille' })) return;
+      await api('/api/projets/' + id, undefined, 'DELETE'); toast('Projet mis à la corbeille'); rafraichir();
     }
   });
 }
@@ -197,7 +197,7 @@ async function creer(type) {
   const r = await api('/api/projets', { nom: choix.nom, type, donnees: t.module()?.exporter?.() || {}, miniature: t.module()?.miniature?.() || '',
     description: base ? `base : ${choix.fichier.name}` : '' });
   P.courant[type] = { id: r.id, nom: choix.nom }; if (t.modele) window.__CFG.projet = { id: r.id, nom: choix.nom };
-  majTitres(); toast(`Projet "${choix.nom}" cree` + (base ? ` a partir de ${choix.fichier.name}` : ''));
+  majTitres(); toast(`Projet "${choix.nom}" créé` + (base ? ` à partir de ${choix.fichier.name}` : ''));
 }
 window.__PROJETS.creer = creer;
 menuNouveau();

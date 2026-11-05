@@ -20,13 +20,14 @@ const CSS = `
 #shw-charge .logo{position:absolute;left:16px;top:12px;height:20px;opacity:0;transition:opacity .5s}
 `;
 // etapes classiques des chargements de projet, avec une pointe d'humour de temps a autre
-const ETAPES = ['Verification des calculs. Ils ont l air surs d eux. C est mauvais signe.', 'On rajoute des triangles. Personne n a demande. Mais on en rajoute.',
-  'Certains disent que ce maillage n a pas de fin. Tout ce qu on sait, c est qu il a commence.', 'Je ne dis pas que c est long. Je dis que des civilisations ont eu le temps de tomber.',
-  'Dans un monde ideal, ce serait deja fini. Ce monde n est pas ideal.', 'Ajustement au centieme. Pour une imprimante au dixieme. La classe.',
-  'La physique a ete consultee. Elle a soupire.', 'Ce n est pas bloque. Ca reflechit. Tres fort. En silence.',
-  'Quelqu un a dit que c etait impossible. On ne l a plus jamais revu.', 'Alignement des neurones du processeur. Il n en a pas. Ca aide.',
-  'Ajout de puissance. Encore. On ne sait jamais.', 'Le processeur transpire. C\'est bon signe. Enfin, je crois.', 'Consultation d\'un expert. Il desapprouve. On continue.', 'A quel point est-ce que ca peut etre difficile ?', 'Certains disent que ce calcul n\'a jamais dormi. Tout ce qu\'on sait, c\'est qu\'il fait ventiler le PC.', 'Cette idee est stupide. Lancons-la immediatement.',
-  'Calcul de la geometrie. C\'est lent. Mais c\'est un lent magnifique.', 'Lecture du projet', 'Génération de la géométrie', 'Vérification des collisions',
+const ETAPES = ['On a tout calculé deux fois. Le résultat est différent. On garde le plus joli.', 'Ça prend du temps, parce que c’est compliqué. Et parce que j’ai choisi la difficulté.', 'Ce chargement est, sans aucun doute possible, le meilleur chargement du monde.', 'Quelque part, un triangle se demande à quoi il sert.', 'Sur le papier, ça ne devrait pas marcher. Heureusement, on n’utilise pas de papier.',
+  'Vérification des calculs. Ils ont l’air sûrs d’eux. C’est mauvais signe.', 'On rajoute des triangles. Personne n’a demande. Mais on en rajoute.',
+  'Certains disent que ce maillage n’a pas de fin. Tout ce qu’on sait, c’est qu’il a commencé.', 'Je ne dis pas que c’est long. Je dis que des civilisations ont eu le temps de tomber.',
+  'Dans un monde idéal, ce serait déjà fini. Ce monde n’est pas idéal.', 'Ajustement au centième. Pour une imprimante au dixième. La classe.',
+  'La physique a été consultée. Elle a soupiré.', 'Ce n’est pas bloqué. Ça réfléchit. Très fort. En silence.',
+  'Quelqu’un a dit que c’était impossible. On ne l’a plus jamais revu.', 'Alignement des neurones du processeur. Il n’en a pas. Ça aide.',
+  'Ajout de puissance. Encore. On ne sait jamais.', 'Le processeur transpire. C\'est bon signe. Enfin, je crois.', 'Consultation d\'un expert. Il désapprouve. On continue.', 'À quel point est-ce que ça peut être difficile ?', 'Certains disent que ce calcul n\'a jamais dormi. Tout ce qu\'on sait, c\'est qu\'il fait ventiler le PC.', 'Cette idée est stupide. Lancons-la immédiatement.',
+  'Calcul de la géométrie. C\'est lent. Mais c\'est un lent magnifique.', 'Lecture du projet', 'Génération de la géométrie', 'Vérification des collisions',
   'Rien ne touche la peau ? Vérifié.', 'Assemblage des pièces', 'Ajout de puissance. Pas trop. Juste ce qu\'il faut.',
   'Calcul de la course d\'ouverture', 'Mise en cache pour la prochaine fois', 'Préparation de l\'affichage 3D',
   'Patience. Rome ne s\'est pas faite en un jour. Mais Rome n\'avait pas de RTX.'];

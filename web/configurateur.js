@@ -51,7 +51,7 @@ function construireInterface() {
   const m = F.modeles[F.modele];
   $('#cfg-titre').textContent = m.nom; $('#cfg-desc').textContent = m.description;
   const groupes = {};
-  for (const c of m.champs) (groupes[c.groupe || 'Reglages'] ||= []).push(c);
+  for (const c of m.champs) (groupes[c.groupe || 'Réglages'] ||= []).push(c);
   $('#cfg-reglages').innerHTML = Object.entries(groupes).map(([g, l], gi) => `<details class="cfg-groupe" ${gi < 3 ? 'open' : ''}><summary>${g}</summary>
     ${l.map(c => {
       const v = F.params[c.k] ?? c.val;
@@ -80,7 +80,7 @@ function construireInterface() {
   });
   majVersions();
 }
-const LIBELLES = { placo: 'Vis placo', imprimee: 'Imprimee', m3: 'Vis M3', lego: 'Tube LEGO', tube8: 'Tube d8', cannele: 'Cannele', g18: 'G1/8', m5: 'M5', perceuse: 'Perceuse', compact: 'Compact (moteur)', guition_43: 'Guition 4.3"', oled_096: 'OLED 0.96"', oled_13: 'OLED 1.3"', aucun: 'Aucun', crans: 'A crans', servo: 'Motorise', fixe: 'Fixe', sg90: 'SG90', mg90s: 'MG90S' };
+const LIBELLES = { placo: 'Vis placo', imprimee: 'Imprimée', m3: 'Vis M3', lego: 'Tube LEGO', tube8: 'Tube d8', cannele: 'Cannelé', g18: 'G1/8', m5: 'M5', perceuse: 'Perceuse', compact: 'Compact (moteur)', guition_43: 'Guition 4.3"', oled_096: 'OLED 0.96"', oled_13: 'OLED 1.3"', aucun: 'Aucun', crans: 'A crans', servo: 'Motorisé', fixe: 'Fixe', sg90: 'SG90', mg90s: 'MG90S' };
 
 // ------------------------------------------------------------------ generation + affichage
 let _t = null, _n = 0;
@@ -94,7 +94,7 @@ async function generer() {
     if (n !== _n) return;
     F.info = r.info; F.objets = r.objets;
     groupe.clear();
-    const noms = r.info.noms || r.objets.map((_, i) => 'piece ' + (i + 1));
+    const noms = r.info.noms || r.objets.map((_, i) => 'pièce ' + (i + 1));
     let x = 0;
     for (const [i, o] of r.objets.entries()) {
       const mesh = new THREE.Mesh(await charger(o.fichier), MATIERE(couleurPiece(noms[i])));
@@ -114,7 +114,7 @@ async function generer() {
 function infos() {
   const i = F.info || {};
   const poids = F.objets.reduce((a, o) => a + (o.analyse?.poids_g || 0), 0);
-  $('#cfg-etat').innerHTML = [i.dimensions_socle_mm ? `${i.dimensions_socle_mm.join(' x ')} mm` : '', i.touches ? `${i.touches} touches` : '', `${F.objets.length} pieces`, `${poids.toFixed(0)} g de filament`].filter(Boolean).join(' &middot; ');
+  $('#cfg-etat').innerHTML = [i.dimensions_socle_mm ? `${i.dimensions_socle_mm.join(' x ')} mm` : '', i.touches ? `${i.touches} touches` : '', `${F.objets.length} pièces`, `${poids.toFixed(0)} g de filament`].filter(Boolean).join(' &middot; ');
   $('#cfg-achats').innerHTML = (i.quincaillerie || []).map(x => `<li>${x}</li>`).join('');
   $('#cfg-verif').innerHTML = i.a_verifier ? `<p class="badge warn">${i.a_verifier}</p>` : '';
   const noms = i.noms || [];
@@ -135,14 +135,14 @@ async function performances(optimiser = false) {
   z.hidden = m?.simulation !== 'pneumatique'; if (z.hidden) return simulation();
   clearTimeout(_tp);
   _tp = setTimeout(async () => {
-    $('#perf-msg').textContent = optimiser ? 'Optimisation des lumieres (simulation de ~300 cycles)...' : 'Simulation du cycle...';
+    $('#perf-msg').textContent = optimiser ? 'Optimisation des lumières (simulation de ~300 cycles)...' : 'Simulation du cycle...';
     try {
       const r = await api('/api/compresseur/performances', { params: F.params, rpm: +$('#perf-rpm').value || 1200, optimiser });
       F.perf = r;
       if (r.optimum) {
         F.params.angle_admission = r.optimum.angle_admission; F.params.angle_refoulement = r.optimum.angle_refoulement;
         construireInterface(); regenerer();
-        $('#perf-msg').textContent = `Lumieres optimisees : admission ${r.optimum.angle_admission} deg, refoulement ${r.optimum.angle_refoulement} deg (geometrie regeneree)`;
+        $('#perf-msg').textContent = `Lumières optimisées : admission ${r.optimum.angle_admission} deg, refoulement ${r.optimum.angle_refoulement} deg (géométrie régénérée)`;
       } else $('#perf-msg').textContent = '';
       tracerPerf(); simulation();
     } catch (e) { $('#perf-msg').textContent = e.message; }
@@ -161,11 +161,11 @@ function tracerPerf() {
   courbe(q => Yq(q.debit_libre_L_min), '#ff7a2f'); courbe(q => Yc(q.couple_max_Nm), '#7fb8a4');
   ctx.fillStyle = '#ff7a2f'; ctx.fillText('debit', W - 70, 14); ctx.fillStyle = '#7fb8a4'; ctx.fillText('couple max', W - 70, 26);
   const c = r.cycle;
-  $('#cfg-perf-stats').innerHTML = `<div><span>Debit a 0 bar</span><b>${pts[0].debit_libre_L_min.toFixed(1)} L/min</b></div>
+  $('#cfg-perf-stats').innerHTML = `<div><span>Débit a 0 bar</span><b>${pts[0].debit_libre_L_min.toFixed(1)} L/min</b></div>
     <div><span>Pression maxi</span><b>${typeof r.pression_maxi_bar === 'number' ? r.pression_maxi_bar.toFixed(2) + ' bar' : r.pression_maxi_bar + ' bar'}</b></div>
     <div><span>Couple moyen / pointe (1 bar)</span><b>${c.couple_moyen_Nm} / ${c.couple_max_Nm} N.m</b></div>
     <div><span>Puissance (1 bar)</span><b>${c.puissance_W} W</b></div>
-    <div><span>Rendement volumetrique (1 bar)</span><b>${(c.rendement_volumetrique * 100).toFixed(0)} %</b></div>
+    <div><span>Rendement volumétrique (1 bar)</span><b>${(c.rendement_volumetrique * 100).toFixed(0)} %</b></div>
     <div><span>Chambre : pression maxi</span><b>${c.p_chambre_max_bar} bar</b></div>`;
 }
 $('#perf-rpm').addEventListener('change', () => performances());
@@ -182,11 +182,11 @@ function simulation() {
   const r = simuler(c);
   tracer($('#cfg-sim-graph'), r, c);
   const debit = F.perf?.courbe?.length ? F.perf.courbe[0].debit_libre_L_min * c.n_max / (F.perf.rpm || c.n_max) : c.cyl_cm3 / 1000 * c.n_max * 0.85;   // cycle reel simule
-  $('#cfg-sim-stats').innerHTML = `<div><span>Debit a vide</span><b>${debit.toFixed(1)} L/min</b></div>
+  $('#cfg-sim-stats').innerHTML = `<div><span>Débit à vide</span><b>${debit.toFixed(1)} L/min</b></div>
     <div><span>Pression max</span><b>${r.pmax.toFixed(2)} bar</b></div>
     <div><span>Consigne atteinte</span><b>${r.tConsigne === null ? 'jamais' : r.tConsigne.toFixed(1) + ' s'}</b></div>
     <div><span>Moteur en marche</span><b>${r.marche_pct.toFixed(0)} %</b></div>
-    <div><span>Force du verin</span><b>${r.force_verin_N.toFixed(0)} N</b></div>
+    <div><span>Force du vérin</span><b>${r.force_verin_N.toFixed(0)} N</b></div>
     <div><span>Limite joints</span><b>${(r.pmaxAbs - 1).toFixed(1)} bar</b></div>`;
 }
 $$('#cfg-sim [data-s]').forEach(i => i.addEventListener('input', () => { const b = $(`#cfg-sim [data-sv="${i.dataset.s}"]`); if (b) b.textContent = i.value; simulation(); }));
@@ -197,7 +197,7 @@ function majVersions() {
   const z = $('#cfg-versions');
   const noms = Object.keys(F.versions);
   z.innerHTML = noms.map(n => `<button class="cfg-version ${n === F.version ? 'on' : ''}" data-ver="${n}">${n}<span data-suppr="${n}" title="Supprimer">&#10005;</span></button>`).join('')
-    || '<p class="mute">Aucune version : regle puis "Enregistrer la version".</p>';
+    || '<p class="mute">Aucune version : règle puis "Enregistrer la version".</p>';
   z.querySelectorAll('[data-ver]').forEach(b => b.onclick = e => {
     if (e.target.dataset.suppr) { delete F.versions[e.target.dataset.suppr]; if (F.version === e.target.dataset.suppr) F.version = null; return majVersions(); }
     F.version = b.dataset.ver; F.params = JSON.parse(JSON.stringify(F.versions[F.version])); construireInterface(); generer();
@@ -205,12 +205,12 @@ function majVersions() {
 }
 $('#cfg-version-save').onclick = () => {
   const n = $('#cfg-version-nom').value.trim() || `Version ${Object.keys(F.versions).length + 1}`;
-  F.versions[n] = JSON.parse(JSON.stringify(F.params)); F.version = n; $('#cfg-version-nom').value = ''; majVersions(); toast(`Version "${n}" enregistree`);
+  F.versions[n] = JSON.parse(JSON.stringify(F.params)); F.version = n; $('#cfg-version-nom').value = ''; majVersions(); toast(`Version "${n}" enregistrée`);
 };
 
 // ------------------------------------------------------------------ actions
 $('#cfg-export').onclick = async () => {
-  const ch = window.SHWCharge?.debut('Export des pieces (STL)', { cle: 'export-' + F.modele });
+  const ch = window.SHWCharge?.debut('Export des pièces (STL)', { cle: 'export-' + F.modele });
   const r = await fetch('/api/meca/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nom: F.modele, params: avecBase() }) });
   if (!r.ok) { ch?.fin(); return toast((await r.text()).slice(0, 200)); }
   const blob = await r.blob(); ch?.fin();
@@ -222,7 +222,7 @@ $('#cfg-imprimer').onclick = async () => {
   const objets = F.objets.map((o, k) => ({ fichier: o.fichier, matrice: null, trou: false, nom: noms[k] || 'piece', bobine: F.bobines?.[noms[k]] || A().S.etat.bobines[0].id }));
   try {
     const { job } = await api('/api/c3d/imprimer', { outil: 'imprimer', objets });
-    await A().suivre(job, '#cfg-prog', res => { const S = A().S; S.gen = res; S.tranches = {}; A().renderPlateauxImp(); toast(`${res.plateaux.length} plateau(x) prets`); $('[data-tab="imprimer"]').click(); });
+    await A().suivre(job, '#cfg-prog', res => { const S = A().S; S.gen = res; S.tranches = {}; A().renderPlateauxImp(); toast(`${res.plateaux.length} plateau(x) prêts`); $('[data-tab="imprimer"]').click(); });
   } catch (e) { toast(e.message); }
 };
 $('#cfg-keycaps').onclick = async () => {
@@ -230,7 +230,7 @@ $('#cfg-keycaps').onclick = async () => {
   document.getElementById('kc-clavier').value = F.projet?.nom || F.modeles[F.modele].nom;
   $('[data-tab="kc"]').click(); await new Promise(r => setTimeout(r, 300));
   const sel = document.getElementById('kc-rangee'); sel.value = 'macro'; sel.dispatchEvent(new Event('change'));
-  toast(`Touches macro ajoutees au lot (${n} switchs sur ce ${F.modeles[F.modele].nom})`);
+  toast(`Touches macro ajoutées au lot (${n} switchs sur ce ${F.modeles[F.modele].nom})`);
 };
 
 // ------------------------------------------------------------------ couleurs par piece (bobines)
@@ -321,13 +321,13 @@ function barre() {
   if (!PZ.actif) { d?.remove(); return; }
   if (!d) { d = document.createElement('div'); d.id = 'pz-barre'; el.parentElement.appendChild(d); }
   d.style.cssText = 'position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:20;background:rgba(20,22,28,.92);color:#fff;padding:8px 12px;border-radius:12px;display:flex;gap:8px;align-items:center;font-size:13px;box-shadow:0 6px 24px rgba(0,0,0,.3)';
-  const lib = { '+': `Ajouter a <b>${PZ.cible}</b>`, '-': `Rendre a la caisse (retirer de <b>${PZ.cible}</b>)`, lisser: 'Lisser la tole', raboter: 'Raboter (aplanir)' }[PZ.mode];
+  const lib = { '+': `Ajouter a <b>${PZ.cible}</b>`, '-': `Rendre à la caisse (retirer de <b>${PZ.cible}</b>)`, lisser: 'Lisser la tôle', raboter: 'Raboter (aplanir)' }[PZ.mode];
   d.innerHTML = `<span style="width:10px;height:10px;border-radius:50%;background:#${COUL_MODE[PZ.mode].toString(16).padStart(6, '0')}"></span>${lib}
     <span style="opacity:.6">pinceau</span>${[2, 4, 8, 15].map(r => `<button data-pzr="${r}" class="${r === PZ.r ? 'on' : ''}" style="padding:2px 8px">${r} mm</button>`).join('')}
     <button data-pz="annuler">Annuler trait</button><button class="primary" data-pz="ok">Appliquer</button><button data-pz="fin">Quitter</button>`;
   d.querySelectorAll('[data-pzr]').forEach(b => b.onclick = () => { PZ.r = +b.dataset.pzr; barre(); });
   d.querySelector('[data-pz="annuler"]').onclick = annulerTrait;
-  d.querySelector('[data-pz="ok"]').onclick = () => { quitterPinceau(); PZ.marques.clear(); regenerer(); toast('Retouches appliquees : recalcul des pieces...'); };
+  d.querySelector('[data-pz="ok"]').onclick = () => { quitterPinceau(); PZ.marques.clear(); regenerer(); toast('Retouches appliquées : recalcul des pièces...'); };
   d.querySelector('[data-pz="fin"]').onclick = quitterPinceau;
 }
 function liste() {
@@ -345,9 +345,9 @@ function annulerTrait() {
   for (let i = 0; i < der.n && PZ.marques.children.length; i++) PZ.marques.remove(PZ.marques.children[PZ.marques.children.length - 1]);
 }
 function demarrer(mode, cible) {
-  if (F.eclate) return toast('Repasse en vue montee (bouton Eclate) pour peindre');
+  if (F.eclate) return toast('Repasse en vue montee (bouton Éclaté) pour peindre');
   PZ.actif = true; PZ.mode = mode; PZ.cible = cible; orb.enabled = false; barre();
-  toast('Glisse sur la carrosserie pour peindre - clic milieu pour tourner - Echap pour quitter');
+  toast('Glisse sur la carrosserie pour peindre - clic milieu pour tourner - Échap pour quitter');
 }
 ren.domElement.addEventListener('contextmenu', e => {
   e.preventDefault();
@@ -362,26 +362,26 @@ ren.domElement.addEventListener('contextmenu', e => {
   const it0 = (t, f) => { const b = document.createElement('div'); b.innerHTML = t; b.style.cssText = 'padding:6px 10px;border-radius:6px;cursor:pointer'; b.onmouseenter = () => b.style.background = '#2c313c'; b.onmouseleave = () => b.style.background = ''; b.onclick = () => { m.remove(); f(); }; m.appendChild(b); };
   it0('&#11015; Exporter cette piece (STL)', () => exporterPieces([h.nom]));
   if (F.sel.size) it0(`&#11015; Exporter la selection (${F.sel.size} piece${F.sel.size > 1 ? 's' : ''}, ZIP)`, () => exporterPieces([...F.sel]));
-  it0(F.sel.has(h.nom) ? 'Retirer de la selection' : 'Ajouter a la selection (Ctrl+clic)', () => basculerSel(h.nom));
-  it0('Tout selectionner', () => { groupe.children.forEach(x => { F.sel.add(x.userData.nom); surligner(x, true); }); infosSel(); });
-  if (F.sel.size) it0('Vider la selection', viderSel);
-  it0('Masquer cette piece', () => masquer([h.nom]));
-  it0('Isoler cette piece', () => masquer(groupe.children.map(x => x.userData.nom).filter(n => n !== h.nom)));
-  if (F.masques.size) it0(`Tout afficher (${F.masques.size} masquee${F.masques.size > 1 ? 's' : ''})`, toutAfficher);
+  it0(F.sel.has(h.nom) ? 'Retirer de la sélection' : 'Ajouter à la sélection (Ctrl+clic)', () => basculerSel(h.nom));
+  it0('Tout sélectionner', () => { groupe.children.forEach(x => { F.sel.add(x.userData.nom); surligner(x, true); }); infosSel(); });
+  if (F.sel.size) it0('Vider la sélection', viderSel);
+  it0('Masquer cette pièce', () => masquer([h.nom]));
+  it0('Isoler cette pièce', () => masquer(groupe.children.map(x => x.userData.nom).filter(n => n !== h.nom)));
+  if (F.masques.size) it0(`Tout afficher (${F.masques.size} masquée${F.masques.size > 1 ? 's' : ''})`, toutAfficher);
   it0('&#11015; Exporter tout le projet (ZIP)', () => exporterPieces(groupe.children.map(x => x.userData.nom)));
   if (!F.info?.pinceau) { document.body.appendChild(m); setTimeout(() => document.addEventListener('pointerdown', ev => { if (!m.contains(ev.target)) m.remove(); }, { once: true }), 0); return; }
   sep();
   const it = (t, f) => { const b = document.createElement('div'); b.innerHTML = t; b.style.cssText = 'padding:6px 10px;border-radius:6px;cursor:pointer'; b.onmouseenter = () => b.style.background = '#2c313c'; b.onmouseleave = () => b.style.background = ''; b.onclick = () => { m.remove(); f(); }; m.appendChild(b); };
   if (ici) it(`<span style="color:#2ecc71">&#9679;</span> Ajouter une zone a <b>${ici}</b>`, () => demarrer('+', ici));
-  if (ici) it(`<span style="color:#e74c3c">&#9679;</span> Rendre une zone a la caisse`, () => demarrer('-', ici));
+  if (ici) it(`<span style="color:#e74c3c">&#9679;</span> Rendre une zone à la caisse`, () => demarrer('-', ici));
   const s = document.createElement('div'); s.style.cssText = 'padding:6px 10px';
   s.innerHTML = `<span style="color:#2ecc71">&#9679;</span> Donner une zone a : <select style="margin-left:4px">${det.map(n => `<option>${n}</option>`).join('')}</select> <button>Peindre</button>`;
   s.querySelector('button').onclick = () => { m.remove(); demarrer('+', s.querySelector('select').value); };
   m.appendChild(s);
-  it(`<span style="color:#3498db">&#9679;</span> Lisser la tole (poncage)`, () => demarrer('lisser', null));
-  it(`<span style="color:#f39c12">&#9679;</span> Raboter : aplanir bosse / carre / creux`, () => demarrer('raboter', null));
+  it(`<span style="color:#3498db">&#9679;</span> Lisser la tôle (ponçage)`, () => demarrer('lisser', null));
+  it(`<span style="color:#f39c12">&#9679;</span> Raboter : aplanir bosse / carré / creux`, () => demarrer('raboter', null));
   if (ici && F.params.retouches?.decoupe?.[ici]?.length) it(`Effacer les retouches de ${ici}`, () => { delete F.params.retouches.decoupe[ici]; regenerer(); });
-  if (F.params.retouches?.surface?.length) it('Effacer les retouches de tole', () => { F.params.retouches.surface = []; regenerer(); });
+  if (F.params.retouches?.surface?.length) it('Effacer les retouches de tôle', () => { F.params.retouches.surface = []; regenerer(); });
   document.body.appendChild(m);
   setTimeout(() => document.addEventListener('pointerdown', ev => { if (!m.contains(ev.target)) m.remove(); }, { once: true }), 0);
 });
@@ -413,7 +413,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && PZ.actif) 
 // ------------------------------------------------------------------ selection / masquage / export de pieces (tous les projets)
 F.sel = new Set(); F.masques = new Set();
 function surligner(mesh, on) { const m = mesh.material; if (!m?.emissive) return; m.emissive.set(on ? 0xff6a13 : 0x000000); m.emissiveIntensity = on ? 0.35 : 0; }
-function infosSel() { const n = F.sel.size; const t = $('#cfg-etat'); if (!t) return; t.dataset.sel = n; if (n) toast(`${n} piece${n > 1 ? 's' : ''} selectionnee${n > 1 ? 's' : ''} - clic droit pour exporter`); }
+function infosSel() { const n = F.sel.size; const t = $('#cfg-etat'); if (!t) return; t.dataset.sel = n; if (n) toast(`${n} pièce${n > 1 ? 's' : ''} sélectionnée${n > 1 ? 's' : ''} - clic droit pour exporter`); }
 function basculerSel(nom, seul = false) {
   if (seul) viderSel(false);
   F.sel.has(nom) ? F.sel.delete(nom) : F.sel.add(nom);
@@ -432,7 +432,7 @@ async function exporterPieces(noms) {
   const r = await fetch('/api/c3d/zip', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pieces, nom: base }) });
   if (!r.ok) return toast('Export impossible');
   dl(URL.createObjectURL(await r.blob()), `${base}_${pieces.length}_pieces.zip`);
-  toast(`${pieces.length} pieces exportees (STL orientes pour l'impression)`);
+  toast(`${pieces.length} pièces exportees (STL orientés pour l'impression)`);
 }
 function menuVide(e) {
   $('#pz-menu')?.remove();
@@ -441,7 +441,7 @@ function menuVide(e) {
   const it = (t, f) => { const b = document.createElement('div'); b.innerHTML = t; b.style.cssText = 'padding:6px 10px;border-radius:6px;cursor:pointer'; b.onmouseenter = () => b.style.background = '#2c313c'; b.onmouseleave = () => b.style.background = ''; b.onclick = () => { m.remove(); f(); }; m.appendChild(b); };
   if (F.sel.size) it(`&#11015; Exporter la selection (${F.sel.size}, ZIP)`, () => exporterPieces([...F.sel]));
   it('&#11015; Exporter tout le projet (ZIP)', () => exporterPieces(groupe.children.map(x => x.userData.nom)));
-  if (F.sel.size) it('Vider la selection', viderSel);
+  if (F.sel.size) it('Vider la sélection', viderSel);
   if (F.masques.size) it('Tout afficher', toutAfficher);
   it('Recentrer la vue', cadrer);
   document.body.appendChild(m);

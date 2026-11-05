@@ -21,7 +21,7 @@ $$('[data-prod]').forEach(b => b.onclick = () => {
   $('#opt-jeton').hidden = !jet; $('#opt-jeton-pro').hidden = S.produit !== 'porte_jeton'; $('#opt-pcj').hidden = S.produit !== 'porte_cle_jeton'; $('#opt-ps').hidden = S.produit !== 'porte_serviette';
   $('#opt-cle').hidden = false;
   for (const id of ['hauteur', 'contour']) $('#' + id).closest('label').hidden = S.produit !== 'porte_cle';
-  $('#btn-generer').textContent = { porte_jeton: 'Generer les porte-jetons', porte_cle_jeton: 'Generer les porte-cles a jeton', porte_serviette: 'Generer les porte-serviettes' }[S.produit] || 'Generer les porte-cles';
+  $('#btn-generer').textContent = { porte_jeton: 'Générer les porte-jetons', porte_cle_jeton: 'Générer les porte-clés à jeton', porte_serviette: 'Générer les porte-serviettes' }[S.produit] || 'Générer les porte-clés';
 });
 
 // ------------------------------------------------------------------ onglets
@@ -185,14 +185,14 @@ $('#jm-seuil').addEventListener('input', e => { $('#v-jm-seuil').textContent = +
 $('#jm-fichier').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
   const data = await new Promise(ok => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(f); });
-  try { S.jm.image = (await api('/api/image', { data })).id; toast('Image chargee'); jmApercu(); } catch (er) { toast(er.message); }
+  try { S.jm.image = (await api('/api/image', { data })).id; toast('Image chargée'); jmApercu(); } catch (er) { toast(er.message); }
 };
 
 // ------------------------------------------------------------------ couleur par element
-const ELEMENTS = { porte_cle: [['base', 'Base'], ['prenom', 'Prenom']],
-  porte_cle_jeton: [['corps', 'Corps'], ['coulisseau', 'Coulisseau'], ['bouton', 'Bouton poussoir'], ['prenom', 'Prenom'], ['jeton', 'Jeton'], ['jeton_motif', 'Motif du jeton']],
-  porte_jeton: [['corps', 'Corps'], ['coulisseau', 'Coulisseau'], ['bouton', 'Bouton poussoir'], ['prenom', 'Prenom'], ['jeton', 'Jeton'], ['jeton_motif', 'Motif du jeton']],
-  porte_serviette: [['plaque', 'Plaque'], ['crochets', 'Crochets'], ['prenom', 'Prenom']] };
+const ELEMENTS = { porte_cle: [['base', 'Base'], ['prenom', 'Prénom']],
+  porte_cle_jeton: [['corps', 'Corps'], ['coulisseau', 'Coulisseau'], ['bouton', 'Bouton poussoir'], ['prenom', 'Prénom'], ['jeton', 'Jeton'], ['jeton_motif', 'Motif du jeton']],
+  porte_jeton: [['corps', 'Corps'], ['coulisseau', 'Coulisseau'], ['bouton', 'Bouton poussoir'], ['prenom', 'Prénom'], ['jeton', 'Jeton'], ['jeton_motif', 'Motif du jeton']],
+  porte_serviette: [['plaque', 'Plaque'], ['crochets', 'Crochets'], ['prenom', 'Prénom']] };
 S.couleurs = {}; S.coulProd = {};
 const colT = t => bobine(S.couleurs[t])?.couleur || '#888';
 function defautCouleurs() {
@@ -250,18 +250,18 @@ function renderBobines() {
   }).join('');
   $$('[data-edit]').forEach(x => x.onclick = () => editBobine(bobine(x.dataset.edit)));
   $$('[data-conso]').forEach(x => x.onclick = async () => {
-    const g = parseFloat(prompt('Grammes consommes ?', '10')); if (!g) return;
+    const g = parseFloat(prompt('Grammes consommés ?', '10')); if (!g) return;
     S.etat = await api('/api/consommer', { bobine: x.dataset.conso, grammes: g, libelle: 'manuel' }); chargerEtat();
   });
 }
 async function editBobine(b) {
   b = b || { nom: 'Nouvelle bobine', marque: '', matiere: 'PLA', couleur: '#888888', restant_g: 1000, initial_g: 1000, prix_kg: 20, temp: [220, 60] };
   const f = {};
-  for (const [k, lab] of [['nom', 'Nom'], ['marque', 'Marque'], ['matiere', 'Matiere (PLA, PLA+, PETG, TPU)'], ['couleur', 'Couleur (#rrggbb)'],
+  for (const [k, lab] of [['nom', 'Nom'], ['marque', 'Marque'], ['matiere', 'Matière (PLA, PLA+, PETG, TPU)'], ['couleur', 'Couleur (#rrggbb)'],
     ['restant_g', 'Restant (g)'], ['initial_g', 'Poids initial (g)'], ['prix_kg', 'Prix (EUR/kg)']]) {
     const v = prompt(lab, b[k]); if (v === null) return; f[k] = ['restant_g', 'initial_g', 'prix_kg'].includes(k) ? parseFloat(v) : v;
   }
-  await api('/api/bobines', { ...b, ...f }); toast('Bobine enregistree'); chargerEtat();
+  await api('/api/bobines', { ...b, ...f }); toast('Bobine enregistrée'); chargerEtat();
 }
 $('#btn-add-bob').onclick = () => editBobine(null);
 function renderHisto() {
@@ -320,7 +320,7 @@ async function suivre(jid, prog, onDone) {
   for (;;) {
     const j = await api('/api/job/' + jid);
     el.querySelector('div').style.width = (100 * j.progres) + '%';
-    el.querySelector('span').textContent = j.etat === 'en attente' ? 'En file d attente (un calcul a la fois)...' : j.etat === 'en cours' ? `${j.log.at(-1) || 'Demarrage'} (${j.duree_s} s)` : j.etat === 'termine' ? `Termine en ${j.duree_s} s` : 'Erreur';
+    el.querySelector('span').textContent = j.etat === 'en attente' ? 'En file d’attente (un calcul à la fois)...' : j.etat === 'en cours' ? `${j.log.at(-1) || 'Démarrage'} (${j.duree_s} s)` : j.etat === 'termine' ? `Terminé en ${j.duree_s} s` : 'Erreur';
     if (j.etat === 'termine') { onDone(j.resultat); return; }
     if (j.etat === 'erreur') { toast('Erreur : ' + j.log.at(-1)); return; }
     await new Promise(r => setTimeout(r, 600));
@@ -328,12 +328,12 @@ async function suivre(jid, prog, onDone) {
 }
 $('#btn-generer').onclick = async () => {
   const noms = $('#noms').value.split('\n').map(s => s.trim()).filter(Boolean);
-  if (S.produit === 'porte_cle' && !noms.length) return toast('Ajoute au moins un prenom');
-  if (S.produit === 'porte_serviette' && !noms.length) return toast('Ajoute au moins un prenom');
+  if (S.produit === 'porte_cle' && !noms.length) return toast('Ajouté au moins un prénom');
+  if (S.produit === 'porte_serviette' && !noms.length) return toast('Ajouté au moins un prénom');
   $('#btn-generer').disabled = true;
   try {
     const { job } = await api('/api/generer', { produit: S.produit, quantite: +$('#qte-jeton').value, noms: noms.length ? noms : ['x'], polices: noms.map(n => S.polNom[n] || S.police), crochets: +$('#crochets').value, couleurs: S.couleurs, ...jmParams(), jeton_d: +$('#jeton-d').value, police: S.police, hauteur: +$('#hauteur').value, contour: +$('#contour').value, jeu: +$('#jeu').value, mode: $('#mode').value });
-    await suivre(job, '#gen-prog', async res => { S.gen = res; S.tranches = {}; for (const [t, b] of Object.entries(res.couleurs || {})) S.coulProd[res.produit + ':' + t] = b; renderCouleurs(); renderResultats(); await afficher(); renderPlateauxImp(); toast(`${res.pieces.length} porte-cles generes`); });
+    await suivre(job, '#gen-prog', async res => { S.gen = res; S.tranches = {}; for (const [t, b] of Object.entries(res.couleurs || {})) S.coulProd[res.produit + ':' + t] = b; renderCouleurs(); renderResultats(); await afficher(); renderPlateauxImp(); toast(`${res.pieces.length} porte-clés générés`); });
   } catch (e) { toast(e.message); }
   $('#btn-generer').disabled = false;
 };
@@ -341,14 +341,14 @@ function renderResultats() {
   const g = S.gen;
   if (g.produit === 'porte_jeton' || g.produit === 'porte_cle_jeton') { renderJeton(g); return; }
   const ok = g.pieces.filter(p => p.controles.ok).length;
-  $('#resultats').innerHTML = `<h2>Controles</h2>
+  $('#resultats').innerHTML = `<h2>Contrôles</h2>
     <p><span class="badge ${ok === g.pieces.length ? 'ok' : 'bad'}">${ok}/${g.pieces.length} conformes</span>
     <span class="badge ${g.tient ? 'ok' : 'bad'}">${g.plateaux.length} plateau(x)</span></p>` +
     g.pieces.map(p => {
       const c = p.controles;
       return `<div class="piece"><div class="t">${p.nom} <span class="badge">${(S.polices[p.police] || {}).label || ''}</span><span class="badge ${c.ok ? 'ok' : 'bad'}">${c.ok ? 'OK' : 'A revoir'}</span></div>
-      <div class="d">${c.dimensions_mm[0]} x ${c.dimensions_mm[1]} mm &middot; prenom ${c.prenom_monobloc ? 'monobloc' : c.pieces_prenom + ' pieces'}
-      ${c.details_a_placer ? `&middot; <span class="badge warn">${c.details_a_placer} detail(s) a placer</span>` : ''}
+      <div class="d">${c.dimensions_mm[0]} x ${c.dimensions_mm[1]} mm &middot; prénom ${c.prenom_monobloc ? 'monobloc' : c.pieces_prenom + ' pieces'}
+      ${c.details_a_placer ? `&middot; <span class="badge warn">${c.details_a_placer} detail(s) à placer</span>` : ''}
       ${c.entraxe_vis_mm ? `<br>Percage : 2 vis a <b>${c.entraxe_vis_mm} mm</b> d'entraxe &middot; crochets x${c.crochets} (coef ${c.crochet_coef}) &middot; serrures coef ${c.serrure_coef}` : ''}
       &middot; anneau ${c.mur_anneau_mm} mm</div></div>`;
     }).join('') +
@@ -360,14 +360,14 @@ function renderJeton(g) {
   const r = g.rapport, sim = g.simulation, mx = Math.max(...sim.map(x => x[1]));
   const pts = sim.map(([c, v]) => (10 + c * 20) + ',' + (80 - 70 * v / mx)).join(' ');
   const xf = 10 + r.course_ejecteur_mm * 20;
-  $('#resultats').innerHTML = '<h2>Controles porte-jeton</h2>'
+  $('#resultats').innerHTML = '<h2>Contrôles porte-jeton</h2>'
     + '<p><span class="badge ' + (r.ok ? 'ok' : 'bad') + '">' + (r.ok ? 'conforme' : 'a revoir') + '</span> '
     + '<span class="badge">' + r.dimensions_mm.join(' x ') + ' mm</span></p>'
-    + '<div class="piece"><div class="d">Jeton d ' + r.jeton_mm[0] + ' &middot; alesage ' + r.alesage_mm
-    + ' &middot; cavite ' + r.cavite_h_mm + ' mm<br>Cran de repos 0.3 mm + bosses 0.6 mm &middot; doigts flexibles '
+    + '<div class="piece"><div class="d">Jeton d ' + r.jeton_mm[0] + ' &middot; alésage ' + r.alesage_mm
+    + ' &middot; cavité ' + r.cavite_h_mm + ' mm<br>Cran de repos 0.3 mm + bosses 0.6 mm &middot; doigts flexibles '
     + r.doigts_flexibles_mm + ' mm<br>Course du poussoir ' + r.course_ejecteur_mm + ' mm &rarr; <b>jeton sorti de '
     + r.sortie_jeton_mm + ' mm</b></div></div>'
-    + '<h2>Simulation de la course</h2><p class="mute">Resistance au deplacement du jeton (0 = libre). Creux = positions stables.</p>'
+    + '<h2>Simulation de la course</h2><p class="mute">Résistance au déplacement du jeton (0 = libre). Creux = positions stables.</p>'
     + '<svg viewBox="0 0 260 90" style="width:100%;background:var(--bg2);border-radius:8px">'
     + '<polyline fill="none" stroke="#ff7a2f" stroke-width="2" points="' + pts + '"/>'
     + '<line x1="' + xf + '" y1="5" x2="' + xf + '" y2="85" stroke="#3ddc97" stroke-dasharray="3 3"/>'
@@ -392,7 +392,7 @@ function renderPlateauxImp() {
   $('#plateaux-imp').innerHTML = S.gen.plateaux.map(p => {
     const k = p.id, t = S.tranches[k], b = bobine(p.bobine);
     const lab = `<i class="pastille" style="background:${b?.couleur || '#888'}"></i>Plateau ${k} : ${p.types.map(labT).join(' + ')}`;
-    return `<div class="plateau"><div class="row-head"><b>${lab}</b><span class="badge">${p.nb} elements &middot; ${b ? b.nom : p.bobine}</span>${p.tient ? '' : '<span class="badge bad">deborde</span>'}</div>
+    return `<div class="plateau"><div class="row-head"><b>${lab}</b><span class="badge">${p.nb} éléments &middot; ${b ? b.nom : p.bobine}</span>${p.tient ? '' : '<span class="badge bad">deborde</span>'}</div>
       ${t ? `<div class="stats"><div class="stat"><span>Temps</span><b>${fmtT(t.temps_s)}</b></div><div class="stat"><span>Filament</span><b>${t.filament_g} g</b></div>
         <div class="stat"><span>Cout</span><b>${eur(t.cout.total)}</b></div><div class="stat"><span>Qualite</span><b>${t.qualite}</b></div></div>
         ${t.stock_suffisant ? '' : '<p class="badge bad">Stock insuffisant sur cette bobine</p>'}
@@ -410,21 +410,21 @@ function renderPlateauxImp() {
   });
   $$('[data-fini]').forEach(b => b.onclick = async () => {
     const k = b.dataset.fini, t = S.tranches[k];
-    if (!confirm(`Confirmer : l'impression "${k}" est terminee ? ${t.filament_g} g seront deduits.`)) return;
+    if (!confirm(`Confirmer : l'impression "${k}" est terminée ? ${t.filament_g} g seront déduits.`)) return;
     await api('/api/consommer', { bobine: t.bobine, grammes: t.filament_g, libelle: `${k} x${S.gen.pieces.length} (${t.qualite})` });
-    toast('Stock mis a jour'); chargerEtat();
+    toast('Stock mis à jour'); chargerEtat();
   });
 }
 function majCoutPiece() {
   const t = Object.values(S.tranches); if (!t.length || !S.gen) return;
   const tot = t.reduce((a, x) => a + x.cout.total, 0) / S.gen.pieces.length;
   $('#p-cout').value = tot.toFixed(3);
-  $('#p-cout-src').textContent = `Cout reel par piece : ${t.map(x => x.gcode).join(' + ')} / ${S.gen.pieces.length} pieces` + (t.length < S.gen.plateaux.length ? ' (tranche tous les plateaux pour le total)' : '');
+  $('#p-cout-src').textContent = `Coût réel par pièce : ${t.map(x => x.gcode).join(' + ')} / ${S.gen.pieces.length} pièces` + (t.length < S.gen.plateaux.length ? ' (tranche tous les plateaux pour le total)' : '');
 }
 
 // ------------------------------------------------------------------ couts & prix
-const COUT_LAB = { electricite_kwh: 'Electricite (EUR/kWh)', puissance_w: 'Conso imprimante (W)', machine_prix: 'Prix machine (EUR)',
-  machine_vie_h: 'Duree de vie (h)', buse_eur_h: 'Usure buse/plateau (EUR/h)', emballage: 'Emballage (EUR)', anneau: 'Anneau (EUR)', colle: 'Colle (EUR)',
+const COUT_LAB = { electricite_kwh: 'Électricité (EUR/kWh)', puissance_w: 'Conso imprimante (W)', machine_prix: 'Prix machine (EUR)',
+  machine_vie_h: 'Durée de vie (h)', buse_eur_h: 'Usure buse/plateau (EUR/h)', emballage: 'Emballage (EUR)', anneau: 'Anneau (EUR)', colle: 'Colle (EUR)',
   etsy_annonce: 'Etsy : annonce (EUR)', etsy_transaction_pct: 'Etsy : transaction (%)', etsy_paiement_pct: 'Etsy : paiement (%)',
   etsy_paiement_fixe: 'Etsy : paiement fixe (EUR)', main_oeuvre_h: 'Ta main d\'oeuvre (EUR/h)', temps_assemblage_min: 'Assemblage (min/piece)', marge_cible_pct: 'Marge nette visee (%)' };
 function renderCoutsForm() {
@@ -433,7 +433,7 @@ function renderCoutsForm() {
 }
 $('#btn-couts').onclick = async () => {
   const c = {}; $$('[data-cout]').forEach(i => c[i.dataset.cout] = parseFloat(i.value));
-  await api('/api/couts', { couts: c }); toast('Parametres enregistres'); chargerEtat();
+  await api('/api/couts', { couts: c }); toast('Paramètres enregistrés'); chargerEtat();
 };
 $('#btn-prix').onclick = async () => {
   const pv = $('#p-prix').value;
@@ -441,9 +441,9 @@ $('#btn-prix').onclick = async () => {
   const [lo, hi] = r.marche_etsy, mx = hi * 1.4;
   $('#prix-res').innerHTML = `<div class="prix-big">
       <div class="stat"><span>Prix de vente</span><b>${eur(r.prix_vente)}</b></div>
-      <div class="stat net"><span>Net par piece</span><b>${eur(r.net_piece)}</b></div>
+      <div class="stat net"><span>Net par pièce</span><b>${eur(r.net_piece)}</b></div>
       <div class="stat"><span>Marge nette</span><b>${r.marge_pct} %</b></div>
-      <div class="stat"><span>Cout de revient</span><b>${eur(r.cout_revient)}</b></div>
+      <div class="stat"><span>Coût de revient</span><b>${eur(r.cout_revient)}</b></div>
       <div class="stat"><span>Frais Etsy</span><b>${eur(r.frais_etsy)}</b></div>
       <div class="stat net"><span>Net x ${$('#p-qte').value}</span><b>${eur(r.net_total)}</b></div></div>
     <div class="barre"><div class="zone" style="left:${100 * lo / mx}%;width:${100 * (hi - lo) / mx}%"></div><i style="left:${Math.min(99, 100 * r.prix_vente / mx)}%"></i></div>
@@ -455,7 +455,7 @@ $('#btn-prix').onclick = async () => {
 // ------------------------------------------------------------------ theme clair / sombre
 function appliquerTheme(t) {      // n'eclaire QUE les scenes 3D (l'interface reste sombre)
   document.documentElement.dataset.scene = t; $('#theme-btn').innerHTML = t === 'light' ? '&#9790;' : '&#9728;';
-  $('#theme-btn').title = t === 'light' ? 'Scene 3D sombre' : 'Scene 3D claire';
+  $('#theme-btn').title = t === 'light' ? 'Scène 3D sombre' : 'Scène 3D claire';
   try { localStorage.setItem('scene', t); } catch { }
   window.dispatchEvent(new CustomEvent('theme', { detail: t }));
 }

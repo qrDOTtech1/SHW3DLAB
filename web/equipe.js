@@ -2,7 +2,7 @@
 // Transport : relais MQTT public (WebSocket), messages CHIFFRES AES-256-GCM avec une cle derivee du CODE D'EQUIPE
 // (jamais envoye : le relais ne voit que du bruit). Meme code sur chaque poste = meme equipe.
 // - curseurs des coequipiers (quand ils sont sur le meme onglet) avec leur nom ;
-// - mini-fenetre "Equipe" : qui est en ligne, ou, sur quel projet, derniere action, bouton "Suivre" ;
+// - mini-fenetre "Équipe" : qui est en ligne, ou, sur quel projet, derniere action, bouton "Suivre" ;
 // - quand quelqu'un enregistre un projet, les autres lancent la synchro GitHub ~25 s plus tard.
 (() => {
   const RELAIS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt', 'wss://test.mosquitto.org:8081/mqtt'];
@@ -77,10 +77,10 @@
     Object.assign(p, m, { vu: Date.now() });
     if (nouvelleAction) p.actionTs = Date.now();
     if (nouvelleAction && m.action) {                  // le coequipier fait des siennes : une remarque, de temps en temps
-      if (/corbeille|Supprimer/i.test(m.action)) window.SHWVanne?.([`${m.nom} supprime des choses. Avec une assurance qui fait peur.`, `${m.nom} vient de faire le menage. Vous avez une sauvegarde, n est-ce pas ?`]);
-      else if (/Annuler/i.test(m.action)) window.SHWVanne?.([`${m.nom} revient en arriere. Sage decision. Un peu tard.`]);
+      if (/corbeille|Supprimer/i.test(m.action)) window.SHWVanne?.([`${m.nom} supprimé des choses. Avec une assurance qui fait peur.`, `${m.nom} vient de faire le ménage. Vous avez une sauvegarde, n’est-ce pas ?`]);
+      else if (/Annuler/i.test(m.action)) window.SHWVanne?.([`${m.nom} revient en arrière. Sage décision. Un peu tard.`]);
       else if (/enregistre/i.test(m.action)) window.SHWVanne?.([`${m.nom} enregistre. Un geste rare. Prends-en de la graine.`]);
-      else if (/generation IA|IA/.test(m.action)) window.SHWVanne?.([`${m.nom} reveille la carte graphique. Elle n etait pas d accord.`]);
+      else if (/generation IA|IA/.test(m.action)) window.SHWVanne?.([`${m.nom} réveille la carte graphique. Elle n’était pas d’accord.`]);
     }
     pairs.set(m.id, p);
     if (m.t === 'ww' && m.cible === moi.id) return recevoirWW(m);
@@ -197,7 +197,7 @@
   const idsFichiers = j => [...new Set([...(j || '').matchAll(/"fichier":\s*"([0-9a-f]{12})"/g)].map(x => x[1]))];
   async function envoyerEtat(force = false) {
     if (!cleCourante || dernierEtat == null || dernierEtat === 'null') return;
-    if (dernierEtat.length > 200000) { if (!force) action('modifie (trop gros pour le direct : enregistrer pour partager)'); return; }
+    if (dernierEtat.length > 200000) { if (!force) action('modifié (trop gros pour le direct : enregistrer pour partager)'); return; }
     const neufs = idsFichiers(dernierEtat).filter(i => !envoyes.has(i));
     if (neufs.length) {
       neufs.forEach(i => envoyes.add(i));
@@ -253,7 +253,7 @@
         const mod = moduleVue(), d = JSON.parse(m.donnees);
         await (mod?.appliquer || mod?.charger)?.call(mod, d);
         cleCourante = m.pid; moi.cle = m.pid; dernierEtat = lireEtat();
-      } catch (e) { console.warn('equipe : etat non applique', e); }
+      } catch (e) { console.warn('équipe : état non applique', e); }
     }
     applique = false;
   }
@@ -283,8 +283,8 @@
   }
   // ---- le klaxon : on previent AVANT de toucher au travail de quelqu'un
   const CLARKSON = {
-    sauve: [n => `${n} a sauvegarde. Oui, sauvegarde. Comme un adulte responsable. Incroyable.`, n => `Nouvelle sauvegarde de ${n}. Ambitieux. Inutile. Magnifique.`, n => `${n} vient de sauvegarder. Et sur cette planete, c'est deja un exploit.`],
-    rejoint: [n => `${n} monte a bord. Accrochez-vous, ca va mal se passer. Ou tres bien.`, n => `${n} met les mains sur le meme objet. Que pourrait-il arriver de mal ?`],
+    sauve: [n => `${n} a sauvegarde. Oui, sauvegarde. Comme un adulte responsable. Incroyable.`, n => `Nouvelle sauvegarde de ${n}. Ambitieux. Inutile. Magnifique.`, n => `${n} vient de sauvegarder. Et sur cette planète, c'est déjà un exploit.`],
+    rejoint: [n => `${n} monte a bord. Accrochez-vous, ça va mal se passer. Ou très bien.`, n => `${n} met les mains sur le même objet. Que pourrait-il arriver de mal ?`],
     parti: [n => `${n} a quitte le navire. Sans un mot. Typique.`],
   };
   const hasard = (l, n) => l[Math.floor(Math.random() * l.length)](n);
@@ -316,9 +316,9 @@
   // true = on peut y aller. Rejoindre quelqu'un remplace ce qu'il y a sur mon plan.
   async function avantDeRejoindre(p) {
     const n = nonEnregistre(); if (!n) return true;
-    const quoi = moi.onglet === 'c3d' ? `${n} objet${n > 1 ? 's' : ''} non enregistre${n > 1 ? 's' : ''}` : 'des modifications non enregistrees';
-    const c = await demander('Une petite seconde.', `Tu as ${quoi} sur ton plan. Si tu rejoins ${p.nom}, ca disparait de ton ecran. Definitivement. Comme ma patience devant un mode d'emploi. Que fait-on ?`,
-      [['non', 'Annuler'], ['go', 'Foncer quand meme'], ['save', 'Enregistrer puis rejoindre', true]]);
+    const quoi = moi.onglet === 'c3d' ? `${n} objet${n > 1 ? 's' : ''} non enregistre${n > 1 ? 's' : ''}` : 'des modifications non enregistrées';
+    const c = await demander('Une petite seconde.', `Tu as ${quoi} sur ton plan. Si tu rejoins ${p.nom}, ça disparaît de ton écran. Définitivement. Comme ma patience devant un mode d'emploi. Que fait-on ?`,
+      [['non', 'Annuler'], ['go', 'Foncer quand même'], ['save', 'Enregistrer puis rejoindre', true]]);
     if (c === 'save') await enregistrerIci();
     return c !== 'non';
   }
@@ -335,7 +335,7 @@
       if (window.__SHOP?.etat().on) envoyer({ t: 'shop', shop: window.__SHOP.etat() }, true);
       notifier(hasard(CLARKSON.rejoint, m.nom), m.couleur);
       const n = nonEnregistre();
-      if (n) demander(`${m.nom} veut bosser avec toi.`, `Ton plan n'est pas enregistre, et ${m.nom} le voit maintenant. Il peut le modifier. Avec ses mains. Tu enregistres, par prudence ?`,
+      if (n) demander(`${m.nom} veut bosser avec toi.`, `Ton plan n'est pas enregistre, et ${m.nom} le voit maintenant. Il peut le modifier. Avec ses mains. Tu enregistrés, par prudence ?`,
         [['non', 'Refuser'], ['go', 'Bosser sans filet'], ['save', 'Enregistrer et bosser', true]]).then(c => {
           if (c === 'save') enregistrerIci();
           if (c === 'non') quitterAvec();
@@ -478,7 +478,7 @@
       const mod = moduleVue();
       await (mod?.appliquer || mod?.charger)?.call(mod, moi.projet.type && mod === window.__CFG ? { modele: moi.projet.type, ...d.donnees } : d.donnees);
       dernierEtat = lireEtat(); applique = false;
-      action('projet modifie sur le disque : a jour');
+      action('projet modifié sur le disque : à jour');
     } catch { applique = false; }
   }, 2000);
 
@@ -523,15 +523,15 @@
   function retirerCurseur(id) { document.getElementById('eq-c-' + id)?.remove(); }
 
   // ------------------------------------------------------------ mini-fenetre
-  const ONGLETS = { creer: 'Creer', c3d: 'Creation 3D', kc: 'Keycaps', sw: 'SHWork', pj: 'Projets', cfg: 'Projet', imprimer: 'Imprimer', filaments: 'Filaments', couts: 'Couts', imprimante: 'Imprimante' };
+  const ONGLETS = { creer: 'Créer', c3d: 'Création 3D', kc: 'Keycaps', sw: 'SHWork', pj: 'Projets', cfg: 'Projet', imprimer: 'Imprimer', filaments: 'Filaments', couts: 'Coûts', imprimante: 'Imprimante' };
   const fen = document.createElement('div'); fen.id = 'eq-fen';
-  function ilya(ts) { const s = Math.round((Date.now() - ts) / 1000); return s < 5 ? "a l'instant" : s < 60 ? `il y a ${s} s` : `il y a ${Math.round(s / 60)} min`; }
+  function ilya(ts) { const s = Math.round((Date.now() - ts) / 1000); return s < 5 ? "à l'instant" : s < 60 ? `il y a ${s} s` : `il y a ${Math.round(s / 60)} min`; }
   function ligne(p, estMoi) {
     const ou = (ONGLETS[p.onglet] || p.onglet || '?') + (p.projet ? ` · ${p.projet.nom}` : '');
     return `<div class="eq-l"><div class="eq-pt2"><i style="background:${p.couleur}"></i>${estMoi || p.ping == null ? '' : `<small style="color:${p.ping > 100 ? '#ff5a4f' : p.ping <= 50 ? '#3ddc97' : '#f5c542'}" title="Temps aller-retour avec ce poste">${p.ping} ms<br>${p.ping > 100 ? 'trop' : p.ping <= 50 ? 'bon' : 'moyen'}</small>`}</div><div class="eq-t"><b>${p.nom}${estMoi ? ' (moi)' : ''}${p.claude ? ' <span title="Une session Claude modifie le code sur ce poste" style="color:#c77dff;font-weight:500">+ Claude au travail</span>' : ''}</b>
       <span>${ou}${!estMoi && liens.get(p.id)?.dc?.readyState === 'open' ? ' · lien direct' : ''}</span><em>${p.action || ''}${estMoi ? '' : ' · ' + ilya(p.actionTs || p.vu)}</em></div>
-      ${estMoi ? '' : `<button data-suivre="${p.id}" title="Meme onglet, meme projet, meme angle de vue">${suivi === p.id ? 'Ne plus suivre' : 'Suivre'}</button>
-      <button data-avec="${p.id}" class="${avec === p.id ? 'on' : ''}" title="Les mains sur le meme objet : meme page, meme projet, memes modifications, meme vue">${avec === p.id ? 'Arreter' : 'Travailler avec'}</button>`}</div>`;
+      ${estMoi ? '' : `<button data-suivre="${p.id}" title="Même onglet, même projet, même angle de vue">${suivi === p.id ? 'Ne plus suivre' : 'Suivre'}</button>
+      <button data-avec="${p.id}" class="${avec === p.id ? 'on' : ''}" title="Les mains sur le même objet : même page, même projet, mêmes modifications, même vue">${avec === p.id ? 'Arrêter' : 'Travailler avec'}</button>`}</div>`;
   }
   let _rendT = 0, _rendHTML = '';
   function rendre() {                                  // au plus 3 fois par seconde : un clic n'est jamais perdu
@@ -543,12 +543,12 @@
     const n = pairs.size;
     if (fen.matches(':hover') && fen.querySelector('button:active')) return;
     fen.innerHTML = `<div class="eq-h"><span class="eq-pt" style="background:${ok ? '#3ddc97' : (cle ? '#f5c542' : '#8b919c')}"></span>
-      <b>Equipe</b><span class="eq-n">${cle ? (ok ? (n ? `${n} en ligne` : 'seul pour l\'instant') : 'connexion...') : 'non configuree'}</span>
-      <button data-coul title="Choisir ma couleur" style="color:${moi.couleur}">&#9679;</button><button data-r title="Reglages">&#9881;</button><button data-p title="Replier">${repli ? '&#9650;' : '&#9660;'}</button></div>
-      ${fen.dataset.code ? `<div class="eq-code">Nouveau code recu <button data-maj>Mettre a jour</button></div>` : ''}
+      <b>Équipe</b><span class="eq-n">${cle ? (ok ? (n ? `${n} en ligne` : 'seul pour l\'instant') : 'connexion...') : 'non configurée'}</span>
+      <button data-coul title="Choisir ma couleur" style="color:${moi.couleur}">&#9679;</button><button data-r title="Réglages">&#9881;</button><button data-p title="Replier">${repli ? '&#9650;' : '&#9660;'}</button></div>
+      ${fen.dataset.code ? `<div class="eq-code">Nouveau code reçu <button data-maj>Mettre à jour</button></div>` : ''}
       ${avec ? `<div class="eq-avec">En direct avec ${pairs.get(avec)?.nom || '...'} <button data-cam>${camLiee ? 'Vue liee' : 'Vue libre'}</button></div>` : ''}
       <div class="eq-b">${cle ? [...pairs.values()].map(p => ligne(p, false)).join('') + ligne(moi, true)
-        : `<p class="eq-v">Entre le meme <b>code d'equipe</b> (1 lettre + 4 chiffres) sur chaque poste pour travailler ensemble.</p>`}</div>`;
+        : `<p class="eq-v">Entre le même <b>code d'équipe</b> (1 lettre + 4 chiffres) sur chaque poste pour travailler ensemble.</p>`}</div>`;
   }
   fen.addEventListener('click', async e => {
     if (e.target.closest('[data-p]')) { fen.classList.toggle('repli'); memoFen(); return rendre(); }
@@ -570,11 +570,11 @@
       if (avec) quitterAvec();
       if (suivi !== p.id && !await avantDeRejoindre(p)) return;
       suivi = suivi === p.id ? null : p.id;
-      if (suivi) { suivre(p); envoyer({ t: 'suivi', cible: p.id }, true); }   // l'etat exact de la personne suivie, tout de suite
+      if (suivi) { suivre(p); envoyer({ t: 'suivi', cible: p.id }, true); }   // l'état exact de la personne suivie, tout de suite
       rendre();
     }
   });
-  // couleur personnelle : seul le poste change, ni le nom ni le code ne sont redemandes
+  // couleur personnelle : seul le poste change, ni le nom ni le code ne sont redemandés
   function choisirCouleur() {
     const i = document.createElement('input'); i.type = 'color'; i.value = moi.couleur || '#ff6410';
     i.addEventListener('change', async () => {
@@ -585,10 +585,10 @@
   }
   setInterval(async () => { try { moi.claude = (await (await fetch0('/api/claude')).json()).actif; } catch { } }, 10000);
   async function reglages() {
-    const nom = prompt('Ton nom (vu par l\'equipe) :', moi.nom); if (nom === null) return;
+    const nom = prompt('Ton nom (vu par l\'équipe) :', moi.nom); if (nom === null) return;
     let code = (await (await fetch('/api/equipe')).json()).code || '';
     for (;;) {                                         // format simple : 1 lettre + 4 chiffres (ex. K4827)
-      code = prompt('Code d\'equipe : 1 lettre + 4 chiffres (le meme sur chaque poste)', code); if (code === null) return;
+      code = prompt('Code d\'équipe : 1 lettre + 4 chiffres (le même sur chaque poste)', code); if (code === null) return;
       code = code.trim().toUpperCase(); if (/^[A-Z][0-9]{4}$/.test(code)) break;
       alert('Format attendu : 1 lettre puis 4 chiffres, par exemple K4827');
     }
@@ -596,7 +596,7 @@
     location.reload();
   }
 
-  // deplacable par sa barre de titre, position memorisee ; repliee par defaut quand on l'a repliee
+  // déplaçable par sa barre de titre, position mémorisée ; repliée par défaut quand on l'a repliée
   try {
     const m_ = JSON.parse(localStorage.getItem('shw-eq-fen') || '{}');
     if (m_.x != null) Object.assign(fen.style, { left: Math.min(m_.x, innerWidth - 60) + 'px', top: Math.min(m_.y, innerHeight - 30) + 'px', bottom: 'auto' });

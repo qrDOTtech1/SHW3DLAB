@@ -217,24 +217,24 @@ function mesurer(p) {
 // ------------------------------------------------------------------ inspecteur
 const PARAMS = {
   boite: [['x', 'Largeur X', 20], ['y', 'Profondeur Y', 20], ['z', 'Hauteur Z', 20], ['arrondi', 'Arrondi des angles', 0]],
-  cylindre: [['d', 'Diametre', 20], ['z', 'Hauteur', 20], ['cotes', 'Facettes', 96]],
-  sphere: [['d', 'Diametre', 20]], demi_sphere: [['d', 'Diametre', 20]],
-  cone: [['d', 'Diametre bas', 20], ['d_haut', 'Diametre haut', 0], ['z', 'Hauteur', 20]],
+  cylindre: [['d', 'Diamètre', 20], ['z', 'Hauteur', 20], ['cotes', 'Facettes', 96]],
+  sphere: [['d', 'Diamètre', 20]], demi_sphere: [['d', 'Diamètre', 20]],
+  cone: [['d', 'Diamètre bas', 20], ['d_haut', 'Diamètre haut', 0], ['z', 'Hauteur', 20]],
   pyramide: [['x', 'Base', 20], ['z', 'Hauteur', 20], ['cotes', 'Cotes', 4]],
-  prisme: [['d', 'Diametre', 20], ['z', 'Hauteur', 20], ['cotes', 'Cotes', 6]],
-  tube: [['d', 'Diametre', 20], ['paroi', 'Paroi', 2], ['z', 'Hauteur', 20]],
-  tore: [['d', 'Diametre', 30], ['e', 'Epaisseur', 6]],
-  etoile: [['d', 'Diametre', 30], ['branches', 'Branches', 5], ['creux', 'Creux (0-1)', 0.45], ['z', 'Epaisseur', 5]],
-  coeur: [['x', 'Largeur', 30], ['z', 'Epaisseur', 5]],
-  texte: [['texte', 'Texte', 'Steven'], ['h', 'Hauteur lettres', 15], ['z', 'Epaisseur', 3]],
-  vis: [['d', 'Diametre (M)', 8], ['pas', 'Pas', 1.25], ['z', 'Longueur', 20], ['tete', 'Tete (cle)', 13]],
-  ecrou: [['d', 'Diametre (M)', 8], ['pas', 'Pas', 1.25], ['tete', 'Cle', 13], ['z', 'Epaisseur', 6.5], ['jeu', 'Jeu', 0.25]],
+  prisme: [['d', 'Diamètre', 20], ['z', 'Hauteur', 20], ['cotes', 'Côtés', 6]],
+  tube: [['d', 'Diamètre', 20], ['paroi', 'Paroi', 2], ['z', 'Hauteur', 20]],
+  tore: [['d', 'Diamètre', 30], ['e', 'Épaisseur', 6]],
+  etoile: [['d', 'Diamètre', 30], ['branches', 'Branches', 5], ['creux', 'Creux (0-1)', 0.45], ['z', 'Épaisseur', 5]],
+  coeur: [['x', 'Largeur', 30], ['z', 'Épaisseur', 5]],
+  texte: [['texte', 'Texte', 'Steven'], ['h', 'Hauteur lettres', 15], ['z', 'Épaisseur', 3]],
+  vis: [['d', 'Diamètre (M)', 8], ['pas', 'Pas', 1.25], ['z', 'Longueur', 20], ['tete', 'Tête (clé)', 13]],
+  ecrou: [['d', 'Diamètre (M)', 8], ['pas', 'Pas', 1.25], ['tete', 'Clé', 13], ['z', 'Épaisseur', 6.5], ['jeu', 'Jeu', 0.25]],
   boite_couvercle: [['x', 'Largeur', 60], ['y', 'Profondeur', 40], ['z', 'Hauteur', 30], ['paroi', 'Paroi', 2], ['arrondi', 'Arrondi', 4], ['jeu', 'Jeu couvercle', 0.2]],
-  anneau_cle: [['d', 'Diametre', 12], ['paroi', 'Paroi', 3], ['z', 'Epaisseur', 4]],
+  anneau_cle: [['d', 'Diamètre', 12], ['paroi', 'Paroi', 3], ['z', 'Épaisseur', 4]],
 };
 function majInspecteur(leger) {
   const z = $('#c3-insp');
-  if (!C.sel.length) { z.innerHTML = '<p class="mute">Rien de selectionne. Ctrl+A : tout selectionner.</p>'; $('#c3-info').textContent = `${C.objets.length} objet(s) sur le plateau`; return; }
+  if (!C.sel.length) { z.innerHTML = '<p class="mute">Rien de sélectionné. Ctrl+A : tout sélectionner.</p>'; $('#c3-info').textContent = `${C.objets.length} objet(s) sur le plateau`; return; }
   const b = boite(C.sel), t = b.getSize(new THREE.Vector3());
   $('#c3-info').textContent = `${C.sel.length} selectionne(s) - ${r2(t.x)} x ${r2(t.y)} x ${r2(t.z)} mm`;
   if (leger && z.querySelector('#c3-dx')) {
@@ -247,7 +247,7 @@ function majInspecteur(leger) {
   z.innerHTML = `
     ${seul ? `<label>Nom<input id="c3-nom" value="${(o.nom || o.type || '').replace(/"/g, '')}"></label>` : `<p><b>${C.sel.length} objets</b></p>`}
     <div class="grid2">
-      <label>Type<select id="c3-trou"><option value="0" ${o.trou ? '' : 'selected'}>Solide</option><option value="1" ${o.trou ? 'selected' : ''}>Percage</option></select></label>
+      <label>Type<select id="c3-trou"><option value="0" ${o.trou ? '' : 'selected'}>Solide</option><option value="1" ${o.trou ? 'selected' : ''}>Perçage</option></select></label>
       <label>Couleur / bobine<select id="c3-bob">${bobs.map(x => `<option value="${x.id}" ${x.id === o.bobine ? 'selected' : ''}>${x.nom}</option>`).join('')}</select></label>
     </div>
     <div class="xyz"><span></span><span>X</span><span>Y</span><span>Z</span>
@@ -256,7 +256,7 @@ function majInspecteur(leger) {
       ${seul ? `<span>rot</span>${['x', 'y', 'z'].map(a => `<input id="c3-r${a}" type="number" step="15" value="${r2(THREE.MathUtils.radToDeg(rot[a]))}">`).join('')}` : ''}
     </div>
     <label class="chk"><input type="checkbox" id="c3-prop" checked> Garder les proportions</label>
-    ${seul && o.type === 'gen_vase' ? `<div class="params"><h2>Vase</h2><button id="c3-vase" class="primary" style="width:100%">Modifier : forme a la souris, epaisseur, texte / logo</button></div>` : ''}
+    ${seul && o.type === 'gen_vase' ? `<div class="params"><h2>Vase</h2><button id="c3-vase" class="primary" style="width:100%">Modifier : forme à la souris, épaisseur, texte / logo</button></div>` : ''}
     ${seul && o.type !== 'gen_vase' && o.type.startsWith('gen_') && GEN[o.type.slice(4)] ? `<div class="params"><h2>Parametres</h2>${GEN[o.type.slice(4)].champs.filter(c => c.type !== 'info' && c.type !== 'select').map(c => `<label>${c.label}<input data-p="${c.k}" type="number" step="any" value="${o.params?.[c.k] ?? c.val}"></label>`).join('')}<button id="c3-regen">Appliquer</button></div>` : ''}
     ${seul && PARAMS[o.type] ? `<div class="params"><h2>Parametres</h2>${PARAMS[o.type].map(([k, l, d]) => `<label>${l}<input data-p="${k}" ${typeof d === 'string' ? '' : 'type="number" step="any"'} value="${o.params?.[k] ?? d}"></label>`).join('')}
       ${o.type === 'texte' ? `<label>Police<select data-p="police">${Object.entries(A().S.polices || {}).map(([k, p]) => `<option value="${k}" ${k === (o.params?.police || 'arial_black') ? 'selected' : ''}>${p.label}</option>`).join('')}</select></label>` : ''}
@@ -341,7 +341,7 @@ $('#c3-texte-add').onclick = () => ajouterForme('texte', texteParams());
 let imageId = '';
 async function chargerImage(f) {
   const data = await new Promise(ok => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(f); });
-  imageId = (await api('/api/image', { data })).id; $('#c3-img-add').disabled = false; toast('Image prete : choisis le mode puis Convertir');
+  imageId = (await api('/api/image', { data })).id; $('#c3-img-add').disabled = false; toast('Image prête : choisis le mode puis Convertir');
 }
 $('#c3-img').onchange = e => e.target.files[0] && chargerImage(e.target.files[0]);
 $('#c3-img-seuil').oninput = e => $('#v-c3-seuil').textContent = +e.target.value || 'auto';
@@ -368,7 +368,7 @@ async function importer(f, placer = { x: 0, y: 0 }) {
     const r = await api('/api/c3d/importer', { data, nom: f.name.replace(/[^\w\- .()]/g, '_') });
     const o = await ajouterObjet({ type: 'import', fichier: r.fichier, nom: f.name }, { placer });
     selectionner([o]); memo();
-    if (!r.analyse.etanche) toast('Maillage non etanche : clique Reparer');
+    if (!r.analyse.etanche) toast('Maillage non étanche : clique Réparer');
   } catch (e) { toast(e.message); }
 }
 $('#c3-import').onchange = e => e.target.files[0] && importer(e.target.files[0]);
@@ -398,7 +398,7 @@ async function remplacer(anciens, r, opts = {}) {
   selectionner(res); memo(); return res;
 }
 async function outil(nom, params = {}, opts = {}) {
-  if (!C.sel.length) return toast('Selectionne d\'abord un objet');
+  if (!C.sel.length) return toast('Sélectionne d\'abord un objet');
   $('#c3-info').textContent = `${nom}...`; document.body.style.cursor = 'progress';
   const ch = window.SHWCharge?.debut(`Outil : ${nom}`, { cle: 'outil-' + nom });
   try { const r = await api('/api/c3d/outil', { outil: nom, objets: C.sel.map(pourServeur), params }); await remplacer([...C.sel], r, opts); return r; }
@@ -406,7 +406,7 @@ async function outil(nom, params = {}, opts = {}) {
   finally { ch?.fin(); document.body.style.cursor = ''; }
 }
 async function grouper() {
-  if (C.sel.length < 2) return toast('Selectionne au moins 2 objets (Maj+clic)');
+  if (C.sel.length < 2) return toast('Sélectionne au moins 2 objets (Maj+clic)');
   const enfants = C.sel.map(serial);
   await outil('grouper', {}, { enfants, nom: () => 'groupe' });
 }
@@ -420,10 +420,10 @@ function poser() { for (const o of C.sel) { const b = boite([o]); o.mesh.positio
 function centrer() { const b = boite(C.sel), c = b.getCenter(new THREE.Vector3()); for (const o of C.sel) { o.mesh.position.x -= c.x; o.mesh.position.y -= c.y; } finirEdition(); }
 function basculerTrou() { for (const o of C.sel) { o.trou = !o.trou; o.mesh.castShadow = !o.trou; } selectionner(C.sel); memo(); }
 const ACTIONS = { arete: () => modeArete(), integrer: () => integrer(), annuler, refaire, dupliquer, supprimer, grouper, degrouper, poser, centrer, trou: basculerTrou,
-  mesure: () => { C.mesure = C.mesure ? null : { pts: [] }; $('[data-c3="mesure"]').classList.toggle('on', !!C.mesure); if (!C.mesure) { $('#c3-mesure').hidden = true; if (regle) scene.remove(regle); } else toast('Regle : clique 2 points'); },
+  mesure: () => { C.mesure = C.mesure ? null : { pts: [] }; $('[data-c3="mesure"]').classList.toggle('on', !!C.mesure); if (!C.mesure) { $('#c3-mesure').hidden = true; if (regle) scene.remove(regle); } else toast('Règle : clique 2 points'); },
   surplombs: () => { C.surplombs = !C.surplombs; $('[data-c3="surplombs"]').classList.toggle('on', C.surplombs);
     for (const o of C.objets) { if (C.surplombs) colorerSurplombs(o.mesh); o.mesh.material = materiau(o, C.sel.includes(o)); }
-    if (C.surplombs) toast('En rouge : surplombs > 45 deg (supports necessaires). Essaie Orienter auto.'); } };
+    if (C.surplombs) toast('En rouge : surplombs > 45 deg (supports nécessaires). Essaie Orienter auto.'); } };
 $$('[data-c3]').forEach(b => b.onclick = () => ACTIONS[b.dataset.c3]());
 
 
@@ -441,7 +441,7 @@ function panneau(titre, champs, cb) {
     if (c.type === 'info') return `<p class="mute" data-info="${c.k}">${c.val}</p>`;
     return `<label>${c.label}<input type="number" data-k="${c.k}" value="${c.val}" ${c.min != null ? `min="${c.min}"` : ''} ${c.max != null ? `max="${c.max}"` : ''} step="${c.step || 'any'}"></label>`;
   };
-  d.innerHTML = `<div class="tete"><b>${titre}</b><button class="x" title="Fermer (Echap)">&#10005;</button></div>
+  d.innerHTML = `<div class="tete"><b>${titre}</b><button class="x" title="Fermer (Échap)">&#10005;</button></div>
     <div class="corps">${champs.map(c => ligne(c) + (c.aide ? `<p class="mute aide">${c.aide}</p>` : '')).join('')}</div>
     <div class="pied"><button class="annul">Annuler</button><button class="primary ok">${cb.libelle || 'Appliquer'}</button></div>`;
   $('.c3d-stage').appendChild(d);
@@ -462,7 +462,7 @@ const matFantome = new THREE.MeshBasicMaterial({ color: 0xff7a2f, transparent: t
 
 // outils du panneau droit
 function aligner(ax) {
-  if (C.sel.length < 2) return toast('Selectionne au moins 2 objets');
+  if (C.sel.length < 2) return toast('Sélectionne au moins 2 objets');
   const ref = boite([C.sel[0]]);
   for (const o of C.sel.slice(1)) { const b = boite([o]); if (ax === 'z') o.mesh.position.z += ref.min.z - b.min.z; else o.mesh.position[ax] += ref.getCenter(new THREE.Vector3())[ax] - b.getCenter(new THREE.Vector3())[ax]; }
   finirEdition();
@@ -489,16 +489,16 @@ function matsReseau(v, o) {
   return out;
 }
 function reseau() {
-  if (C.sel.length !== 1) return toast('Selectionne UN objet');
+  if (C.sel.length !== 1) return toast('Sélectionne UN objet');
   const o = C.sel[0], t = boite([o]).getSize(new THREE.Vector3());
   const apercu = v => {
     viderFantomes(); o.mesh.updateMatrixWorld();
     for (const M of matsReseau(v, o).slice(0, 200)) { const g = new THREE.Mesh(o.mesh.geometry, matFantome); M.clone().multiply(o.mesh.matrixWorld).decompose(g.position, g.quaternion, g.scale); fantomes.add(g); }
   };
-  panneau('Reseau de copies', [
+  panneau('Réseau de copies', [
     { k: 'type', label: 'Disposition', type: 'select', val: 'ligne', options: [['ligne', 'En ligne'], ['grille', 'En grille'], ['cercle', 'En cercle']] },
     { k: 'n', label: 'Nombre (total)', val: 4, min: 2, max: 200, step: 1 },
-    { k: 'n2', label: 'Rangees (grille)', val: 2, min: 1, max: 50, step: 1 },
+    { k: 'n2', label: 'Rangées (grille)', val: 2, min: 1, max: 50, step: 1 },
     { k: 'dx', label: 'Pas X (mm)', val: r2(t.x + 5) }, { k: 'dy', label: 'Pas Y (mm)', val: r2(t.y + 5) }, { k: 'dz', label: 'Pas Z (mm)', val: 0 },
     { k: 'rayon', label: 'Rayon du cercle (mm)', val: r2(Math.max(t.x, t.y) * 1.5) }, { k: 'angle', label: 'Angle total (deg)', val: 360 },
     { k: 'tourner', label: 'Tourner les copies avec le cercle', type: 'check', val: true },
@@ -514,20 +514,20 @@ function reseau() {
 const OUTILS = {
   aligner_x: () => aligner('x'), aligner_y: () => aligner('y'), aligner_z: () => aligner('z'),
   miroir_x: () => miroir('x'), miroir_y: () => miroir('y'), miroir_z: () => miroir('z'),
-  intersection: () => C.sel.length < 2 ? toast('Selectionne au moins 2 objets') : outil('intersection'),
+  intersection: () => C.sel.length < 2 ? toast('Sélectionne au moins 2 objets') : outil('intersection'),
   reseau,
   couper: () => {
-    if (C.sel.length !== 1) return toast('Selectionne UN objet');
+    if (C.sel.length !== 1) return toast('Sélectionne UN objet');
     const bx = boite(C.sel), c = bx.getCenter(new THREE.Vector3());
     const plan = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0xff7a2f, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false }));
     const champs = ax => ({ k: 'position', label: `Position du plan (${ax}, mm)`, type: 'range', min: r2(bx.min[ax]) + 0.2, max: r2(bx.max[ax]) - 0.2, step: 0.1, val: r2(c[ax]) });
     panneau('Couper au plan', [
       { k: 'axe', label: 'Plan de coupe', type: 'select', val: 'z', options: [['z', 'Horizontal (Z)'], ['x', 'Vertical X'], ['y', 'Vertical Y']] },
       champs('z'),
-      { k: 'connecteur', label: 'Assemblage', type: 'select', val: 'tenons', options: [['tenons', 'Tenons (chevilles a imprimer)'], ['queue_aronde', 'Queue d\'aronde (glisse, sans colle)'], ['clips', 'Clips (s\'enclipse, sans colle)'], ['aucun', 'Aucun (coupe simple)']] },
-      { k: 'd_tenon', label: 'Diametre tenon / clip (mm)', val: 4, min: 2, max: 12, step: 0.5 },
+      { k: 'connecteur', label: 'Assemblage', type: 'select', val: 'tenons', options: [['tenons', 'Tenons (chevilles à imprimer)'], ['queue_aronde', 'Queue d\'aronde (glisse, sans colle)'], ['clips', 'Clips (s\'enclipsé, sans colle)'], ['aucun', 'Aucun (coupe simple)']] },
+      { k: 'd_tenon', label: 'Diamètre tenon / clip (mm)', val: 4, min: 2, max: 12, step: 0.5 },
       { k: 'l_tenon', label: 'Longueur des tenons (mm)', val: 10, min: 4, max: 30, step: 1 },
-      { k: 'info', type: 'info', val: 'Jeu de 0.15 mm partout. Tenons : chevilles a cote. Queue d\'aronde : la moitie du haut glisse dans celle du bas selon la longueur. Clips : tige fendue a bourrelet.' },
+      { k: 'info', type: 'info', val: 'Jeu de 0.15 mm partout. Tenons : chevilles à côté. Queue d\'aronde : la moitié du haut glisse dans celle du bas selon la longueur. Clips : tige fendue à bourrelet.' },
     ], {
       changer: (v, d) => {
         const ax = v.axe, r = d.querySelector('[data-k="position"]');
@@ -545,30 +545,30 @@ const OUTILS = {
   },
   decouper_plateau: () => outil('decouper_plateau', {}, { poser: true, etaler: true }),
   orienter: async () => { const r = await outil('orienter', {}, { poser: true }); if (r) toast(`Orientation optimale : ${r2(r.surplombs_mm2 / 100)} cm2 de surplombs restants`); },
-  arrondir: () => panneau('Arrondir toutes les aretes', [
+  arrondir: () => panneau('Arrondir toutes les arêtes', [
     { k: 'r', label: 'Rayon', type: 'range', min: 0.3, max: 10, step: 0.1, val: 1.5, unite: ' mm' },
-    { k: 'i', type: 'info', val: 'Toutes les aretes saillantes sont arrondies d\'un coup. Les details plus fins que 2x le rayon disparaissent.' },
+    { k: 'i', type: 'info', val: 'Toutes les arêtes saillantes sont arrondies d\'un coup. Les détails plus fins que 2x le rayon disparaissent.' },
   ], { appliquer: v => outil('arrondir', v, { poser: true }) }),
   coque: () => panneau('Creuser (coque)', [
-    { k: 'paroi', label: 'Epaisseur de paroi', type: 'range', min: 0.8, max: 8, step: 0.1, val: 2, unite: ' mm' },
-    { k: 'ouverture', label: 'Trou d\'evacuation au fond (d 5 mm)', type: 'check', val: false },
-    { k: 'i', type: 'info', val: 'Paroi constante partout : moins de matiere et de temps (ideal pour les grosses pieces, lampes, tirelires).' },
+    { k: 'paroi', label: 'Épaisseur de paroi', type: 'range', min: 0.8, max: 8, step: 0.1, val: 2, unite: ' mm' },
+    { k: 'ouverture', label: 'Trou d\'évacuation au fond (d 5 mm)', type: 'check', val: false },
+    { k: 'i', type: 'info', val: 'Paroi constante partout : moins de matière et de temps (idéal pour les grosses pièces, lampes, tirelires).' },
   ], { appliquer: v => outil('coque', v) }),
-  epaissir: () => panneau('Epaissir / gonfler', [
-    { k: 'e', label: 'Epaisseur ajoutee', type: 'range', min: 0.2, max: 10, step: 0.1, val: 1, unite: ' mm' },
+  epaissir: () => panneau('Épaissir / gonfler', [
+    { k: 'e', label: 'Épaisseur ajoutée', type: 'range', min: 0.2, max: 10, step: 0.1, val: 1, unite: ' mm' },
   ], { appliquer: v => outil('epaissir', v, { poser: true }) }),
   effet: () => effetSurface(),
   ajourer: () => panneau('Ajourer (motif traversant)', [
-    { k: 'motif', label: 'Motif des trous', type: 'select', val: 'alveoles', options: [['alveoles', "Nid d'abeille"], ['cercles', 'Cercles'], ['gaufre', 'Grille carree'], ['triangles', 'Triangles'], ['voronoi', 'Cellules organiques'], ['briques', 'Briques'], ['fentes', 'Fentes'], ['diamant', 'Losanges'], ['ecailles', 'Ecailles']] },
-    { k: 'axe', label: 'Direction', type: 'select', val: 'cylindre', options: [['cylindre', 'Tout autour (objet rond : abat-jour, pot)'], ['z', 'De haut en bas (Z)'], ['x', 'De cote (X)'], ['y', 'De face (Y)']] },
+    { k: 'motif', label: 'Motif des trous', type: 'select', val: 'alveoles', options: [['alveoles', "Nid d'abeille"], ['cercles', 'Cercles'], ['gaufre', 'Grille carrée'], ['triangles', 'Triangles'], ['voronoi', 'Cellules organiques'], ['briques', 'Briques'], ['fentes', 'Fentes'], ['diamant', 'Losanges'], ['ecailles', 'Ecailles']] },
+    { k: 'axe', label: 'Direction', type: 'select', val: 'cylindre', options: [['cylindre', 'Tout autour (objet rond : abat-jour, pot)'], ['z', 'De haut en bas (Z)'], ['x', 'De côté (X)'], ['y', 'De face (Y)']] },
     { k: 'taille', label: 'Taille des cellules', type: 'range', min: 1.5, max: 40, step: 0.5, val: 8, unite: ' mm' },
-    { k: 'trait', label: 'Epaisseur des parois', type: 'range', min: 0.04, max: 0.4, step: 0.01, val: 0.12 },
+    { k: 'trait', label: 'Épaisseur des parois', type: 'range', min: 0.04, max: 0.4, step: 0.01, val: 0.12 },
     { k: 'rotation', label: 'Rotation', type: 'range', min: -90, max: 90, step: 1, val: 0, unite: ' deg' },
-    { k: 'etirement', label: 'Etirement', type: 'range', min: 0.3, max: 3, step: 0.05, val: 1 },
-    { k: 'alea', label: 'Irregularite (cellules)', type: 'range', min: 0, max: 1, step: 0.05, val: 0.85 },
+    { k: 'etirement', label: 'Étirement', type: 'range', min: 0.3, max: 3, step: 0.05, val: 1 },
+    { k: 'alea', label: 'Irrégularité (cellules)', type: 'range', min: 0, max: 1, step: 0.05, val: 0.85 },
     { k: 'bas', label: 'Commence a (rond)', type: 'range', min: 0, max: 90, step: 1, val: 10, unite: ' %' },
-    { k: 'haut', label: "S'arrete a (rond)", type: 'range', min: 10, max: 100, step: 1, val: 90, unite: ' %' },
-    { k: 'i', type: 'info', val: 'Les trous traversent la piece. Sur un objet creux (tube, pot creuse), ideal pour lampes et diffuseurs RGB. Ctrl+Z pour revenir.' },
+    { k: 'haut', label: "S'arrête a (rond)", type: 'range', min: 10, max: 100, step: 1, val: 90, unite: ' %' },
+    { k: 'i', type: 'info', val: 'Les trous traversent la pièce. Sur un objet creux (tube, pot creuse), idéal pour lampes et diffuseurs RGB. Ctrl+Z pour revenir.' },
   ], { appliquer: v => outil('ajourer', v) }),
   lisser: () => outil('lisser'), simplifier: () => outil('simplifier', { ratio: 0.5 }), reparer: () => outil('reparer'),
 };
@@ -583,7 +583,7 @@ async function analyser() {
   try {
     const { analyse: a } = await api('/api/c3d/outil', { outil: 'analyser', objets: liste.map(pourServeur) });
     $('#c3-analyse').innerHTML = `<div class="c3d-ana"><span>Dimensions</span><b>${a.dimensions_mm.map(v => r2(v)).join(' x ')}</b>
-      <span>Volume</span><b>${a.volume_cm3} cm3</b><span>Poids estime</span><b>${a.poids_g} g</b><span>Matiere</span><b>${a.cout_matiere_eur.toFixed(2)} EUR</b>
+      <span>Volume</span><b>${a.volume_cm3} cm3</b><span>Poids estime</span><b>${a.poids_g} g</b><span>Matière</span><b>${a.cout_matiere_eur.toFixed(2)} EUR</b>
       <span>Surplombs</span><b class="${a.surplombs_pct > 8 ? 'bad' : ''}">${a.surplombs_cm2} cm2 (${a.surplombs_pct} %)</b>
       <span>Plateau</span><b>${a.tient_plateau ? 'tient' : 'TROP GRAND'}</b><span>Maillage</span><b>${a.etanche ? 'etanche' : 'a reparer'}</b>
       <span>Triangles</span><b>${a.triangles.toLocaleString()}</b></div>
@@ -594,22 +594,22 @@ async function analyser() {
 // ------------------------------------------------------------------ projet / export / impression
 $('#c3-sauver').onclick = () => window.__PROJETS?.enregistrer('creation3d');
 $('#c3-ouvrir').onclick = () => $('[data-tab="pj"]').click();
-$('#c3-vider').onclick = () => C.objets.length && panneau('Tout effacer ?', [{ k: 'i', type: 'info', val: `${C.objets.length} objet(s) seront retires du plateau (Ctrl+Z pour revenir).` }],
+$('#c3-vider').onclick = () => C.objets.length && panneau('Tout effacer ?', [{ k: 'i', type: 'info', val: `${C.objets.length} objet(s) seront retirés du plateau (Ctrl+Z pour revenir).` }],
   { libelle: 'Effacer', appliquer: () => { for (const o of [...C.objets]) retirer(o); selectionner([]); memo(); } });
 $('#c3-export').onclick = async () => {
   const l = (C.sel.length ? C.sel : C.objets); if (!l.length) return;
-  try { const r = await api('/api/c3d/exporter', { outil: 'exporter', objets: l.map(pourServeur) }); const a = document.createElement('a'); a.href = r.url; a.download = 'creation.stl'; a.click(); } catch (e) { toast(e.message); }
+  try { const r = await api('/api/c3d/exporter', { outil: 'exporter', objets: l.map(pourServeur) }); const a = document.createElement('a'); a.href = r.url; a.download = 'création.stl'; a.click(); } catch (e) { toast(e.message); }
 };
 $('#c3-imprimer').onclick = async () => {
   const sol = C.objets.filter(o => !o.trou);
-  if (!sol.length) return toast('Rien a imprimer');
-  if (C.objets.some(o => o.trou) && !C._okTrous) return panneau('Percages non groupes', [{ k: 'i', type: 'info', val: 'Des percages ne sont pas groupes avec un solide : ils seront ignores. Selectionne le solide + le percage puis Ctrl+G pour percer.' }],
-    { libelle: 'Imprimer quand meme', appliquer: () => { C._okTrous = true; $('#c3-imprimer').click(); C._okTrous = false; } });
+  if (!sol.length) return toast('Rien à imprimer');
+  if (C.objets.some(o => o.trou) && !C._okTrous) return panneau('Perçages non groupes', [{ k: 'i', type: 'info', val: 'Des perçages ne sont pas groupes avec un solide : ils seront ignorés. Sélectionne le solide + le perçage puis Ctrl+G pour percer.' }],
+    { libelle: 'Imprimer quand même', appliquer: () => { C._okTrous = true; $('#c3-imprimer').click(); C._okTrous = false; } });
   try {
     const { job } = await api('/api/c3d/imprimer', { outil: 'imprimer', objets: C.objets.map(pourServeur) });
     await A().suivre(job, '#c3-prog', res => {
       const S = A().S; S.gen = res; S.tranches = {};
-      A().renderPlateauxImp(); toast(`${res.plateaux.length} plateau(x) prets : onglet Imprimer`);
+      A().renderPlateauxImp(); toast(`${res.plateaux.length} plateau(x) prêts : onglet Imprimer`);
       $('[data-tab="imprimer"]').click();
     });
   } catch (e) { toast(e.message); }
@@ -625,11 +625,11 @@ const GEN = {
     { k: 'pos_ventre', label: 'Hauteur du ventre', type: 'range', min: 0.1, max: 0.7, step: 0.05, val: 0.35 },
     { k: 'r_col', label: 'Rayon du col', type: 'range', min: 5, max: 100, step: 1, val: 22, unite: ' mm' },
     { k: 'r_haut', label: 'Rayon de l\'ouverture', type: 'range', min: 5, max: 105, step: 1, val: 32, unite: ' mm' },
-    { k: 'cotes', label: 'Section', type: 'select', val: 0, options: [[0, 'Ronde'], [3, 'Triangle'], [4, 'Carree'], [5, 'Pentagone'], [6, 'Hexagone'], [8, 'Octogone'], [12, '12 cotes']] },
+    { k: 'cotes', label: 'Section', type: 'select', val: 0, options: [[0, 'Ronde'], [3, 'Triangle'], [4, 'Carrée'], [5, 'Pentagone'], [6, 'Hexagone'], [8, 'Octogone'], [12, '12 côtés']] },
     { k: 'torsion', label: 'Torsion', type: 'range', min: -360, max: 360, step: 5, val: 0, unite: ' deg' },
     { k: 'ondulation', label: 'Ondulations', type: 'range', min: 0, max: 15, step: 0.5, val: 0, unite: ' %' },
     { k: 'ondes', label: 'Nombre d\'ondes', type: 'range', min: 2, max: 30, step: 1, val: 8 },
-    { k: 'paroi', label: 'Paroi (0 = plein, a imprimer en MODE VASE)', type: 'range', min: 0, max: 5, step: 0.2, val: 0, unite: ' mm' },
+    { k: 'paroi', label: 'Paroi (0 = plein, à imprimer en Mode VASE)', type: 'range', min: 0, max: 5, step: 0.2, val: 0, unite: ' mm' },
   ] },
   pot: { titre: 'Pot + soucoupe', champs: [
     { k: 'h', label: 'Hauteur', type: 'range', min: 40, max: 200, step: 1, val: 90, unite: ' mm' },
@@ -641,27 +641,27 @@ const GEN = {
     { k: 'paroi', label: 'Paroi', type: 'range', min: 1.2, max: 5, step: 0.2, val: 2.4, unite: ' mm' },
   ], prep: v => ({ ...v, r_ventre: (v.r_bas * 2 + v.r_haut) / 3, r_col: (v.r_bas + v.r_haut * 2) / 3 }) },
   keycap: { titre: 'Touche de clavier (Cherry MX)', champs: [
-    { k: 'u', label: 'Largeur', type: 'select', val: 1, options: [[1, '1u (lettre)'], [1.25, '1.25u (Ctrl, Alt)'], [1.5, '1.5u (Tab)'], [1.75, '1.75u (Maj lock)'], [2, '2u (Retour, Maj)'], [2.25, '2.25u (Entree)'], [6.25, '6.25u (Espace)']] },
+    { k: 'u', label: 'Largeur', type: 'select', val: 1, options: [[1, '1u (lettre)'], [1.25, '1.25u (Ctrl, Alt)'], [1.5, '1.5u (Tab)'], [1.75, '1.75u (Maj lock)'], [2, '2u (Retour, Maj)'], [2.25, '2.25u (Entrée)'], [6.25, '6.25u (Espace)']] },
     { k: 'h_avant', label: 'Hauteur avant', type: 'range', min: 5, max: 14, step: 0.1, val: 8, unite: ' mm' },
-    { k: 'h_arriere', label: 'Hauteur arriere', type: 'range', min: 5, max: 14, step: 0.1, val: 9.5, unite: ' mm' },
+    { k: 'h_arriere', label: 'Hauteur arrière', type: 'range', min: 5, max: 14, step: 0.1, val: 9.5, unite: ' mm' },
     { k: 'dish', label: 'Creux du dessus', type: 'range', min: 0, max: 2, step: 0.1, val: 0.8, unite: ' mm' },
     { k: 'jeu', label: 'Jeu de la croix MX', type: 'range', min: 0, max: 0.2, step: 0.01, val: 0.05, unite: ' mm' },
-    { k: 'i', type: 'info', val: 'Astuce : ajoute un texte et INTEGRE-le (mode incruster) sur le dessus = legende 2 couleurs.' },
+    { k: 'i', type: 'info', val: 'Astuce : ajoute un texte et INTEGRE-le (mode incruster) sur le dessus = légende 2 couleurs.' },
   ] },
   bouton: { titre: 'Bouton de couture', champs: [
-    { k: 'd', label: 'Diametre', type: 'range', min: 8, max: 50, step: 0.5, val: 20, unite: ' mm' },
-    { k: 'e', label: 'Epaisseur', type: 'range', min: 1.5, max: 6, step: 0.1, val: 3, unite: ' mm' },
+    { k: 'd', label: 'Diamètre', type: 'range', min: 8, max: 50, step: 0.5, val: 20, unite: ' mm' },
+    { k: 'e', label: 'Épaisseur', type: 'range', min: 1.5, max: 6, step: 0.1, val: 3, unite: ' mm' },
     { k: 'trous', label: 'Trous', type: 'select', val: 4, options: [[2, '2 trous'], [4, '4 trous']] },
-    { k: 'd_trou', label: 'Diametre des trous', type: 'range', min: 1, max: 4, step: 0.1, val: 2, unite: ' mm' },
+    { k: 'd_trou', label: 'Diamètre des trous', type: 'range', min: 1, max: 4, step: 0.1, val: 2, unite: ' mm' },
   ] },
-  support_tel: { titre: 'Support telephone / tablette', champs: [
+  support_tel: { titre: 'Support téléphone / tablette', champs: [
     { k: 'largeur', label: 'Largeur', type: 'range', min: 30, max: 180, step: 1, val: 70, unite: ' mm' },
     { k: 'angle', label: 'Inclinaison', type: 'range', min: 45, max: 80, step: 1, val: 65, unite: ' deg' },
-    { k: 'appareil', label: 'Epaisseur de l\'appareil (+ coque)', type: 'range', min: 6, max: 20, step: 0.5, val: 12, unite: ' mm' },
-    { k: 'epaisseur', label: 'Epaisseur du support', type: 'range', min: 3, max: 8, step: 0.5, val: 4, unite: ' mm' },
+    { k: 'appareil', label: 'Épaisseur de l\'appareil (+ coque)', type: 'range', min: 6, max: 20, step: 0.5, val: 12, unite: ' mm' },
+    { k: 'epaisseur', label: 'Épaisseur du support', type: 'range', min: 3, max: 8, step: 0.5, val: 4, unite: ' mm' },
   ] },
 };
-function xLibre(larg) {        // place un nouvel objet a droite de ce qui existe deja (sans chevauchement)
+function xLibre(larg) {        // place un nouvel objet à droite de ce qui existe deja (sans chevauchement)
   const autres = C.objets.filter(o => !o.trou); if (!autres.length) return 0;
   return boite(autres).max.x + 8 + larg / 2;
 }
@@ -672,16 +672,16 @@ function ouvrirGen(nom) {
   if (nom === 'logo') return ouvrirLogo();
   const G = GEN[nom];
   panneau(G.titre, G.champs.map(c => ({ ...c })), {
-    libelle: 'Creer',
+    libelle: 'Créer',
     appliquer: async v => {
       const p = G.prep ? G.prep(v) : v;
       try {
-        $('#c3-info').textContent = `Generation : ${G.titre}...`;
+        $('#c3-info').textContent = `Génération : ${G.titre}...`;
         const r = await api('/api/c3d/generer', { nom, params: p });
         const nouv = [];
         for (const [i, x] of r.objets.entries()) nouv.push(await ajouterObjet({ type: 'gen_' + nom, params: p, fichier: x.fichier, nom: i ? 'soucoupe' : G.titre }, { placer: { x: xLibre(x.analyse.dimensions_mm[0]), y: 0 } }));
         selectionner(nouv); memo(); vue('iso');
-        if (nom === 'vase' && !p.paroi) toast('Vase plein : tranche-le en MODE VASE (1 paroi spiralee) = rapide et etanche');
+        if (nom === 'vase' && !p.paroi) toast('Vase plein : tranche-le en Mode VASE (1 paroi spiralée) = rapide et étanche');
       } catch (e) { toast(e.message); }
     },
   });
@@ -694,9 +694,9 @@ function ouvrirLogo() {
     { k: 'largeur', label: 'Largeur', type: 'range', min: 8, max: 200, step: 1, val: 40, unite: ' mm' },
     { k: 'epaisseur', label: 'Relief', type: 'range', min: 0.4, max: 5, step: 0.1, val: 1.2, unite: ' mm' },
     { k: 'socle', label: 'Socle (0 = sans)', type: 'range', min: 0, max: 4, step: 0.2, val: 0, unite: ' mm' },
-    { k: 'i', type: 'info', val: 'Astuce : selectionne le logo puis la piece et utilise Integrer (relief, grave ou incruste 2 couleurs) : il epouse la surface.' },
+    { k: 'i', type: 'info', val: 'Astuce : sélectionne le logo puis la pièce et utilisé Intégrer (relief, gravé ou incrusté 2 couleurs) : il épouse la surface.' },
   ], {
-    libelle: 'Creer',
+    libelle: 'Créer',
     appliquer: async v => {
       try {
         const r = await api('/api/c3d/logo', v);
@@ -707,7 +707,7 @@ function ouvrirLogo() {
   });
 }
 
-// ------------------------------------------------------------------ VASE : formes predefinies, profil a la souris, apercu 3D en direct, cartouche texte / logo
+// ------------------------------------------------------------------ VASE : formes prédéfinies, profil à la souris, apercu 3D en direct, cartouche texte / logo
 const VASES = {
   amphore: { nom: 'Amphore classique', h: 120, profil: [[0, 30], [0.35, 45], [0.8, 22], [1, 32]] },
   bouteille: { nom: 'Bouteille', h: 160, profil: [[0, 34], [0.5, 37], [0.72, 15], [1, 13]] },
@@ -716,11 +716,11 @@ const VASES = {
   boule: { nom: 'Boule', h: 120, profil: [[0, 22], [0.45, 55], [0.9, 30], [1, 30]] },
   calebasse: { nom: 'Calebasse', h: 150, profil: [[0, 30], [0.25, 44], [0.55, 24], [0.75, 32], [1, 18]] },
   sablier: { nom: 'Sablier', h: 130, profil: [[0, 40], [0.5, 22], [1, 40]] },
-  cylindre: { nom: 'Cylindre epure', h: 140, profil: [[0, 34], [1, 34]] },
-  cone: { nom: 'Cone evase', h: 120, profil: [[0, 24], [1, 50]] },
+  cylindre: { nom: 'Cylindre épuré', h: 140, profil: [[0, 34], [1, 34]] },
+  cone: { nom: 'Cône évasé', h: 120, profil: [[0, 24], [1, 50]] },
   coupe: { nom: 'Coupe / bol', h: 70, profil: [[0, 24], [0.3, 46], [1, 62]] },
-  lanterne: { nom: 'Lanterne cotelee', h: 150, profil: [[0, 36], [0.5, 40], [1, 36]], ondulation: 5, ondes: 16 },
-  spirale: { nom: 'Spirale cotelee', h: 150, profil: [[0, 30], [0.35, 45], [0.8, 24], [1, 30]], ondulation: 7, ondes: 14, torsion: 150 },
+  lanterne: { nom: 'Lanterne côtelée', h: 150, profil: [[0, 36], [0.5, 40], [1, 36]], ondulation: 5, ondes: 16 },
+  spirale: { nom: 'Spirale côtelée', h: 150, profil: [[0, 30], [0.35, 45], [0.8, 24], [1, 30]], ondulation: 7, ondes: 14, torsion: 150 },
   hexa: { nom: 'Hexagone torsade', h: 140, profil: [[0, 32], [0.5, 42], [1, 36]], cotes: 6, torsion: 120 },
   deco: { nom: 'Art deco (octogone)', h: 150, profil: [[0, 30], [0.15, 30], [0.85, 46], [1, 46]], cotes: 8 },
   galet: { nom: 'Galet bas', h: 80, profil: [[0, 40], [0.4, 60], [0.85, 30], [1, 26]] },
@@ -738,7 +738,7 @@ function ouvrirVase(cible = null) {
     clearTimeout(_t);
     _t = setTimeout(async () => {
       const n = ++nGen;
-      $('#c3-info').textContent = 'Apercu du vase...';
+      $('#c3-info').textContent = 'Aperçu du vase...';
       try {
         const r = await api('/api/c3d/generer', { nom: 'vase', params: { ...P, apercu: true } });
         if (n !== nGen || !_pan) return;
@@ -762,28 +762,28 @@ function ouvrirVase(cible = null) {
   };
   const preset = cible ? '' : 'amphore';
   panneau(cible ? 'Modifier le vase' : 'Vase', [
-    { k: 'preset', label: 'Forme predefinie', type: 'select', val: preset, options: [['', '(forme actuelle)'], ...Object.entries(VASES).map(([k, v]) => [k, v.nom])] },
+    { k: 'preset', label: 'Forme prédéfinie', type: 'select', val: preset, options: [['', '(forme actuelle)'], ...Object.entries(VASES).map(([k, v]) => [k, v.nom])] },
     { k: 'i_prof', type: 'info', val: '' },
     { k: 'h', label: 'Hauteur', type: 'range', min: 30, max: 240, step: 1, val: P.h, unite: ' mm' },
-    { k: 'paroi', label: 'Epaisseur de paroi (0 = plein, MODE VASE du slicer)', type: 'range', min: 0, max: 6, step: 0.2, val: P.paroi, unite: ' mm' },
-    { k: 'fond', label: 'Epaisseur du fond', type: 'range', min: 0.8, max: 8, step: 0.2, val: P.fond, unite: ' mm' },
-    { k: 'cotes', label: 'Section', type: 'select', val: P.cotes, options: [[0, 'Ronde'], [3, 'Triangle'], [4, 'Carree'], [5, 'Pentagone'], [6, 'Hexagone'], [8, 'Octogone'], [12, '12 cotes']] },
+    { k: 'paroi', label: 'Épaisseur de paroi (0 = plein, Mode VASE du slicer)', type: 'range', min: 0, max: 6, step: 0.2, val: P.paroi, unite: ' mm' },
+    { k: 'fond', label: 'Épaisseur du fond', type: 'range', min: 0.8, max: 8, step: 0.2, val: P.fond, unite: ' mm' },
+    { k: 'cotes', label: 'Section', type: 'select', val: P.cotes, options: [[0, 'Ronde'], [3, 'Triangle'], [4, 'Carrée'], [5, 'Pentagone'], [6, 'Hexagone'], [8, 'Octogone'], [12, '12 côtés']] },
     { k: 'torsion', label: 'Torsion', type: 'range', min: -360, max: 360, step: 5, val: P.torsion, unite: ' deg' },
     { k: 'ondulation', label: 'Cotes / ondulations', type: 'range', min: 0, max: 15, step: 0.5, val: P.ondulation, unite: ' %' },
     { k: 'ondes', label: "Nombre d'ondes", type: 'range', min: 2, max: 30, step: 1, val: P.ondes },
     { k: 'perso', label: 'Zone de personnalisation', type: 'select', val: P.perso, options: [['aucun', 'Aucune'], ['texte', 'Texte'], ['logo', 'Logo'], ['texte_logo', 'Logo + texte']] },
-    { k: 'perso_support', label: 'Ou ?', type: 'select', val: P.perso_support, options: [['vase', 'Directement sur le vase'], ['plaque', 'Plaque amovible clipsee sur le bord (cadeau)']] },
+    { k: 'perso_support', label: 'Où ?', type: 'select', val: P.perso_support, options: [['vase', 'Directement sur le vase'], ['plaque', 'Plaque amovible clipsée sur le bord (cadeau)']] },
     { k: 'perso_texte', label: 'Texte', type: 'texte', val: P.perso_texte },
     { k: 'perso_police', label: 'Police', type: 'select', val: P.perso_police, options: polices.length ? polices : [['bebas', 'Bebas Neue']] },
-    { k: 'perso_cadre', label: 'Cartouche', type: 'select', val: P.perso_cadre, options: [['ovale', 'Medaillon ovale'], ['pastille', 'Pastille ronde'], ['bandeau', 'Bandeau'], ['aucun', 'Sans cadre']] },
-    { k: 'perso_mode', label: 'Rendu', type: 'select', val: P.perso_mode, options: [['relief', 'En relief'], ['grave', 'Grave']] },
+    { k: 'perso_cadre', label: 'Cartouche', type: 'select', val: P.perso_cadre, options: [['ovale', 'Médaillon ovale'], ['pastille', 'Pastille ronde'], ['bandeau', 'Bandeau'], ['aucun', 'Sans cadre']] },
+    { k: 'perso_mode', label: 'Rendu', type: 'select', val: P.perso_mode, options: [['relief', 'En relief'], ['grave', 'Gravé']] },
     { k: 'perso_hauteur', label: 'Position en hauteur', type: 'range', min: 0.12, max: 0.88, step: 0.01, val: P.perso_hauteur },
     { k: 'perso_angle', label: 'Position autour', type: 'range', min: -180, max: 180, step: 5, val: P.perso_angle, unite: ' deg' },
     { k: 'perso_taille', label: 'Hauteur du cartouche', type: 'range', min: 10, max: 90, step: 1, val: P.perso_taille, unite: ' mm' },
     { k: 'perso_largeur', label: 'Largeur du cartouche', type: 'range', min: 15, max: 140, step: 1, val: P.perso_largeur, unite: ' mm' },
     { k: 'perso_relief', label: 'Relief / profondeur', type: 'range', min: 0.3, max: 2, step: 0.1, val: P.perso_relief, unite: ' mm' },
   ], {
-    libelle: cible ? 'Appliquer' : 'Creer',
+    libelle: cible ? 'Appliquer' : 'Créer',
     changer: v => {
       if (!pret) return;
       if (v.preset && v.preset !== P._preset) {        // forme predefinie : remplace le profil et les reglages de style
@@ -805,7 +805,7 @@ function ouvrirVase(cible = null) {
     appliquer: async () => {
       const p = { ...P }; delete p._preset; delete p.preset;
       try {
-        $('#c3-info').textContent = 'Generation du vase...';
+        $('#c3-info').textContent = 'Génération du vase...';
         const r = await api('/api/c3d/generer', { nom: 'vase', params: p });
         const x = r.objets[0];
         const ajouterPlaques = async n => {           // les plaques gardent leur position relative au vase (deja clipsees)
@@ -824,11 +824,11 @@ function ouvrirVase(cible = null) {
           await ajouterPlaques(n); selectionner([n]); vue('iso');
         }
         memo();
-        if (!p.paroi) toast('Vase plein : tranche-le en MODE VASE (1 paroi spiralee) = rapide et etanche');
+        if (!p.paroi) toast('Vase plein : tranche-le en Mode VASE (1 paroi spiralée) = rapide et étanche');
       } catch (e) { toast(e.message); if (cible) cible.mesh.visible = true; }
     },
   });
-  // ---- editeur de profil a la souris (demi-silhouette : glisser les points, double-clic = ajouter, clic droit = retirer)
+  // ---- editeur de profil à la souris (demi-silhouette : glisser les points, double-clic = ajouter, clic droit = retirer)
   const d = _pan.d; d.querySelector('.corps').style.maxHeight = '66vh';
   const zone = d.querySelector('[data-info="i_prof"]');
   zone.className = 'vase-prof';
@@ -926,16 +926,16 @@ function ouvrirShadowbox() {
     panneau('Shadowbox (tableau en couches)', [
       { k: 'couches', label: 'Nombre de couches', type: 'range', min: 2, max: 8, step: 1, val: 5 },
       { k: 'largeur', label: 'Largeur', type: 'range', min: 40, max: 200, step: 5, val: 100, unite: ' mm' },
-      { k: 'e_couche', label: 'Epaisseur par couche', type: 'range', min: 0.6, max: 3, step: 0.2, val: 1.2, unite: ' mm' },
+      { k: 'e_couche', label: 'Épaisseur par couche', type: 'range', min: 0.6, max: 3, step: 0.2, val: 1.2, unite: ' mm' },
       { k: 'cadre', label: 'Largeur du cadre', type: 'range', min: 3, max: 15, step: 1, val: 6, unite: ' mm' },
-      { k: 'detail', label: 'Detail mini', type: 'range', min: 0.4, max: 3, step: 0.1, val: 0.8, unite: ' mm' },
+      { k: 'detail', label: 'Détail mini', type: 'range', min: 0.4, max: 3, step: 0.1, val: 0.8, unite: ' mm' },
       { k: 'inverser', label: 'Inverser (clair au fond)', type: 'check', val: false },
-      { k: 'i', type: 'info', val: 'Chaque couche est une piece a imprimer dans sa couleur (choisis la bobine de chaque couche). Elles s\'empilent dans le cadre.' },
+      { k: 'i', type: 'info', val: 'Chaque couche est une pièce à imprimer dans sa couleur (choisis la bobine de chaque couche). Elles s\'empilent dans le cadre.' },
     ], {
-      libelle: 'Creer',
+      libelle: 'Créer',
       appliquer: async v => {
         try {
-          $('#c3-info').textContent = 'Decoupe de l\'image en couches...';
+          $('#c3-info').textContent = 'Découpe de l\'image en couches...';
           const r = await api('/api/c3d/shadowbox', { image: id, params: v });
           const bobs = A().S.etat?.bobines || [], nouv = [];
           for (const [i, x] of r.objets.entries()) nouv.push(await ajouterObjet({ type: 'shadowbox', fichier: x.fichier, nom: x.nom, bobine: bobs[i % Math.max(1, bobs.length)]?.id }));
@@ -951,18 +951,18 @@ function ouvrirShadowbox() {
 function ouvrirDessin() {
   const D = { pts: [], ferme: false, mode: 'extrusion', zoom: 4, ox: 0, oy: 0, souris: null, pas: 1 };
   const el = document.createElement('div'); el.className = 'c3d-dessin';
-  el.innerHTML = `<div style="position:relative"><canvas></canvas><div class="aide2">Clic = point &middot; clic sur le 1er point ou Entree = fermer &middot; Retour arriere = annuler &middot; molette = zoom &middot; clic droit glisse = deplacer</div></div>
+  el.innerHTML = `<div style="position:relative"><canvas></canvas><div class="aide2">Clic = point &middot; clic sur le 1er point ou Entrée = fermer &middot; Retour arrière = annuler &middot; molette = zoom &middot; clic droit glisse = déplacer</div></div>
     <div class="cote"><h2>Dessin 2D</h2>
-      <label>Mode<select data-d="mode"><option value="extrusion">Extrusion (forme sur mesure)</option><option value="revolution">Revolution (vase, bouton, pion...)</option></select></label>
-      <p class="mute" data-d="aidemode">Dessine un contour ferme : il sera extrude vers le haut.</p>
+      <label>Mode<select data-d="mode"><option value="extrusion">Extrusion (forme sur mesure)</option><option value="revolution">Révolution (vase, bouton, pion...)</option></select></label>
+      <p class="mute" data-d="aidemode">Dessine un contour fermé : il sera extrudé vers le haut.</p>
       <label class="chk"><input type="checkbox" data-d="lisse"> Courbes douces (lisser les angles)</label>
       <label>Pas de la grille<select data-d="pas"><option value="0.5">0.5 mm</option><option value="1" selected>1 mm</option><option value="5">5 mm</option><option value="0">libre</option></select></label>
       <div data-d="opt-ext"><label>Hauteur <input type="number" data-d="h" value="10" step="0.5"></label>
         <label>Torsion (deg) <input type="number" data-d="torsion" value="0" step="5"></label>
-        <label>Echelle du haut (depouille) <input type="number" data-d="echelle_haut" value="1" step="0.05" min="0" max="3"></label>
+        <label>Échelle du haut (dépouille) <input type="number" data-d="echelle_haut" value="1" step="0.05" min="0" max="3"></label>
         <label>Paroi seulement (0 = plein) <input type="number" data-d="epaisseur" value="0" step="0.2" min="0"></label></div>
       <div data-d="opt-rev" hidden><label>Angle <input type="number" data-d="angle" value="360" step="15" min="15" max="360"></label>
-        <p class="mute">L'axe de rotation est la ligne verticale orange (x = 0). Dessine le profil a droite.</p></div>
+        <p class="mute">L'axe de rotation est la ligne verticale orange (x = 0). Dessine le profil à droite.</p></div>
       <div class="grid2"><button data-d="annuler">Annuler point</button><button data-d="effacer">Effacer</button></div>
       <div class="grid2" style="margin-top:6px"><button data-d="rect">Rectangle 40x20</button><button data-d="cercle">Cercle d30</button></div>
       <p class="mute" data-d="info"></p>
@@ -970,7 +970,7 @@ function ouvrirDessin() {
       <div class="grid2"><label>Longueur <input type="number" data-d="ajL" value="20" step="any"></label><label>Angle &deg; <input type="number" data-d="ajA" value="0" step="any"></label></div>
       <button data-d="aj">Ajouter ce segment</button>
       <div data-d="cotes" style="max-height:170px;overflow:auto;margin-top:6px"></div>
-      <button class="primary big" data-d="creer">Creer l'objet 3D</button>
+      <button class="primary big" data-d="creer">Créer l'objet 3D</button>
       <button class="big" data-d="fermer" style="margin-top:6px">Fermer</button>
     </div>`;
   $('.c3d-stage').appendChild(el);
@@ -1034,9 +1034,9 @@ function ouvrirDessin() {
     if (e.key === 'Escape') { e.stopPropagation(); fermer(); }
   };
   document.addEventListener('keydown', clavier, true);
-  q('mode').onchange = e => { D.mode = e.target.value; q('opt-ext').hidden = D.mode !== 'extrusion'; q('opt-rev').hidden = D.mode !== 'revolution';
-    q('aidemode').textContent = D.mode === 'revolution' ? 'Dessine la MOITIE du profil, a droite de l\'axe orange : il tourne autour pour faire un vase, un pion, un bouton...' : 'Dessine un contour ferme : il sera extrude vers le haut.';
-    if (D.mode === 'revolution') D.ox = 30; dessiner(); };
+  q('mode').onchange = e => { D.mode = e.target.value; q('opt-ext').hidden = D.mode !== 'extrusion'; q('opt-rev').hidden = D.mode !== 'révolution';
+    q('aidemode').textContent = D.mode === 'révolution' ? 'Dessine la Moitié du profil, à droite de l\'axe orange : il tourne autour pour faire un vase, un pion, un bouton...' : 'Dessine un contour fermé : il sera extrudé vers le haut.';
+    if (D.mode === 'révolution') D.ox = 30; dessiner(); };
   q('lisse').onchange = e => { D.lisse = e.target.checked; dessiner(); };
   q('aj').onclick = () => {
     const d = D.pts.at(-1) || [0, 0], a = +q('ajA').value * Math.PI / 180, l = +q('ajL').value;
@@ -1059,10 +1059,10 @@ function ouvrirDessin() {
   q('cotes').addEventListener('keydown', e => e.stopPropagation());
   q('annuler').onclick = () => { if (D.ferme) D.ferme = false; else D.pts.pop(); dessiner(); };
   q('effacer').onclick = () => { D.pts = []; D.ferme = false; dessiner(); };
-  q('rect').onclick = () => { D.pts = [[-20, -10], [20, -10], [20, 10], [-20, 10]]; if (D.mode === 'revolution') D.pts = [[0, 0], [20, 0], [20, 20], [0, 20]]; D.ferme = true; dessiner(); };
-  q('cercle').onclick = () => { D.pts = Array.from({ length: 48 }, (_, i) => [r2(15 * Math.cos(i / 48 * 2 * Math.PI) + (D.mode === 'revolution' ? 25 : 0)), r2(15 * Math.sin(i / 48 * 2 * Math.PI) + (D.mode === 'revolution' ? 15 : 0))]); D.ferme = true; dessiner(); };
+  q('rect').onclick = () => { D.pts = [[-20, -10], [20, -10], [20, 10], [-20, 10]]; if (D.mode === 'révolution') D.pts = [[0, 0], [20, 0], [20, 20], [0, 20]]; D.ferme = true; dessiner(); };
+  q('cercle').onclick = () => { D.pts = Array.from({ length: 48 }, (_, i) => [r2(15 * Math.cos(i / 48 * 2 * Math.PI) + (D.mode === 'révolution' ? 25 : 0)), r2(15 * Math.sin(i / 48 * 2 * Math.PI) + (D.mode === 'révolution' ? 15 : 0))]); D.ferme = true; dessiner(); };
   q('fermer').onclick = fermer;
-  q('creer').onclick = async () => {
+  q('créer').onclick = async () => {
     if (D.pts.length < 3) return toast('Dessine au moins 3 points');
     const params = { lisse: q('lisse').checked, h: +q('h').value, torsion: +q('torsion').value, echelle_haut: +q('echelle_haut').value, epaisseur: +q('epaisseur').value, angle: +q('angle').value };
     try {
@@ -1118,7 +1118,7 @@ themePlateau(document.documentElement.dataset.scene);
 
 // ------------------------------------------------------------------ INTEGRER : clic sur l'objet, puis sur la surface
 function integrer() {
-  if (C.sel.length !== 1) return toast('Selectionne l\'objet a integrer (logo, texte, image 3D...), puis clique Integrer');
+  if (C.sel.length !== 1) return toast('Sélectionne l\'objet a integrer (logo, texte, image 3D...), puis clique Integrer');
   C.integ = { motif: C.sel[0], m0: C.sel[0].mesh.matrixWorld.clone() };
   tc.detach(); ren.domElement.classList.add('c3d-viser');
   $('#c3-info').textContent = 'INTEGRER : clique maintenant sur la surface ou poser l\'objet (Echap pour annuler)';
@@ -1174,7 +1174,7 @@ function poserSurSurface(hit) {
 
 // ------------------------------------------------------------------ EFFETS DE SURFACE (apercu EN DIRECT)
 async function effetSurface() {
-  if (C.sel.length !== 1) return toast('Selectionne UN objet (applique ensuite aux autres si besoin)');
+  if (C.sel.length !== 1) return toast('Sélectionne UN objet (applique ensuite aux autres si besoin)');
   const o = C.sel[0];
   $('#c3-info').textContent = 'Preparation d\'un maillage fin pour l\'effet...';
   document.body.style.cursor = 'progress';
@@ -1199,22 +1199,22 @@ async function effetSurface() {
   let _t = null, dernier = null;
   const maj = v => { dernier = v; clearTimeout(_t); _t = setTimeout(() => { const t0 = performance.now(); appliquer(geo, info, v.rendu === 'percage' ? { ...v, profondeur: -2.5, nettete: 4 } : v);
     ap.material.color.set(v.rendu === 'percage' ? 0xffb07a : couleurBob(o.bobine)); _pan?.d.querySelector('[data-k="profondeur"]')?.closest('label') && (_pan.d.querySelector('[data-k="profondeur"]').closest('label').style.display = v.rendu === 'percage' ? 'none' : ''); $('#c3-info').textContent = `Effet : ${MOTIFS[v.motif].nom} - ${(info.n / 1000).toFixed(0)} k points, calcul ${Math.round(performance.now() - t0)} ms`; }, 30); };
-  panneau('Effet de surface (apercu en direct)', [
-    { k: 'rendu', label: 'Rendu', type: 'select', val: 'relief', options: [['relief', 'Relief (bosses / creux)'], ['percage', 'PERCAGE traversant (ajoure : lampe, RGB)']] },
+  panneau('Effet de surface (aperçu en direct)', [
+    { k: 'rendu', label: 'Rendu', type: 'select', val: 'relief', options: [['relief', 'Relief (bosses / creux)'], ['percage', 'Perçage traversant (ajoure : lampe, RGB)']] },
     { k: 'motif', label: 'Motif', type: 'select', val: 'alveoles', options: opts },
-    { k: 'profondeur', label: 'Relief (negatif = en creux)', type: 'range', min: -3, max: 3, step: 0.05, val: 0.8, unite: ' mm' },
+    { k: 'profondeur', label: 'Relief (négatif = en creux)', type: 'range', min: -3, max: 3, step: 0.05, val: 0.8, unite: ' mm' },
     { k: 'taille', label: 'Taille du motif', type: 'range', min: 1, max: 40, step: 0.5, val: 6, unite: ' mm' },
-    { k: 'etirement', label: 'Etirement (largeur / hauteur)', type: 'range', min: 0.25, max: 4, step: 0.05, val: 1 },
+    { k: 'etirement', label: 'Étirement (largeur / hauteur)', type: 'range', min: 0.25, max: 4, step: 0.05, val: 1 },
     { k: 'rotation', label: 'Rotation', type: 'range', min: -180, max: 180, step: 1, val: 0, unite: ' deg' },
-    { k: 'trait', label: 'Epaisseur des parois / traits', type: 'range', min: 0.02, max: 0.45, step: 0.01, val: 0.08 },
-    { k: 'nettete', label: 'Nettete (doux <-> vif)', type: 'range', min: 0.3, max: 4, step: 0.05, val: 1 },
-    { k: 'alea', label: 'Irregularite (cellules)', type: 'range', min: 0, max: 1, step: 0.05, val: 0.85 },
-    { k: 'du', label: 'Decalage horizontal', type: 'range', min: 0, max: 1, step: 0.01, val: 0 },
-    { k: 'dv', label: 'Decalage vertical', type: 'range', min: 0, max: 1, step: 0.01, val: 0 },
-    { k: 'projection', label: 'Projection', type: 'select', val: 'auto', options: [['auto', info.rond ? 'Auto (cylindrique, sans couture)' : 'Auto (triplanaire)'], ['cylindre', 'Cylindrique'], ['triplanaire', 'Triplanaire (toutes faces)'], ['z', 'Vue de dessus (Z)'], ['x', 'De cote (X)'], ['y', 'De face (Y)']] },
-    { k: 'zones', label: 'Ou ?', type: 'select', val: 'cotes', options: [['cotes', 'Cotes'], ['dessus', 'Dessus'], ['tout', 'Partout (sauf dessous)']] },
+    { k: 'trait', label: 'Épaisseur des parois / traits', type: 'range', min: 0.02, max: 0.45, step: 0.01, val: 0.08 },
+    { k: 'nettete', label: 'Netteté (doux <-> vif)', type: 'range', min: 0.3, max: 4, step: 0.05, val: 1 },
+    { k: 'alea', label: 'Irrégularité (cellules)', type: 'range', min: 0, max: 1, step: 0.05, val: 0.85 },
+    { k: 'du', label: 'Décalage horizontal', type: 'range', min: 0, max: 1, step: 0.01, val: 0 },
+    { k: 'dv', label: 'Décalage vertical', type: 'range', min: 0, max: 1, step: 0.01, val: 0 },
+    { k: 'projection', label: 'Projection', type: 'select', val: 'auto', options: [['auto', info.rond ? 'Auto (cylindrique, sans couture)' : 'Auto (triplanaire)'], ['cylindre', 'Cylindrique'], ['triplanaire', 'Triplanaire (toutes faces)'], ['z', 'Vue de dessus (Z)'], ['x', 'De côté (X)'], ['y', 'De face (Y)']] },
+    { k: 'zones', label: 'Où ?', type: 'select', val: 'cotes', options: [['cotes', 'Cotes'], ['dessus', 'Dessus'], ['tout', 'Partout (sauf dessous)']] },
     { k: 'bas', label: 'Commence a (hauteur)', type: 'range', min: 0, max: 100, step: 1, val: 0, unite: ' %' },
-    { k: 'haut', label: 'S\'arrete a (hauteur)', type: 'range', min: 0, max: 100, step: 1, val: 100, unite: ' %' },
+    { k: 'haut', label: 'S\'arrête a (hauteur)', type: 'range', min: 0, max: 100, step: 1, val: 100, unite: ' %' },
     { k: 'fondu', label: 'Fondu aux limites', type: 'range', min: 0, max: 10, step: 0.5, val: 1.5, unite: ' mm' },
     { k: 'inverser', label: 'Inverser le motif', type: 'check', val: false },
   ], {
@@ -1231,7 +1231,7 @@ async function effetSurface() {
           du: v.du, dv: v.dv, inverser: v.inverser, axe: proj, bas: Math.max(3, v.bas), haut: Math.min(97, v.haut), exclure });
       }
       appliquer(geo, info, v);
-      $('#c3-info').textContent = 'Enregistrement de la piece texturee...';
+      $('#c3-info').textContent = 'Enregistrement de la pièce texturée...';
       try {
         const pos = geo.attributes.position.array, idx = geo.index.array;
         const corps = new Blob([new Uint32Array([pos.length / 3, idx.length / 3]), pos, idx instanceof Uint32Array ? idx : new Uint32Array(idx)]);
@@ -1294,25 +1294,25 @@ function ouvrirMenu(x, y, hit, pt) {
   if (sel) {
     L.push({ titre: sel > 1 ? `${sel} objets` : (C.sel[0].nom || C.sel[0].type) });
     L.push(it('&#10148; Integrer sur une surface...', integrer, 'I', sel !== 1), it('Effet de surface...', effetSurface));
-    L.push('-', it('Dupliquer', dupliquer, 'Ctrl+D'), it('Copier', copier, 'Ctrl+C'), it(C.sel.every(o => o.trou) ? 'Rendre SOLIDE' : 'Rendre PERCAGE', basculerTrou, 'H'));
-    if (sel > 1) L.push(it('Grouper (solides - percages)', grouper, 'Ctrl+G'), it('Intersection', () => outil('intersection')));
-    if (groupe) L.push(it('Degrouper', degrouper, 'Ctrl+Maj+G'));
+    L.push('-', it('Dupliquer', dupliquer, 'Ctrl+D'), it('Copier', copier, 'Ctrl+C'), it(C.sel.every(o => o.trou) ? 'Rendre Solide' : 'Rendre Perçage', basculerTrou, 'H'));
+    if (sel > 1) L.push(it('Grouper (solides - perçages)', grouper, 'Ctrl+G'), it('Intersection', () => outil('intersection')));
+    if (groupe) L.push(it('Dégrouper', degrouper, 'Ctrl+Maj+G'));
     L.push({ couleurs: true });
     L.push('-', it('Poser sur le plateau', poser, 'D'), it('Centrer sur le plateau', centrer), it('Orienter pour l\'impression', OUTILS.orienter),
       it('Miroir X', () => miroir('x')), it('Miroir Y', () => miroir('y')));
-    L.push('-', it('Arrondir / chanfreiner une arete...', modeArete, 'A'), it('Couper...', OUTILS.couper, '', sel !== 1), it('Arrondir toutes les aretes...', OUTILS.arrondir), it('Creuser...', OUTILS.coque), it('Reseau de copies...', reseau, '', sel !== 1));
-    L.push('-', it('<span style="color:#ff6410">Scene shop...</span>', () => window.__SHOP?.ouvrir(), 'V'));
-    L.push('-', it('Cadrer la selection', () => vue('iso'), 'F'), it('Exporter en STL', () => $('#c3-export').click()), it('Supprimer', supprimer, 'Suppr'));
+    L.push('-', it('Arrondir / chanfreiner une arête...', modeArete, 'A'), it('Couper...', OUTILS.couper, '', sel !== 1), it('Arrondir toutes les arêtes...', OUTILS.arrondir), it('Creuser...', OUTILS.coque), it('Réseau de copies...', reseau, '', sel !== 1));
+    L.push('-', it('<span style="color:#ff6410">Scène shop...</span>', () => window.__SHOP?.ouvrir(), 'V'));
+    L.push('-', it('Cadrer la sélection', () => vue('iso'), 'F'), it('Exporter en STL', () => $('#c3-export').click()), it('Supprimer', supprimer, 'Suppr'));
   } else {
     L.push({ titre: 'Plateau' }, it('<span style="color:#ff6410">Logo SHWork...</span>', () => ouvrirLogo()), it('Dessin 2D -> 3D...', ouvrirDessin), it('Vase...', () => ouvrirGen('vase')));
     if (C.presse?.length) L.push(it(`Coller ici (${C.presse.length})`, () => coller(pt), 'Ctrl+V'));
-    for (const [f, lab] of [['boite', 'Boite'], ['cylindre', 'Cylindre'], ['sphere', 'Sphere'], ['texte', 'Texte']])
+    for (const [f, lab] of [['boite', 'Boîte'], ['cylindre', 'Cylindre'], ['sphere', 'Sphère'], ['texte', 'Texte']])
       L.push(it(`Ajouter ici : ${lab}`, () => ajouterForme(f, f === 'texte' ? texteParams() : {}, { x: pt?.x || 0, y: pt?.y || 0, surDessus: true })));
-    L.push('-', it('<span style="color:#ff6410">Scene shop...</span>', () => window.__SHOP?.ouvrir(), 'V', !C.objets.length));
-    L.push('-', it('Tout selectionner', () => selectionner([...C.objets]), 'Ctrl+A'), it('Annuler', annuler, 'Ctrl+Z', C.hist.length < 2), it('Refaire', refaire, 'Ctrl+Y', !C.futur.length));
+    L.push('-', it('<span style="color:#ff6410">Scène shop...</span>', () => window.__SHOP?.ouvrir(), 'V', !C.objets.length));
+    L.push('-', it('Tout sélectionner', () => selectionner([...C.objets]), 'Ctrl+A'), it('Annuler', annuler, 'Ctrl+Z', C.hist.length < 2), it('Refaire', refaire, 'Ctrl+Y', !C.futur.length));
   }
-  L.push('-', { titre: 'Vue' }, it('Dessus', () => vue('dessus'), '7'), it('Face', () => vue('face'), '1'), it('Cote', () => vue('cote'), '3'), it('Perspective', () => vue('iso'), '0'),
-    it(document.documentElement.dataset.scene === 'light' ? 'Scene sombre' : 'Scene claire', () => $('#theme-btn').click()));
+  L.push('-', { titre: 'Vue' }, it('Dessus', () => vue('dessus'), '7'), it('Face', () => vue('face'), '1'), it('Côté', () => vue('cote'), '3'), it('Perspective', () => vue('iso'), '0'),
+    it(document.documentElement.dataset.scene === 'light' ? 'Scène sombre' : 'Scène claire', () => $('#theme-btn').click()));
   m.innerHTML = L.map((l, i) => l === '-' ? '<div class="sep"></div>' : l.titre ? `<div class="titre">${l.titre}</div>`
     : l.couleurs ? `<div class="titre">Couleur</div><div class="pastilles">${(A().S.etat?.bobines || []).map(b => `<i data-bob="${b.id}" title="${b.nom}" style="background:${b.couleur}"></i>`).join('')}</div>`
     : `<div class="it ${l.off ? 'off' : ''}" data-i="${i}"><span>${l.lab}</span><kbd>${l.kbd}</kbd></div>`).join('');
@@ -1392,7 +1392,7 @@ document.addEventListener('keydown', e => {
 
 // ------------------------------------------------------------------ demarrage
 (async function init() {
-  for (let i = 0; i < 50 && !(A()?.S?.polices && A()?.S?.etat); i++) await new Promise(r => setTimeout(r, 100));
+  for (let i = 0; i < 900 && !(A()?.S?.polices && A()?.S?.etat); i++) await new Promise(r => setTimeout(r, 100));
   $('#c3-police').innerHTML = Object.entries(A().S.polices || {}).map(([k, p]) => `<option value="${k}">${p.label}</option>`).join('');
   try {
     const s = JSON.parse(localStorage.getItem('c3d_scene') || '[]');

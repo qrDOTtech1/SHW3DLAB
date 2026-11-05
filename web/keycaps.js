@@ -103,7 +103,7 @@ v('logo').onchange = async e => {
 $('#kc-vers-c3d').onclick = async () => {
   if (!K.dernier) return;
   for (const o of K.dernier.objets) await window.__C3D?._ajout?.(o, o.role === 'legende' ? v('bob-leg').value : v('bob-touche').value);
-  toast('Touche ajoutee dans Creation 3D'); $('[data-tab="c3d"]').click();
+  toast('Touche ajoutée dans Création 3D'); $('[data-tab="c3d"]').click();
 };
 
 // ------------------------------------------------------------------ LOT (plusieurs touches differentes, plusieurs claviers)
@@ -112,7 +112,7 @@ K.edition = null;                       // id de l'element du lot en cours de mo
 const RANGEES = {
   azerty_lettres: 'AZERTYUIOPQSDFGHJKLMWXCVBN'.split('').map(t => ({ texte: t, rang: 'AZERTYUIOP'.includes(t) ? 2 : 'QSDFGHJKLM'.includes(t) ? 3 : 4, repere: 'FJ'.includes(t) ? 'barre' : 'aucun' })),
   chiffres: '1234567890'.split('').map(t => ({ texte: t, rang: 1 })),
-  modificateurs: [['Esc', 1, 1], ['Tab', 1.5, 2], ['Verr', 1.75, 3], ['Maj', 2.25, 4], ['Ctrl', 1.25, 4], ['Alt', 1.25, 4], ['Entree', 2.25, 3], ['Retour', 2, 1], ['Espace', 6.25, 4], ['AltGr', 1.25, 4]].map(([texte, u, rang]) => ({ texte, u, rang })),
+  modificateurs: [['Esc', 1, 1], ['Tab', 1.5, 2], ['Verr', 1.75, 3], ['Maj', 2.25, 4], ['Ctrl', 1.25, 4], ['Alt', 1.25, 4], ['Entrée', 2.25, 3], ['Retour', 2, 1], ['Espace', 6.25, 4], ['AltGr', 1.25, 4]].map(([texte, u, rang]) => ({ texte, u, rang })),
   fleches: ['↑', '←', '↓', '→'].map(t => ({ texte: t, rang: 4 })),
   pave: [['7', 1, 2], ['8', 1, 2], ['9', 1, 2], ['4', 1, 3], ['5', 1, 3, 'point'], ['6', 1, 3], ['1', 1, 4], ['2', 1, 4], ['3', 1, 4], ['0', 2, 4], ['.', 1, 4], ['+', 1, 3], ['-', 1, 1], ['*', 1, 1], ['/', 1, 1]].map(([texte, u, rang, repere]) => ({ texte, u, rang, repere })),
   f: Array.from({ length: 12 }, (_, i) => ({ texte: 'F' + (i + 1), rang: 1 })),
@@ -143,7 +143,7 @@ function rendreLot() {
       <div class="t">${resume(it.champs)}</div>
       <div class="q"><button data-a="moins">-</button><b>${it.qte}</b><button data-a="plus">+</button></div>
       <div class="a"><button data-a="editer" title="Modifier">&#9998;</button><button data-a="dupliquer" title="Dupliquer">&#10697;</button><button data-a="stl" title="Exporter cette touche en STL">STL</button><button data-a="suppr" title="Retirer">&#10005;</button></div></div>`).join('')}</div>`).join('')
-    || '<p class="mute">Lot vide : regle une touche puis "+ Ajouter au lot". Tu peux melanger profils, tailles, couleurs et claviers.</p>';
+    || '<p class="mute">Lot vide : règle une touche puis "+ Ajouter au lot". Tu peux mélanger profils, tailles, couleurs et claviers.</p>';
   const tot = K.lot.reduce((a, x) => a + x.qte, 0);
   $('#kc-nb').textContent = tot ? `${tot} touche(s), ${Object.keys(groupes).length} clavier(s)` : '';
   $$('#kc-lot [data-a]').forEach(b => b.onclick = async () => {
@@ -172,7 +172,7 @@ $('#kc-ajouter').onclick = () => ajouterAuLot();
 $('#kc-maj').onclick = async () => {
   const it = K.lot.find(x => x.id === K.edition); if (!it) return;
   it.champs = champs(); it.image = K.image; it.clavier = v('clavier').value.trim() || it.clavier; it.mini = await miniatureActuelle();
-  K.edition = null; $('#kc-maj').disabled = true; rendreLot(); sauverLot(); toast('Touche mise a jour');
+  K.edition = null; $('#kc-maj').disabled = true; rendreLot(); sauverLot(); toast('Touche mise à jour');
 };
 v('rangee').onchange = async e => {
   const r = RANGEES[e.target.value]; e.target.value = ''; if (!r) return;
@@ -184,7 +184,7 @@ v('rangee').onchange = async e => {
     if (t.repere) c['kc-repere'] = t.repere;
     await ajouterAuLot(c, K.image, null);
   }
-  toast(`${r.length} touches ajoutees au lot`);
+  toast(`${r.length} touches ajoutées au lot`);
 };
 $('#kc-export-lot').onclick = () => K.lot.length ? exporter(K.lot) : toast('Lot vide');
 $('#kc-vider-lot').onclick = () => { if (K.lot.length) { K.lot = []; K.edition = null; rendreLot(); sauverLot(); } };
