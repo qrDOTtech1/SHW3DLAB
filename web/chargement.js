@@ -20,11 +20,11 @@ const CSS = `
 #shw-charge .logo{position:absolute;left:16px;top:12px;height:20px;opacity:0;transition:opacity .5s}
 `;
 // etapes classiques des chargements de projet, avec une pointe d'humour de temps a autre
-const ETAPES = ['Ajout de puissance. Encore. On ne sait jamais.', 'Le processeur transpire. C\'est bon signe. Enfin, je crois.', 'Consultation d\'un ingenieur allemand. Il desapprouve.',
-  'Calcul de la geometrie. C\'est comme une boite manuelle : plus lent, mais tellement plus noble.', 'Lecture du projet', 'Génération de la géométrie', 'Vérification des collisions',
+const ETAPES = ['Ajout de puissance. Encore. On ne sait jamais.', 'Le processeur transpire. C\'est bon signe. Enfin, je crois.', 'Consultation d\'un expert. Il desapprouve. On continue.', 'A quel point est-ce que ca peut etre difficile ?', 'Certains disent que ce calcul n\'a jamais dormi. Tout ce qu\'on sait, c\'est qu\'il fait ventiler le PC.', 'Cette idee est stupide. Lancons-la immediatement.',
+  'Calcul de la geometrie. C\'est lent. Mais c\'est un lent magnifique.', 'Lecture du projet', 'Génération de la géométrie', 'Vérification des collisions',
   'Rien ne touche la peau ? Vérifié.', 'Assemblage des pièces', 'Ajout de puissance. Pas trop. Juste ce qu\'il faut.',
   'Calcul de la course d\'ouverture', 'Mise en cache pour la prochaine fois', 'Préparation de l\'affichage 3D',
-  'Patience. Les grands projets, comme les grandes voitures, ne démarrent pas au quart de tour.'];
+  'Patience. Rome ne s\'est pas faite en un jour. Mais Rome n\'avait pas de RTX.'];
 const BIERE = ['Le mieux, c\'est de ne rien toucher et de siroter sa bière en paix pendant que ça progresse.',
   'Ne touchez a rien. Prenez une bière. Admirez la puissance.',
   'Asseyez-vous, ouvrez une bière : la machine s\'occupe de tout. Enfin, presque.'];

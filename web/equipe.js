@@ -261,7 +261,7 @@
   }
   // ---- le klaxon : on previent AVANT de toucher au travail de quelqu'un
   const CLARKSON = {
-    sauve: [n => `${n} a sauvegarde. Oui, sauvegarde. Comme un adulte responsable. Incroyable.`, n => `Nouvelle sauvegarde de ${n}. Puissance. Beaucoup de puissance.`, n => `${n} vient de sauvegarder. Et sur cette planete, c'est deja un exploit.`],
+    sauve: [n => `${n} a sauvegarde. Oui, sauvegarde. Comme un adulte responsable. Incroyable.`, n => `Nouvelle sauvegarde de ${n}. Ambitieux. Inutile. Magnifique.`, n => `${n} vient de sauvegarder. Et sur cette planete, c'est deja un exploit.`],
     rejoint: [n => `${n} monte a bord. Accrochez-vous, ca va mal se passer. Ou tres bien.`, n => `${n} met les mains sur le meme objet. Que pourrait-il arriver de mal ?`],
     parti: [n => `${n} a quitte le navire. Sans un mot. Typique.`],
   };
@@ -295,7 +295,7 @@
   async function avantDeRejoindre(p) {
     const n = nonEnregistre(); if (!n) return true;
     const quoi = moi.onglet === 'c3d' ? `${n} objet${n > 1 ? 's' : ''} non enregistre${n > 1 ? 's' : ''}` : 'des modifications non enregistrees';
-    const c = await demander('Une petite seconde.', `Tu as ${quoi} sur ton plan. Si tu rejoins ${p.nom}, ca disparait de ton ecran. Definitivement. Comme une boite manuelle sur une supercar moderne. Que fait-on ?`,
+    const c = await demander('Une petite seconde.', `Tu as ${quoi} sur ton plan. Si tu rejoins ${p.nom}, ca disparait de ton ecran. Definitivement. Comme ma patience devant un mode d'emploi. Que fait-on ?`,
       [['non', 'Annuler'], ['go', 'Foncer quand meme'], ['save', 'Enregistrer puis rejoindre', true]]);
     if (c === 'save') await enregistrerIci();
     return c !== 'non';

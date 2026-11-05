@@ -214,9 +214,9 @@ CHECKPOINTS = [
     "Chargement des bibliothèques de géométrie",
     "Lecture du manuel d'utilisation... non. Personne ne lit le manuel.",
     "Calibrage du rendu MuJoCo",
-    "Consultation du pilote d'essai. Il n'a rien dit. C'est bon signe.",
+    "Certains disent que ce logiciel n'a jamais lu sa propre notice. Tout ce qu'on sait, c'est qu'il démarre.",
     "Chargement des polices et du logo SHWork",
-    "Retrait de tous les boulons. La v2.3 n'en a plus besoin, de toute façon.",
+    "À quel point est-ce que ça peut être difficile ?",
     "Vérification du nid d'abeille. Les abeilles, elles, ne sont pas d'accord.",
     "Préparation du trancheur CuraEngine",
     "Ce qui pouvait mal tourner ? Absolument tout. Et pourtant, nous y voilà.",
@@ -354,7 +354,7 @@ def main():
                 etape(txt, frac)
                 time.sleep(0.1)
         while not port_occupe() and time.time() - t < 120:
-            etape("Le moteur prend son temps. Comme une boîte automatique des années 80.", 0.98)
+            etape("Ça prend son temps. Avec un calme franchement insultant.", 0.98)
             time.sleep(0.3)
         etape("Ouverture du dashboard. Accrochez-vous.", 1.0)
         time.sleep(0.6)

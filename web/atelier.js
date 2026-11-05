@@ -426,7 +426,7 @@ async function ouvrirPieces() {
   document.body.appendChild(d);
   const rendre = async () => {
     const l = await (await fetch('/api/pieces')).json();
-    d.querySelector('[data-l]').innerHTML = l.length ? l.map(p => `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0"><a data-pose="${p.id}" style="cursor:pointer">${p.nom}</a><button data-sup="${p.id}" style="background:none;border:0;color:#8b919c;cursor:pointer">&#10005;</button></div>`).join('') : '<small style="color:#8b919c">Vide. Comme le coffre d une supercar.</small>';
+    d.querySelector('[data-l]').innerHTML = l.length ? l.map(p => `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0"><a data-pose="${p.id}" style="cursor:pointer">${p.nom}</a><button data-sup="${p.id}" style="background:none;border:0;color:#8b919c;cursor:pointer">&#10005;</button></div>`).join('') : '<small style="color:#8b919c">Vide. Absolument rien. Et j ai vu des deserts plus accueillants.</small>';
     d._l = l;
   };
   d.addEventListener('click', async e => {
@@ -436,7 +436,7 @@ async function ouvrirPieces() {
       const nom = prompt('Nom de la piece :', sel[0].nom || 'piece'); if (!nom) return;
       const b = I().boite(sel), base = new THREE.Matrix4().makeTranslation(-(b.min.x + b.max.x) / 2, -(b.min.y + b.max.y) / 2, -b.min.z);
       const objets = sel.map(o => { o.mesh.updateMatrixWorld(); return { fichier: o.fichier, nom: o.nom, trou: !!o.trou, bobine: o.bobine, matrice: base.clone().multiply(o.mesh.matrixWorld).toArray() }; });
-      await api('/api/pieces', { nom, objets }); toast('Piece rangee. Enfin de l ordre dans ce garage.'); rendre();
+      await api('/api/pieces', { nom, objets }); toast('Piece rangee. De l ordre. Ici. Je suis aussi surpris que toi.'); rendre();
     }
     const s = e.target.closest('[data-sup]');
     if (s) { await fetch('/api/pieces/' + s.dataset.sup, { method: 'DELETE' }); rendre(); }
@@ -592,6 +592,18 @@ function photoShop() {
 const btnShop = el(`<button id="at-shop-btn" style="position:fixed;z-index:60;right:calc(50% - 60px);top:76px;background:#ff6410;color:#14171d;border:0;border-radius:18px;padding:6px 14px;font:600 12px 'Segoe UI',sans-serif;cursor:pointer;display:none">&#128722; Scene shop</button>`);
 document.body.appendChild(btnShop); btnShop.onclick = ouvrirShop;
 setInterval(() => { btnShop.style.display = $('#tab-c3d').classList.contains('on') && !SH.actif && window.__C3D?.sel?.length ? 'block' : 'none'; }, 300);
+
+// ------------------------------------------------------------------ EASTER EGG : cinq clics sur le logo
+const CERTAINS = ['Certains disent qu il a tranche un STL a la main. Et qu il ne connait que deux facons de cliquer. Tout ce qu on sait, c est qu on l appelle : Steven.',
+  'Certains disent que Hugo n a jamais lu une notice. Et que les notices ont peur de lui.',
+  'A quel point est-ce que ca peut etre difficile ?', 'Cette idee etait stupide. Et pourtant, regarde : elle fonctionne.',
+  'Selon mes calculs, tout va exploser. Mes calculs sont faux. En general.', 'Ambitieux, mais nul. Et puis, ca a marche.',
+  'J ai demande conseil a un expert. Puis j ai fait exactement le contraire.', 'POUVOIR ! ... non, rien. C etait juste pour le plaisir.'];
+let _clicsLogo = 0, _tLogo = 0;
+document.querySelector('.brand')?.addEventListener('click', () => {
+  const t = performance.now(); _clicsLogo = t - _tLogo < 700 ? _clicsLogo + 1 : 1; _tLogo = t;
+  if (_clicsLogo >= 5) { _clicsLogo = 0; toast(CERTAINS[Math.floor(Math.random() * CERTAINS.length)]); }
+});
 
 // ------------------------------------------------------------------ TOUTES les petites fenetres se deplacent
 document.head.appendChild(Object.assign(document.createElement('style'), { textContent: '.at-flot h3,.c3d-pan>h2,.c3d-pan>h3,.c3d-pan>b:first-child{cursor:move;user-select:none}' }));
