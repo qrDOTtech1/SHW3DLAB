@@ -166,7 +166,33 @@ def support_as5600():
     return b - somme(trous)
 
 
+def collier_endoscopes():
+    """Se serre sur le guide Z (d36) : 2 rails a 90 deg descendent vers la pointe du pinceau. Fente de 60 mm pour regler la hauteur."""
+    b = cy(46, 14) - cy(36.3, 16, z0=-1)
+    aj = [b, bo(14, 12, 14, 26, 0, 0)]                              # oreille de serrage
+    tr = [bo(16, 1.5, 16, 26, 0, -1), cy(3.4, 16).rotate((90, 0, 0)).translate((28, 8, 7))]
+    for a_ in (180, 270):
+        rail = bo(14, 5, 80, 0, 0, -66).translate((0, 23.5, 0))
+        fente = bo(3.6, 7, 60, 0, 0, -58).translate((0, 23.5, 0))
+        aj.append(rail.rotate((0, 0, a_)))
+        tr.append(fente.rotate((0, 0, a_)))
+    return somme(aj) - somme(tr)
+
+
+def pince_endoscope(d=8.0):
+    """Vise la pointe : inclinable sur sa vis M3, l'endoscope est serre par une 2e vis M3. Bague a imprimer si son diametre est plus petit."""
+    b = bo(14, 8, 10) + cy(d + 7, 22, 0, 12.5, 0).rotate((0, 0, 0))
+    tr = [cy(3.4, 12, 0, 0, 0).rotate((90, 0, 0)).translate((0, 5, 5)), cy(d + 0.3, 24, 0, 12.5, -1), bo(1.6, d + 9, 24, 0, 16.5, -1)]
+    tr.append(cy(3.4, d + 12, 0, 0, 0).rotate((0, 90, 0)).translate((-(d + 12) / 2, 12.5 + d / 2 + 2.2, 11)))
+    return b - somme(tr)
+
+
+def bague_endoscope(d=5.5, ext=8.0):
+    return cy(ext - 0.1, 20) - somme([cy(d + 0.3, 22, z0=-1), bo(1.2, ext, 22, 0, ext / 2, -1)])
+
+
 PIECES = {
+    "endoscope_collier": (collier_endoscopes, 1), "endoscope_pince": (pince_endoscope, 2), "endoscope_bague_5_5": (bague_endoscope, 2),
     "bride_pogo": (bride_pogo, 1), "platine_outil": (platine_outil, 3), "support_laser": (support_laser, 5),
     "bracelet": (bracelet, 1), "peinture_table_xy": (platine_xy, 1), "peinture_support_servo": (support_servo_xy, 2),
     "peinture_biellette": (biellette, 2), "peinture_porte_capteur": (porte_capteur_force, 1),
