@@ -334,7 +334,18 @@ def build_servo(jid: str, d, cfg: dict, body_in: int, body_out: int) -> Actuator
         notes="4 vis M3 + ecrous pour le servo, 4 vis M4 vers le poignet.")
     corps = fuse_all([box(a - 20.35, a + 20.35, -9.85, 9.85, -21, 15.5), box(a - 27.25, a + 27.25, -9.85, 9.85, 6, 8.5), cyl(6, 4.4, 15.5)])
     c.P("servo", "servo MG996R", -1, corps, kind="vitamin", category="motor", notes="Pignons metal, rotation ~180 deg.")
-    z0, L, od = 20.0, 25.0, 42.0
+    # le roulement porte la charge : le servo ne fait que tourner
+    Bg = BEARINGS["6805"]
+    pont = box(-23, 23, -21, 21, 16.5, 24.5)
+    piliers = [box(-23, 23, s0, s1, 6, 17) for s0, s1 in ((12, 21), (-21, -12))]
+    pont = cut_all(fuse_all([pont] + piliers), [cyl(Bg[1] + c.press, Bg[2] + 0.01, 17.5), cyl(Bg[1] - 3, 3, 16)])
+    c.P("pont_roulement", "pont du roulement de sortie", -1, pont, category="housing", print_up=(0, 0, -1),
+        notes="Se visse sur le support. Le roulement 6805 reprend la charge d'outil.")
+    c.bearing_vit("6805", "J6", 17.5, body=-1)
+    z0, L, od = 25.0, 30.0, 42.0
+    moyeu = cyl(Bg[0] - c.press * 0.5, 8.5, 16.5)
+    c.P("moyeu_sortie", "moyeu de sortie (sur palonnier)", body_out, moyeu.cut(cyl(3.4, 12, 15)), category="flange", print_up=(0, 0, 1),
+        anim={"type": "spin", "center": [0, 0], "k": [1.0, 0.0]})
     out_pts = bolt_circle(4, 15.0, 45)
     disque = cut_all(cyl(od, L - z0, z0), holes(out_pts, SCREW["M3"]["clear"], z0 - 1, L - z0 + 2) + [cyl(3.4, L - z0 + 2, z0 - 1)])
     c.P("disque_sortie", "disque de sortie (sur palonnier)", body_out, disque, category="flange", print_up=(0, 0, 1),

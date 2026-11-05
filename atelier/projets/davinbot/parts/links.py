@@ -102,9 +102,9 @@ def _noeuds_tubes(s: LinkSpec, cfg: dict, cut: list) -> list[Part]:
     haut = fuse_all([shell.intersect(box(s.x0 - 1, s.x1 + 1, s.y0 - 1, s.y1 + 1, zb, s.z1 + 1)), box(s.x0, s.x1, s.y0, s.y1, zb, zb + w)] +
                     [cyl(bossage, prise, zb - prise, x, y) for x, y in pos])
     jeu, cable = cfg["tol"], cfg["cable_bore"]
-    R = 1.7                                             # M3 : 2 vis traversantes par bout de tube, l'effort se repartit dans la paroi fine
+    R = 1.7                                             # M3 : 3 niveaux de vis par bout de tube, l'effort se repartit dans la paroi fine
     vis1 = lambda x, y, z: box(x - bossage, x + bossage, y - R, y + R, z - R, z + R)
-    vis = lambda x, y, z: vis1(x, y, z - prise / 6).union(vis1(x, y, z + prise / 6))
+    vis = lambda x, y, z: vis1(x, y, z - prise / 4).union(vis1(x, y, z)).union(vis1(x, y, z + prise / 4))
     tb = [cyl(d + jeu, prise + 1, za, x, y) for x, y in pos] + [vis(x, y, za + prise / 2) for x, y in pos] + [cyl(cable, w + 2, za - w - 1, xc, yc)]
     th = [cyl(d + jeu, prise + 1, zb - prise - 1 + 1, x, y) for x, y in pos] + [vis(x, y, zb - prise / 2) for x, y in pos] + [cyl(cable, w + 2, zb - 1, *(s.cable_haut or (xc, yc)))]
     bas, haut = cut_all(bas, cut + tb), cut_all(haut, cut + th)
@@ -116,9 +116,9 @@ def _noeuds_tubes(s: LinkSpec, cfg: dict, cut: list) -> list[Part]:
         parts.append(Part(id=f"{s.key}_tube_{i + 1}", name=f"{s.label} - tube alu d{d:g} x {L:.0f} mm", group=s.key, body=s.body, shape=t, kind="metal", material="alu", category="structure",
                           notes=f"Tube alu d{d:g} ep{e:g}, a couper a {L:.0f} mm, ebavurer. Bouchons imprimes aux 2 bouts, M3 x 12 des 2 cotes dans les ecrous du bouchon (ou M3 x 35 traversante + ecrou)."))
         for nom, z0 in (("b", za), ("h", zb - prise)):
-            b = cut_all(cyl(d - 2 * e - 0.2, prise, z0, x, y), [box(x - d, x + d, y - R, y + R, z0 + prise / 2 + k - R, z0 + prise / 2 + k + R) for k in (-prise / 6, prise / 6)] +
-                        [box(x + sg * 6 - 1.35, x + sg * 6 + 1.35, y - 3.2, y + d, z0 + prise / 2 + k - 2.85, z0 + prise / 2 + k + 2.85) for k in (-prise / 6, prise / 6) for sg in (-1, 1)])   # logements d'ecrous M3, ouverts sur le cote
-            parts.append(Part(id=f"{s.key}_bouchon_{i + 1}{nom}", name=f"{s.label} - bouchon de tube", group=s.key, body=s.body, shape=b, category="structure", print_up=(0, 0, 1), notes="Glisser 4 ecrous M3 dans les logements avant de l'enfoncer. Evite aussi d'ecraser le tube."))
+            b = cut_all(cyl(d - 2 * e - 0.2, prise, z0, x, y), [box(x - d, x + d, y - R, y + R, z0 + prise / 2 + k - R, z0 + prise / 2 + k + R) for k in (-prise / 4, 0, prise / 4)] +
+                        [box(x + sg * 6 - 1.35, x + sg * 6 + 1.35, y - 3.2, y + d, z0 + prise / 2 + k - 2.85, z0 + prise / 2 + k + 2.85) for k in (-prise / 4, 0, prise / 4) for sg in (-1, 1)])   # logements d'ecrous M3, ouverts sur le cote
+            parts.append(Part(id=f"{s.key}_bouchon_{i + 1}{nom}", name=f"{s.label} - bouchon de tube", group=s.key, body=s.body, shape=b, category="structure", print_up=(0, 0, 1), notes="Glisser 6 ecrous M3 dans les logements avant de l'enfoncer. Evite aussi d'ecraser le tube."))
     return parts
 
 
