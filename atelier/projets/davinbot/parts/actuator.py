@@ -95,6 +95,10 @@ class _Common:
         self.z1 = self.t_r + self.fw + 2.0
         self.z2 = self.z1 + T_DIAPH
         self.m_body = cfg["motor_body"]
+        self.double = bool(cfg.get("j2_double")) and jid == "J2"
+        if self.double:
+            self.motor_xs = [self.a, -self.a]
+            self.motors = [{"x": self.a, "tag": ""}, {"x": -self.a, "tag": "M2"}]
         self.parts: list[Part] = []
         self.vit: list = []
 
@@ -129,7 +133,10 @@ class _Common:
         r_pin = pre.m * pre.zm / 2 + pre.m + 1.5
         heads = [circle2d(SCREW["M3"]["head"] + 1.2, self.a + sx * 15.5, sy * 15.5)
                  for sx in (-1, 1) for sy in (-1, 1)]
-        return outline_hull(circle2d(2 * r_in), circle2d(2 * r_pin, self.a, 0), *heads)
+        out = outline_hull(circle2d(2 * r_in), circle2d(2 * r_pin, self.a, 0), *heads)
+        if self.double:                                 # second pignon, en miroir de l'autre cote de la roue
+            out = unary_union([out, affinity.scale(out, -1, 1, origin=(0, 0))]).simplify(0.05)
+        return out
 
     def motor_pts(self, ax=None):
         ax = self.a if ax is None else ax
@@ -163,19 +170,21 @@ class _Common:
         A, t_r, z1 = self.A, self.t_r, self.z1
         chamber = self.chamber_outline()
         sq = rect2d(self.a, 0, self.m_body, self.m_body)
-        outline = outline_hull(circle2d(OD), sq, chamber.buffer(self.wall + 0.8))
+        sqs = [rect2d(x, 0, self.m_body, self.m_body) for x in getattr(self, "motor_xs", [self.a])]
+        outline = outline_hull(circle2d(OD), sq, *sqs, chamber.buffer(self.wall + 0.8))
         body = extrude_shapely(outline, z1)
         mount = self.choose_mount_pts(Rb, chamber)
         cut = [
             extrude_shapely(chamber, z1 - t_r + 1, t_r),                        # chambre
             cyl(A[1] + self.press, A[2] + 0.01, t_r - A[2]),                    # roulement A
             cyl((A[0] + A[1]) / 2 + 1.0, t_r, -1),                              # levre A
-            cyl(22.0 + 2 * self.tol, 2.2 + 1, -1, self.a, 0),                   # centrage NEMA
-            cyl(9.0, t_r + 2, -1, self.a, 0),                                   # passage arbre
         ]
-        for x, y in self.motor_pts():
-            cut.append(cyl(SCREW["M3"]["clear"], t_r + 2, -1, x, y))
-            cut.append(cyl(SCREW["M3"]["head"] + 0.4, 3.6, t_r - 3.5, x, y))
+        for ax in getattr(self, "motor_xs", [self.a]):
+            cut += [cyl(22.0 + 2 * self.tol, 2.2 + 1, -1, ax, 0),               # centrage NEMA
+                    cyl(9.0, t_r + 2, -1, ax, 0)]                               # passage arbre
+            for x, y in self.motor_pts(ax):
+                cut.append(cyl(SCREW["M3"]["clear"], t_r + 2, -1, x, y))
+                cut.append(cyl(SCREW["M3"]["head"] + 0.4, 3.6, t_r - 3.5, x, y))
         cut += holes(mount, SCREW["M4"]["clear"], -1, z1 + 2)
         shape = cut_all(body, cut)
         self.P("flasque_arriere", "flasque arriere + chambre d'entree", -1, shape,
@@ -183,6 +192,20 @@ class _Common:
                notes="Imprimer face arriere sur le plateau. Vis M3x8 tete cylindrique "
                      "(fixation NEMA 17) posees depuis la chambre.")
         return outline, mount, chamber
+
+    def second_pinion(self, g_in: Polygon):
+        """Pignon du 2e moteur (J2) : meme roue d'entree, en face du premier, phase calculee pour engrener."""
+        pre, t_r = self.pre, self.t_r
+        g0 = Polygon(external_gear(pre.zm, pre.m, self.tol, self.pa, flank_pts=12, arc_pts=5))
+        def moving(ph):
+            return affinity.translate(affinity.rotate(g0, ph, origin=(0, 0), use_radians=True), -self.a, 0)
+        g = moving(best_phase(g_in, moving, 2 * math.pi / pre.zm))
+        dbore = circle2d(5.0 + self.tol, -self.a, 0).difference(rect2d(-self.a + 2.25 + self.tol / 2 + 5, 0, 10, 10))
+        shape = extrude_shapely(g.difference(dbore), self.fw, t_r + 0.2)
+        grub = cq.Workplane("YZ", origin=(-self.a, 0, t_r + 0.2 + self.fw / 2)).circle(1.25).extrude(20)
+        self.P("pignon_moteur_2", f"pignon moteur 2 Z{pre.zm} m{pre.m}", -1, shape.cut(grub), category="gear",
+               anim={"type": "spin", "center": [-self.a, 0], "k": [1.0, 0.0]},
+               notes="Meme pignon que le moteur 1. Les 2 moteurs recoivent les memes ordres de pas : verifier leur sens.")
 
     def motor_pinion(self, g_m: Polygon):
         pre, t_r = self.pre, self.t_r
@@ -219,11 +242,12 @@ class _Common:
         shaft = cyl(5.0, 22.0, 2.0, ax, 0).cut(box(ax + 2.0, ax + 3, -3, 3, 1, 25))
         motor = fuse_all([box(ax - mb / 2, ax + mb / 2, -mb / 2, mb / 2, -ml, 0),
                           cyl(22.0, 2.0, 0, ax, 0), shaft])
-        self.P(f"nema17{sfx}", f"NEMA 17 17HS19-2004S{lab}", -1, motor, kind="vitamin",
+        self.P(f"nema17{sfx}", f"NEMA 17{lab}", -1, motor, kind="vitamin",
                category="motor")
-        mks = box(ax - 19.5, ax + 19.5, -15.75, 15.75, -ml - 9.5, -ml)
-        self.P(f"mks{sfx}", f"MKS SERVO42C{lab} (carte)", -1, mks, kind="vitamin",
-               category="electronics")
+        if not cfg.get("pilote_deporte"):
+            mks = box(ax - 19.5, ax + 19.5, -15.75, 15.75, -ml - 9.5, -ml)
+            self.P(f"mks{sfx}", f"MKS SERVO42C{lab} (carte)", -1, mks, kind="vitamin",
+                   category="electronics")
         ko = cyl(cfg["mks_d"], cfg["mks_len"], -ml - cfg["mks_len"], ax, 0)
         self.P(f"zone_mks{sfx}", f"zone reservee MKS{lab} {cfg['mks_len']:.0f} mm", -1, ko,
                kind="keepout", category="keepout")
@@ -297,6 +321,35 @@ class _Common:
 
 
 # =====================================================================================
+def build_servo(jid: str, d, cfg: dict, body_in: int, body_out: int) -> ActuatorBuild:
+    """Servo MG996R (ou format standard) : l'axe de sortie sur J6, le corps decale. Pas de canal central : les cables contournent."""
+    c = _Common(jid, d, cfg)
+    a = 10.0
+    plaque = box(a - 31, a + 31, -21, 21, 0, 6)
+    mount = [(a + sx * 26, sy * 16) for sx in (-1, 1) for sy in (-1, 1)]
+    trous = [box(a - 20.6, a + 20.6, -10.1, 10.1, -1, 7)]
+    trous += [cyl(SCREW["M3"]["clear"], 8, -1, a + sx * 24.75, sy * 5) for sx in (-1, 1) for sy in (-1, 1)]
+    trous += holes(mount, SCREW["M4"]["clear"], -1, 8)
+    c.P("support_servo", "support du servo", -1, cut_all(plaque, trous), category="housing", print_up=(0, 0, 1),
+        notes="4 vis M3 + ecrous pour le servo, 4 vis M4 vers le poignet.")
+    corps = fuse_all([box(a - 20.35, a + 20.35, -9.85, 9.85, -21, 15.5), box(a - 27.25, a + 27.25, -9.85, 9.85, 6, 8.5), cyl(6, 4.4, 15.5)])
+    c.P("servo", "servo MG996R", -1, corps, kind="vitamin", category="motor", notes="Pignons metal, rotation ~180 deg.")
+    z0, L, od = 20.0, 25.0, 42.0
+    out_pts = bolt_circle(4, 15.0, 45)
+    disque = cut_all(cyl(od, L - z0, z0), holes(out_pts, SCREW["M3"]["clear"], z0 - 1, L - z0 + 2) + [cyl(3.4, L - z0 + 2, z0 - 1)])
+    c.P("disque_sortie", "disque de sortie (sur palonnier)", body_out, disque, category="flange", print_up=(0, 0, 1),
+        anim={"type": "spin", "center": [0, 0], "k": [1.0, 0.0]}, notes="Vis sur le palonnier rond du servo.")
+    outline = rect2d(a, 0, 62, 42)
+    b = ActuatorBuild(jid=jid, kind="servo", design=d, parts=c.parts, L=L, OD=od, a=a, rear_outline=outline, mount_pts=mount,
+                      out_pts=out_pts, out_d=od, motor_square=rect2d(a, 0, 41, 20), keepout={}, vitamins=[], stack=dict(z5=L, L=L),
+                      motors=[{"x": a, "tag": ""}])
+    for p in b.parts:
+        if p.body == -1:
+            p.body = body_in
+    b.info = {"L_mm": L, "OD_mm": od, "entraxe_moteur_mm": a, "rapport_total": 1, "boulons_traversants_M4": 4, "vis_M4_longueur_min": 16}
+    return b
+
+
 def build_cycloid(jid: str, d, cfg: dict, body_in: int, body_out: int) -> ActuatorBuild:
     c = _Common(jid, d, cfg)
     c.body_out = body_out
@@ -317,6 +370,9 @@ def build_cycloid(jid: str, d, cfg: dict, body_in: int, body_out: int) -> Actuat
     c.motor_pinion(g_m)
     c.input_gear(g_in)
     keepout = c.motor_and_keepout()
+    if c.double:
+        c.second_pinion(g_in)
+        c.motor_and_keepout(-c.a, "M2")
 
     # ---- carter : cloison + couronne de pions
     diaph_hole = max(2 * (E[0] / 2 + d.e) + 1.5, E[0] - 0.5 + 1.5)
@@ -325,6 +381,8 @@ def build_cycloid(jid: str, d, cfg: dict, body_in: int, body_out: int) -> Actuat
     r_bore = max(d.R, d.R - d.rp + 2 * d.e + 0.6)     # pions tenus aux 2 bouts si > R
     cut = [cyl(2 * r_bore, z4 - z2 + 1, z2), cyl(diaph_hole, T_DIAPH + 2, c.z1 - 1),
            cyl(8.0, T_DIAPH + 2, c.z1 - 1, c.a, 0)]
+    if c.double:
+        cut.append(cyl(8.0, T_DIAPH + 2, c.z1 - 1, -c.a, 0))
     cut += holes(pin_pts, 2 * d.rp - 0.05, z2 - 3.5, z4 - z2 + 4.5)
     cut += holes(mount, SCREW["M4"]["clear"], c.z1 - 1, z4 - c.z1 + 2)
     c.P("carter", f"carter cycloidal ({d.N} pions)", -1, cut_all(body, cut), category="housing",

@@ -14,7 +14,7 @@ import numpy as np
 from .cad.util import (SCREW, box, cyl, tube, apply_T, fuse_all, cut_all, frame_z_to, T as Tm,
                        rot_matrix, bbox, union_all)
 from .gears.solver import design_all
-from .parts.actuator import build_cycloid, build_planetary
+from .parts.actuator import build_servo, build_cycloid, build_planetary
 from .parts.dsdm import build_dsdm
 from .parts.base import build_socle, build_sensor_box, build_rack
 from .parts.effector import build_head
@@ -85,6 +85,8 @@ def build_assembly(cfg: dict, progress=lambda msg, f=None: None) -> Assembly:
     # ------------------------------------------------------------ actionneurs
     def build(j, bi, bo):
         d = D[j]
+        if j == "J6" and cfg.get("j6_servo"):
+            return build_servo(j, d, cfg, bi, bo)
         if d.kind == "dsdm":
             return build_dsdm(j, d, cfg, bi, bo)
         if d.kind == "cycloidal":
@@ -94,7 +96,7 @@ def build_assembly(cfg: dict, progress=lambda msg, f=None: None) -> Assembly:
     cache = {}
     for j, (bi, bo) in zip(["J1", "J2", "J3", "J4", "J5", "J6"],
                            [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6)]):
-        key = id(D[j])
+        key = id(D[j]) if not (j == "J6" and cfg.get("j6_servo")) else "servo"
         if key in cache:
             src_j, src_bi, src_bo = cache[key]
             asm.acts[j] = _clone_act(asm.acts[src_j], j, bi, bo, src_bi, src_bo)
@@ -346,6 +348,11 @@ def build_assembly(cfg: dict, progress=lambda msg, f=None: None) -> Assembly:
     # ------------------------------------------------------------ tete + outils
     progress("Tete de changement d'outil active...")
     hparts, g = build_head(cfg, A["J6"], 6)
+    if cfg.get("j6_servo"):                             # bride legere a la place du changeur d'outil (g garde les cotes des outils du rack)
+        L6, d6 = A["J6"].L, A["J6"].out_d
+        bride = cut_all(cyl(d6, 4, L6), [cyl(SCREW["M3"]["clear"], 6, L6 - 1, x, y) for x, y in A["J6"].out_pts])
+        hparts = [Part(id="TETE_bride", name="Bride d'outil legere", group="TETE", body=6, shape=bride, category="flange", print_up=(0, 0, 1),
+                       notes="Pour GoPro ou petit outil.")]
     for p in hparts:
         p.T = TJ6
     asm.parts += hparts
@@ -359,7 +366,7 @@ def build_assembly(cfg: dict, progress=lambda msg, f=None: None) -> Assembly:
     rack_origin = (0.0, -(cfg["rack_r"] + 60))
     rparts, slots = build_rack(cfg, g, None, 5)
     asm.parts += rparts
-    place = {"P": (tool_origin, 6),
+    place = {"P": ((Tm(None, (rack_origin[0] - 560, rack_origin[1] + 40, 0)), 0) if cfg.get("j6_servo") else (tool_origin, 6)),
              "P_spares": (Tm(None, (rack_origin[0] - 420, rack_origin[1] + 40, 0)), 0)}
     # outils suspendus face en haut : repere outil retourne (rotation 180 deg autour de X),
     # la gorge [3, 6] mm (repere outil) encadre la fourche (dessus a zf)
@@ -378,7 +385,8 @@ def build_assembly(cfg: dict, progress=lambda msg, f=None: None) -> Assembly:
 
     # ------------------------------------------------------------ support camera
     progress("Support camera endoscopique...")
-    asm.parts += _camera_mount(cfg, wr, TJ6, A["J6"], g, y_c5)
+    if not cfg.get("j6_servo"):
+        asm.parts += _camera_mount(cfg, wr, TJ6, A["J6"], g, y_c5)
 
     # ------------------------------------------------------------ articulations
     lim = {"J1": 170, "J2": 110, "J3": 140, "J4": 180, "J5": 115, "J6": 270}
@@ -409,6 +417,8 @@ def build_assembly(cfg: dict, progress=lambda msg, f=None: None) -> Assembly:
         i = asm.cable_path.index((-xc, y_o2 + T3 / 2, z2 + 20))
         asm.cable_path[i - 1:i + 3] = [(0, ycab, z2 + 8), (0, ycab, arm.tube_zone[1] - cfg["tube_prise"] - 10), (*arm.cable_haut, arm.tube_zone[1] - cfg["tube_prise"] - 8),
                                         (*arm.cable_haut, z3), (-xc, y_o2 + T3 / 2, z3), (0, y_o2 + T3 / 2, z3)]   # sort du triangle a cote du moteur J3
+    if cfg.get("j6_servo"):                             # les cables du bout s'arretent sous le servo, puis boucle libre
+        asm.cable_path[-1] = (0, y_c5, z6r - 28)
     asm.cable_path = [tuple(float(v) for v in p) for p in asm.cable_path]
 
     asm.info = {

@@ -21,7 +21,7 @@ PARAMS: list[tuple] = [
     ("Moteurs", "motor_len", "NEMA 17 : longueur (17HS19 = 48)", 48, 34, 60, 0.5, "mm", "float"),
     ("Moteurs", "motor_torque", "Couple de maintien", 0.59, 0.2, 1.0, 0.01, "N.m", "float"),
     ("Moteurs", "motor_torque_derate", "Couple utile (fraction du maintien)", 0.6, 0.3, 1.0, 0.05, "", "float"),
-    ("Moteurs", "mks_len", "Degagement arriere MKS SERVO42C (min 25)", 30, 25, 60, 1, "mm", "float"),
+    ("Moteurs", "mks_len", "Degagement arriere moteur (MKS : min 25)", 30, 10, 60, 1, "mm", "float"),
     ("Moteurs", "mks_d", "Diametre du degagement MKS", 52, 44, 70, 1, "mm", "float"),
     # --- Reducteurs ---
     ("Reducteurs", "cable_bore", "Canal cables central (min 12)", 14, 12, 24, 0.5, "mm", "float"),
@@ -35,6 +35,10 @@ PARAMS: list[tuple] = [
     ("Reducteurs", "j2_ratio_max", "Cycloidal J2 seul : rapport max (0 = comme J1)", 0, 0, 140, 1, ":1", "float"),
     ("Reducteurs", "j3_ratio_max", "Cycloidal J3 : rapport max (0 = planetaire)", 0, 0, 100, 1, ":1", "float"),
     ("Reducteurs", "j3_ratio_min", "Cycloidal J3 : rapport min", 0, 0, 100, 1, ":1", "float"),
+    ("Moteurs", "pilote_deporte", "Pilotes deportes (TMC2209, pas de MKS au dos des moteurs)", False, None, None, None, "", "bool"),
+    ("Moteurs", "motor_torque_leger", "Couple utile des moteurs legers J1, J4, J5 (0 = comme les autres)", 0, 0, 1.0, 0.01, "N.m", "float"),
+    ("Reducteurs", "j2_double", "J2 : 2 moteurs sur le meme reducteur", False, None, None, None, "", "bool"),
+    ("Reducteurs", "j6_servo", "J6 : servo MG996R et bride legere (sans changeur d'outil)", False, None, None, None, "", "bool"),
     ("Tubes", "tube_segments", "Bras et avant-bras en 3 tubes alu (triangle) + noeuds imprimes", False, None, None, None, "", "bool"),
     ("Tubes", "tube_d", "Tube : diametre exterieur", 20, 10, 40, 0.5, "mm", "float"),
     ("Tubes", "tube_ep", "Tube : epaisseur de paroi", 1, 0.5, 3, 0.1, "mm", "float"),
@@ -144,7 +148,7 @@ def normalize(cfg: dict | None) -> dict:
             out[key] = v
     # contraintes dures du cahier des charges
     out["cable_bore"] = max(12.0, out["cable_bore"])
-    out["mks_len"] = max(25.0, out["mks_len"])
+    out["mks_len"] = max(10.0 if out.get("pilote_deporte") else 25.0, out["mks_len"])
     for a, b in (("cyc_ratio_min", "cyc_ratio_max"), ("dsdm_m1_min", "dsdm_m1_max"),
                  ("dsdm_m2_min", "dsdm_m2_max"), ("pl5_ratio_min", "pl5_ratio_max"), ("pl3_ratio_min", "pl3_ratio_max"),
                  ("plw_ratio_min", "plw_ratio_max")):

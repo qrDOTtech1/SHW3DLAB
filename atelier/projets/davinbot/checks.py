@@ -297,7 +297,11 @@ def torque_analysis(asm, masses: dict, coms: dict) -> dict:
             if not entry["ok"]:
                 entry["recommandation"] = _reco(T_req, T_force if lock else min(T1, T2), d.i1, "M1")
         else:
-            T_av = tm * d.ratio * eta[d.kind]
+            act = asm.acts[j]
+            tmj = cfg["motor_torque_leger"] * cfg["motor_torque_derate"] if j in ("J1", "J4", "J5") and cfg.get("motor_torque_leger") else tm
+            T_av = tmj * d.ratio * eta[d.kind] * len(act.motors)
+            if act.kind == "servo":
+                T_av = 0.9                              # MG996R : couple continu prudent
             entry.update({"type": d.kind, "rapport": d.ratio, "couple_dispo_Nm": round(T_av, 2),
                           "vitesse_max_deg_s": round(rpm / d.ratio * 6, 1),
                           "marge": round(T_av / T_req, 2) if T_req > 0 else None})
