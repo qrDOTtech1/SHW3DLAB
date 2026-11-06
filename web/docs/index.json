@@ -1,4 +1,5 @@
 [
- {"projet": "SPEC-A Hardware Lab", "titre": "Câblage — ESP32-S3, moteurs, capteurs", "fichier": "cablage_hardware_lab.html"},
+ {"projet": "SPEC-A Hardware Lab", "titre": "Cablage ESP32-S3 (moteurs, capteurs, gyro, relais)", "fichier": "cablage_hardware_lab.html"},
+ {"projet": "SPEC-A Hardware Lab", "titre": "Montage du multiplicateur de vitesse", "fichier": "montage_multiplicateur.html"},
  {"projet": "Davinarm", "titre": "Missions du bras (40)", "fichier": "Davinarm_missions.html"}
 ]
