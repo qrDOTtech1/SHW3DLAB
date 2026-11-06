@@ -54,6 +54,7 @@ const rail = el(`<div id="at-rail">${MODULES.map(([t, i, n]) => `<button data-m=
   <button data-a="cotes" title="Cotes au clavier (N)"><i>&#8645;</i>Cotes</button>
   <button data-a="pinceau" title="Pinceau de modelage (B)"><i>&#9673;</i>Modeler</button>
   <button class="bas" data-a="cherche" title="Tout chercher (Ctrl+K)"><i>&#8981;</i>Chercher</button>
+  <button data-a="docs" title="Notices, schémas et montage de chaque projet"><i>&#128196;</i>Docs</button>
   <button data-a="tuto" title="Guide de l'atelier"><i>i</i>Tuto</button></div>`);
 document.body.appendChild(rail);
 function majRail() {
@@ -68,9 +69,25 @@ new MutationObserver(majRail).observe(document.querySelector('main'), { attribut
 rail.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.m) return aller(b.dataset.m);
-  ({ pieces: ouvrirPieces, design: ouvrirDesign, biblio: ouvrirBiblio, coupe: ouvrirCoupe, ia: ouvrirIA, cotes: ouvrirCotes, pinceau: ouvrirPinceau, cherche: ouvrirRecherche, tuto: () => lancerTuto() })[b.dataset.a]();
+  ({ pieces: ouvrirPieces, design: ouvrirDesign, biblio: ouvrirBiblio, coupe: ouvrirCoupe, ia: ouvrirIA, cotes: ouvrirCotes, pinceau: ouvrirPinceau, cherche: ouvrirRecherche, docs: ouvrirDocs, tuto: () => lancerTuto() })[b.dataset.a]();
 });
 majRail(); setTimeout(() => { if (document.querySelector('.tab.on')?.id === 'tab-creer') aller('c3d'); majRail(); }, 400);
+
+// ------------------------------------------------------------------ DOCS : notices et schemas par projet
+async function ouvrirDocs() {
+  document.getElementById('at-docs')?.remove();
+  let L = [];
+  try { L = await (await fetch('docs/index.json?t=' + Date.now())).json(); } catch (e) {}
+  const par = {};
+  L.forEach(d => (par[d.projet] = par[d.projet] || []).push(d));
+  const corps = Object.keys(par).length
+    ? Object.entries(par).map(([p, ds]) => `<div style="margin-bottom:12px"><div style="color:#ff6410;font-weight:600;margin-bottom:4px">${p}</div>`
+        + ds.map(d => `<a href="docs/${encodeURIComponent(d.fichier)}" target="_blank" style="display:block;padding:7px 10px;margin-bottom:4px;background:#14171d;border:1px solid #262c36;border-radius:7px;color:#e8eaee;text-decoration:none">&#128196; ${d.titre}</a>`).join('') + '</div>').join('')
+    : '<p style="color:#8a93a3">Aucune fiche pour l’instant. Elles arriveront ici au fil des projets.</p>';
+  const d = el(`<div class="at-flot" id="at-docs" style="width:340px;max-height:78vh;overflow:auto"><h3>Docs &amp; schémas <button class="at-x" title="Fermer">&times;</button></h3>${corps}</div>`);
+  d.querySelector('.at-x').onclick = () => d.remove();
+  document.body.appendChild(d);
+}
 
 // ------------------------------------------------------------------ RECHERCHE UNIVERSELLE
 function index() {
